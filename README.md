@@ -21,7 +21,7 @@ The first goal is not a full game. It is to test whether camera input feels imme
 - MediaPipe Tasks Vision
 - Vanilla JavaScript
 - PWA via vite-plugin-pwa
-- Target hosting: Cloudflare Pages
+- Cloudflare Workers Static Assets via Wrangler
 
 ## Local development
 
@@ -39,10 +39,44 @@ npm run build
 npm run preview
 ```
 
-Cloudflare Pages:
+## Cloudflare deployment
 
-- Build command: `npm run build`
-- Output directory: `dist`
+This project is configured for **Cloudflare Workers Static Assets** in `wrangler.jsonc`.
+
+Authenticate once:
+
+```bash
+npx wrangler login
+```
+
+Then deploy:
+
+```bash
+npm run deploy
+```
+
+Wrangler will publish the Vite `dist/` output to a Cloudflare `*.workers.dev` URL. Static asset requests are served directly by Cloudflare.
+
+For a Cloudflare-flavored local preview after building:
+
+```bash
+npm run cf:dev
+```
+
+### Codex + Cloudflare
+
+Cloudflare's current Codex setup supports a Cloudflare plugin with Skills and MCP access.
+
+Inside Codex:
+
+1. Run `/plugins`.
+2. Install the **Cloudflare** plugin.
+3. When a Cloudflare tool is first used, complete the OAuth flow in the browser.
+4. Run Codex from this repository root so it can see `wrangler.jsonc`.
+
+A useful first prompt is:
+
+> Inspect this Vite/PWA project and its wrangler.jsonc. Verify it is correctly configured as a static SPA on Cloudflare Workers, run the build, authenticate if needed, deploy it, then report the deployed URL and any issues. Do not add a Worker script unless this app actually needs server-side logic.
 
 ## Privacy direction
 
