@@ -160,6 +160,8 @@ cameraButton.addEventListener("click", async () => {
     message.textContent = "Ready. Keep one hand inside the camera frame.";
   } catch (error) {
     console.error(error);
+    input.stop();
+
     cameraButton.disabled = false;
     cameraButton.textContent = "Retry camera";
     cameraStatus.textContent = "CAMERA ERROR";
