@@ -23,22 +23,44 @@ function distance(a, b) {
 
 function normalizeGesture(result) {
   const landmarks = result?.landmarks?.[0];
-  if (landmarks?.length >= 9) {
+
+  if (landmarks?.length >= 10) {
+    const wrist = landmarks[0];
     const thumbTip = landmarks[4];
     const indexTip = landmarks[8];
+    const middleMcp = landmarks[9];
 
-    // Normalized-image threshold. Intentionally forgiving for the first prototype.
-    if (distance(thumbTip, indexTip) < 0.065) {
+    const handScale = distance(wrist, middleMcp);
+    const pinchDistance = distance(thumbTip, indexTip);
+
+    // Relative-to-hand-size threshold so PINCH behaves more consistently
+    // when the player moves closer to or farther from the camera.
+    if (handScale > 0.001 && pinchDistance / handScale < 0.3) {
       return "PINCH";
     }
   }
 
   const topGesture = result?.gestures?.[0]?.[0];
+
   if (!topGesture || topGesture.score < 0.55) {
     return "NONE";
   }
 
   return GESTURE_MAP[topGesture.categoryName] ?? "NONE";
+}
+
+async function createRecognizer(vision, delegate) {
+  return GestureRecognizer.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: MODEL_URL,
+      delegate
+    },
+    runningMode: "VIDEO",
+    numHands: 1,
+    minHandDetectionConfidence: 0.5,
+    minHandPresenceConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
 }
 
 export class HandInput {
@@ -61,20 +83,20 @@ export class HandInput {
   async start() {
     if (this.running) return;
 
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Camera API is not available in this browser.");
+    }
+
     this.onStatus("LOADING_MODEL");
 
     const vision = await FilesetResolver.forVisionTasks(WASM_ROOT);
-    this.recognizer = await GestureRecognizer.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: MODEL_URL,
-        delegate: "GPU"
-      },
-      runningMode: "VIDEO",
-      numHands: 1,
-      minHandDetectionConfidence: 0.5,
-      minHandPresenceConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
+
+    try {
+      this.recognizer = await createRecognizer(vision, "GPU");
+    } catch (gpuError) {
+      console.warn("MediaPipe GPU delegate failed; falling back to CPU.", gpuError);
+      this.recognizer = await createRecognizer(vision, "CPU");
+    }
 
     this.onStatus("REQUESTING_CAMERA");
 
@@ -118,9 +140,12 @@ export class HandInput {
         this.candidateFrames = 1;
       }
 
-      // Three-frame stability removes much of the classifier flicker while
-      // keeping the rhythm prototype responsive.
-      if (this.candidateFrames >= 3) {
+      // Three-frame stability removes classifier flicker without making
+      // rhythm input feel too sticky.
+      if (
+        this.candidateFrames >= 3 &&
+        this.currentGesture !== this.candidateGesture
+      ) {
         this.currentGesture = this.candidateGesture;
         this.onGesture(this.currentGesture, result);
       }
@@ -140,9 +165,14 @@ export class HandInput {
     this.stream?.getTracks().forEach((track) => track.stop());
     this.stream = null;
 
+    if (this.video) {
+      this.video.srcObject = null;
+    }
+
     this.recognizer?.close?.();
     this.recognizer = null;
 
+    this.lastVideoTime = -1;
     this.currentGesture = "NONE";
     this.candidateGesture = "NONE";
     this.candidateFrames = 0;
