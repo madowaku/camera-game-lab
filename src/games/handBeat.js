@@ -24,7 +24,7 @@ const SEQUENCE = [
   "PINCH"
 ];
 
-const BEAT_MS = 850;
+const BEAT_MS = 920;
 
 export class HandBeat {
   constructor({
@@ -57,8 +57,14 @@ export class HandBeat {
   async start() {
     this.stopTimers();
 
-    this.audio ??= new AudioContext();
-    if (this.audio.state === "suspended") {
+    const AudioContextCtor =
+      window.AudioContext ?? window.webkitAudioContext ?? null;
+
+    if (!this.audio && AudioContextCtor) {
+      this.audio = new AudioContextCtor();
+    }
+
+    if (this.audio?.state === "suspended") {
       await this.audio.resume();
     }
 
@@ -119,10 +125,10 @@ export class HandBeat {
     let grade = "HIT";
     let points = 50;
 
-    if (delta < 120) {
+    if (delta < 130) {
       grade = "PERFECT";
       points = 100;
-    } else if (delta < 240) {
+    } else if (delta < 280) {
       grade = "GOOD";
       points = 70;
     }
