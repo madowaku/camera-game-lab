@@ -1,0 +1,18 @@
+{
+  "name": "camera-game-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.0.1"
+  },
+  "devDependencies": {
+    "vite": "8.3.1",
+    "vite-plugin-pwa": "1.3.0"
+  }
+}
