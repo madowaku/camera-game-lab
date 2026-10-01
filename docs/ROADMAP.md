@@ -42,6 +42,10 @@ Core test:
 
 - face / mouth-open state
 - binary decision under time pressure
+- open your mouth for food and keep it closed for non-food items
+- 12 randomized decisions in a 15-second run
+
+Input note: calibrate a relaxed, closed-mouth baseline before starting. Missing face tracking must not count as a closed-mouth choice.
 
 Question: is opening your mouth intrinsically funny and readable enough to sustain a short-form game?
 
@@ -162,3 +166,14 @@ Normalized per-player state should include:
 - PLAYER_LOST / PLAYER_RETURNED
 
 Important: stable identity tracking is part of the game-feel foundation. Do not assign P1/P2 only by sorting X every frame.
+
+## DUO implementation status
+
+Implementation order: shared DUO INPUT → TINY BOT DUEL → camera playtest gate
+→ FACE RACER → ZOMBIE DUO → SKY DUEL.
+
+The landscape shell, stable P1/P2 tracker, per-player calibration, normalized
+face/mouth state, keyboard/touch fallback, local metrics and EXP-020 duel are
+implemented. EXP-021–023 wait for the five-round physical camera gate; synthetic
+tracking tests and fallback rounds do not satisfy it. Current evidence and
+remaining physical checks are in [DUO_ARCADE_PROGRESS.md](DUO_ARCADE_PROGRESS.md).

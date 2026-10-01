@@ -13,7 +13,7 @@ export default defineConfig({
         theme_color: "#0b0d10",
         background_color: "#0b0d10",
         display: "standalone",
-        orientation: "portrait",
+        orientation: "any",
         icons: [
           {
             src: "/icon.svg",

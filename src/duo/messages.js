@@ -1,0 +1,60 @@
+const messages = {
+  ja: {
+    tinyBot: "TINY BOT DUEL", tinyBotLead: "顔で動け。口で撃て。",
+    faceRacer: "FACE RACER", faceRacerLead: "顔を傾けて走れ。",
+    zombieDuo: "ZOMBIE DUO", zombieDuoLead: "二人で30秒、生き残れ。",
+    skyDuel: "SKY DUEL", skyDuelLead: "一人が飛ばし、一人が撃つ。",
+    gate: "準備中 · TINY BOT DUEL の実機検証後に追加",
+    privacy: "このゲームはインカメラを使います。映像は保存・送信しません。",
+    camera: "二人のカメラを起動", fallback: "キー／タッチで遊ぶ", cameraMode: "カメラ入力に戻る",
+    loading: "カメラを準備中…", error: "カメラを起動できません。許可設定を確認するか、キー／タッチで遊べます。",
+    off: "カメラ停止中", ready: "二人とも準備OK", calibration: "二人で顔を映し、口を閉じて正面を向いてね。",
+    stable: "そのままキープ · 校正 {progress}%", left: "P1 · 最初は画面左", right: "P2 · 最初は画面右",
+    waiting: "顔を待っています", tracked: "顔を認識中", missing: "顔が見つかりません", open: "発射", closed: "口を閉じて待機",
+    start: "30秒対戦を開始", countdown: "まもなく対戦", playing: "相手をリングの外へ押し出そう！",
+    paused: "一時停止", lost: "{players} の顔を待っています", timeout: "顔が戻らないときは、再校正かキー／タッチで再開できます。",
+    pause: "一時停止", resume: "再開", recalibrate: "再校正", retry: "もう一度対戦", result: "対戦結果",
+    exit: "ラボに戻る",
+    winner: "P{player} の勝ち！", draw: "引き分け！", ringOut: "リングアウト", time: "30秒終了",
+    shots: "発射 {p1} / {p2} · ヒット {h1} / {h2}", seconds: "残り {seconds}秒",
+    keyboard: "P1: A / D で移動、W / Space で発射。P2: ← / → で移動、↑ / Enter で発射。押し直すと次の弾。",
+    touch: "左右を押して移動、● を押して発射。", controls: "P{player} の操作", moveLeft: "左へ", moveRight: "右へ", fire: "発射",
+    sourceCamera: "二人カメラ", sourceFallback: "キー／タッチ入力", debug: "入力デバッグ", metrics: "端末内のプレイ記録",
+    metricsText: "入力: {source} · 顔ロスト {loss} · ID入替疑い {swaps} · 口イベント {p1} / {p2} · 推論 {fps} FPS · 再戦 {rematch}",
+    playtestStats: "対戦 {duration}秒 · 復帰 {recoveries} · 最低推論 {minimumFps} FPS",
+    exportRecords: "プレイ記録をJSONで保存",
+    localOnly: "記録はこのブラウザー内だけに保存。実機検証は二人で5ラウンド。",
+    rotate: "横向きにすると二人で遊びやすくなります。", arena: "TINY BOT DUEL 対戦リング"
+  },
+  en: {
+    tinyBot: "TINY BOT DUEL", tinyBotLead: "Move with your face. Fire with your mouth.",
+    faceRacer: "FACE RACER", faceRacerLead: "Tilt to steer.",
+    zombieDuo: "ZOMBIE DUO", zombieDuoLead: "Survive together for 30 seconds.",
+    skyDuel: "SKY DUEL", skyDuelLead: "One flies. One fires.",
+    gate: "Coming after TINY BOT DUEL camera playtests",
+    privacy: "This game uses your front camera. Video is not stored or uploaded.",
+    camera: "Enable two-player camera", fallback: "Use keyboard / touch", cameraMode: "Use camera input",
+    loading: "Preparing camera…", error: "Camera could not start. Check permission or play with keyboard / touch.",
+    off: "CAMERA OFF", ready: "BOTH PLAYERS READY", calibration: "Both players: face the camera and close your mouths.",
+    stable: "Hold still · calibrating {progress}%", left: "P1 · Start on screen-left", right: "P2 · Start on screen-right",
+    waiting: "Waiting for face", tracked: "Face tracked", missing: "Face missing", open: "FIRE", closed: "MOUTH CLOSED",
+    start: "Start 30-second duel", countdown: "GET READY", playing: "Push your opponent out of the ring!",
+    paused: "PAUSED", lost: "Waiting for {players}", timeout: "If a face stays missing, recalibrate or switch to keyboard / touch.",
+    pause: "Pause", resume: "Resume", recalibrate: "Recalibrate", retry: "Rematch", result: "ROUND RESULT",
+    exit: "Back to lab",
+    winner: "P{player} WINS!", draw: "DRAW!", ringOut: "RING OUT", time: "TIME UP",
+    shots: "Shots {p1} / {p2} · Hits {h1} / {h2}", seconds: "{seconds}s left",
+    keyboard: "P1: A / D to move, W / Space to fire. P2: ← / → to move, ↑ / Enter to fire. Release and press again for each shot.",
+    touch: "Hold an arrow to move. Tap ● to fire.", controls: "P{player} controls", moveLeft: "Move left", moveRight: "Move right", fire: "Fire",
+    sourceCamera: "TWO-PLAYER CAMERA", sourceFallback: "KEYBOARD / TOUCH", debug: "Input debug", metrics: "Local playtest record",
+    metricsText: "Input: {source} · Losses {loss} · Suspected swaps {swaps} · Mouth events {p1} / {p2} · Inference {fps} FPS · Rematch {rematch}",
+    playtestStats: "Round {duration}s · Recoveries {recoveries} · Lowest inference {minimumFps} FPS",
+    exportRecords: "Save playtest records as JSON",
+    localOnly: "Saved only in this browser. Camera validation needs two people playing five rounds.",
+    rotate: "Turn your phone sideways for two-player play.", arena: "TINY BOT DUEL arena"
+  }
+};
+
+export function translateDuo(locale, key, values = {}) {
+  return (messages[locale]?.[key] ?? messages.en[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""));
+}

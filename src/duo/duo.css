@@ -1,0 +1,87 @@
+.lab--duo { width: min(100%, 1360px); }
+.lab--duo h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+.duo-catalog { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.duo-catalog > div { border: 1px solid #293443; border-radius: 12px; padding: 12px; }
+.duo-catalog__current { background: #14352f; border-color: #46998b !important; }
+.duo-catalog__soon { opacity: 0.68; }
+.duo-catalog span { display: block; color: #91a5bc; font-size: 0.65rem; letter-spacing: 0.12em; }
+.duo-catalog strong { display: block; margin-top: 4px; font-size: 0.9rem; }
+.duo-catalog p { margin: 6px 0 0; font-size: 0.78rem; line-height: 1.5; }
+.duo-catalog small { display: block; margin-top: 6px; color: #99a4b5; font-size: 0.64rem; line-height: 1.4; }
+.duo-stage { position: relative; overflow: hidden; isolation: isolate; width: 100%; aspect-ratio: 16 / 7; border: 1px solid #33485b; border-radius: 18px; background: radial-gradient(ellipse at 50% 55%, #1d3246, #0c1522 80%); }
+.duo-camera { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); opacity: 0.45; }
+.duo-shade { position: absolute; inset: 0; background: linear-gradient(180deg, #0b1622aa, #0b162259 30%, #0b1622dd 95%); }
+.duo-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.duo-hud { position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: center; gap: 16px; font-size: 0.72rem; color: #adbed5; }
+.duo-clock { color: white; font-variant-numeric: tabular-nums; }
+.duo-player { position: absolute; top: 45px; display: grid; gap: 5px; max-width: 31%; padding: 10px 12px; border: 1px solid #65f4dd59; border-radius: 12px; background: #0c1d29c9; font-size: 0.76rem; color: #65f4dd; }
+.duo-player--1 { left: 14px; }
+.duo-player--2 { right: 14px; color: #ffafca; border-color: #ffafca59; }
+.duo-player__state { color: #bac9d9; font-size: 0.65rem; }
+.duo-lean { position: relative; height: 4px; background: #5b769648; border-radius: 4px; }
+.duo-lean::after { position: absolute; left: 50%; top: -2px; width: 1px; height: 8px; background: #adc1cc; content: ""; }
+.duo-lean i { position: absolute; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; transform: translateX(-50%); }
+.duo-player[data-present="false"] { border-style: dashed; }
+.duo-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; background: #09131dd1; backdrop-filter: blur(3px); }
+.duo-overlay__label { margin: 0 0 6px; color: #65f4dd; letter-spacing: 0.15em; font-size: 0.7rem; font-weight: 800; }
+.duo-overlay__title { max-width: 95%; font-size: clamp(1.4rem, 4vw, 3rem); line-height: 1.1; }
+.duo-overlay__detail { max-width: 34rem; margin: 12px 0 0; color: #aabbcf; font-size: 0.86rem; line-height: 1.5; }
+.duo-controls { display: flex; justify-content: space-between; gap: 24px; margin-top: 10px; }
+.duo-pad { display: flex; align-items: center; gap: 8px; color: #65f4dd; }
+.duo-pad[data-player="2"] { color: #ffafca; }
+.duo-pad button { min-width: 54px; min-height: 46px; border: 1px solid currentColor; border-radius: 12px; background: #101d2b; color: inherit; font-weight: 900; cursor: pointer; touch-action: none; user-select: none; }
+.duo-pad button.is-held { background: #34546a; }
+.duo-pad button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+.duo-pad__fire { background: #223849 !important; }
+.duo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.duo-actions .button { flex: 1 1 175px; min-height: 46px; padding: 8px 14px; font-size: 0.85rem; }
+.duo-privacy, .duo-message, .duo-keyboard { margin: 10px 2px; font-size: 0.8rem; color: #96aac2; line-height: 1.5; }
+.duo-message { min-height: 1.5em; color: #b5ccda; }
+.duo-rotate { display: none; font-size: 0.78rem; color: #ffce76; }
+.duo-metrics { border-top: 1px solid #2c3642; padding: 10px 2px; color: #9faec0; font-size: 0.78rem; line-height: 1.5; }
+.duo-metrics summary { cursor: pointer; }
+.duo-debug-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: #8393a8; }
+.duo-debug { position: absolute; left: 8px; bottom: 4px; z-index: 4; margin: 0; padding: 6px; max-width: calc(100% - 16px); overflow: auto; background: #000d; color: #d8fff5; font-size: 9px; pointer-events: none; }
+.duo-box { position: absolute; border: 2px solid #65f4dd; color: #65f4dd; font-size: 10px; pointer-events: none; }
+.duo-box--2 { border-color: #ffafca; color: #ffafca; }
+.lab--duo-playing .lab__header { display: none; }
+.duo--immersive .duo-catalog, .duo--immersive .duo-rotate, .duo--immersive .duo-privacy,
+.duo--immersive .duo-message, .duo--immersive .duo-keyboard, .duo--immersive .duo-debug-toggle { display: none; }
+.duo--immersive .duo-stage { height: max(180px, calc(100svh - 112px)); max-height: 760px; aspect-ratio: auto; }
+.duo--immersive.duo--fallback .duo-stage { height: max(180px, calc(100svh - 172px)); }
+.duo--immersive .duo-actions { margin-top: 10px; }
+@media (max-width: 619px) {
+  .mode-switch { flex-wrap: wrap; }
+  .mode-switch__button { flex: 1 1 42%; }
+  .duo-catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .duo-rotate { display: block; }
+  .duo-stage { aspect-ratio: 4 / 3; }
+  .duo-player { top: 37px; padding: 7px; font-size: 0.62rem; }
+  .duo-player--1 { left: 8px; } .duo-player--2 { right: 8px; }
+  .duo-hud { top: 10px; font-size: 0.6rem; gap: 8px; }
+  .duo-pad { flex: 1; flex-wrap: wrap; gap: 5px; }
+  .duo-pad > strong { flex-basis: 100%; font-size: 0.7rem; }
+  .duo-pad button { flex: 1; min-width: 36px; }
+  .duo-controls { gap: 18px; }
+  .duo-overlay__detail { font-size: 0.74rem; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .lab--duo { padding: 10px 14px 16px; }
+  .lab--duo .lab__header { margin-bottom: 8px; }
+  .lab--duo .lab__topline { margin-bottom: 4px; }
+  .lab--duo h1 { font-size: 1.6rem; }
+  .lab--duo .lead { margin-top: 4px; font-size: 0.78rem; }
+  .lab--duo .mode-switch { margin-top: 8px; }
+  .lab--duo .mode-switch__button { min-height: 34px; }
+  .duo-catalog { margin: 8px 0; gap: 6px; }
+  .duo-catalog > div { padding: 7px 9px; }
+  .duo-catalog strong { font-size: 0.7rem; }
+  .duo-catalog p, .duo-catalog small { display: none; }
+  .duo-stage { height: 190px; aspect-ratio: auto; }
+  .duo-player { top: 32px; padding: 6px 9px; }
+  .duo-hud { top: 8px; }
+  .duo-overlay__title { font-size: 1.6rem; }
+  .duo-overlay__detail { font-size: 0.76rem; margin-top: 8px; }
+  .duo--immersive .duo-stage { height: max(150px, calc(100svh - 82px)); }
+  .duo--immersive.duo--fallback .duo-stage { height: max(150px, calc(100svh - 138px)); }
+}

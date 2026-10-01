@@ -1,13 +1,4 @@
-import {
-  FilesetResolver,
-  GestureRecognizer
-} from "@mediapipe/tasks-vision";
-
-const WASM_ROOT =
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
-
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task";
+import { BodyInput } from "./bodyInput.js";
 
 const GESTURE_MAP = {
   Open_Palm: "OPEN",
@@ -49,130 +40,38 @@ function normalizeGesture(result) {
   return GESTURE_MAP[topGesture.categoryName] ?? "NONE";
 }
 
-async function createRecognizer(vision, delegate) {
-  return GestureRecognizer.createFromOptions(vision, {
-    baseOptions: {
-      modelAssetPath: MODEL_URL,
-      delegate
-    },
-    runningMode: "VIDEO",
-    numHands: 1,
-    minHandDetectionConfidence: 0.5,
-    minHandPresenceConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  });
-}
-
-export class HandInput {
+export class HandInput extends BodyInput {
   constructor(video, { onGesture, onStatus } = {}) {
-    this.video = video;
+    super(video, { onStatus });
     this.onGesture = onGesture ?? (() => {});
-    this.onStatus = onStatus ?? (() => {});
-
-    this.recognizer = null;
-    this.stream = null;
-    this.running = false;
-    this.frameId = null;
-    this.lastVideoTime = -1;
 
     this.currentGesture = "NONE";
     this.candidateGesture = "NONE";
     this.candidateFrames = 0;
   }
 
-  async start() {
-    if (this.running) return;
+  processResult(result) {
+    const rawGesture = normalizeGesture(result);
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Camera API is not available in this browser.");
+    if (rawGesture === this.candidateGesture) {
+      this.candidateFrames += 1;
+    } else {
+      this.candidateGesture = rawGesture;
+      this.candidateFrames = 1;
     }
 
-    this.onStatus("LOADING_MODEL");
-
-    const vision = await FilesetResolver.forVisionTasks(WASM_ROOT);
-
-    try {
-      this.recognizer = await createRecognizer(vision, "GPU");
-    } catch (gpuError) {
-      console.warn("MediaPipe GPU delegate failed; falling back to CPU.", gpuError);
-      this.recognizer = await createRecognizer(vision, "CPU");
+    // Preserve the existing three-frame rhythm input stability.
+    if (
+      this.candidateFrames >= 3 &&
+      this.currentGesture !== this.candidateGesture
+    ) {
+      this.currentGesture = this.candidateGesture;
+      this.onGesture(this.currentGesture, result);
     }
-
-    this.onStatus("REQUESTING_CAMERA");
-
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: "user",
-        width: { ideal: 720 },
-        height: { ideal: 1280 }
-      }
-    });
-
-    this.video.srcObject = this.stream;
-    await this.video.play();
-
-    this.running = true;
-    this.onStatus("READY");
-    this.loop();
   }
 
-  loop = () => {
-    if (!this.running || !this.recognizer) return;
-
-    if (
-      this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
-      this.video.currentTime !== this.lastVideoTime
-    ) {
-      this.lastVideoTime = this.video.currentTime;
-
-      const result = this.recognizer.recognizeForVideo(
-        this.video,
-        performance.now()
-      );
-
-      const rawGesture = normalizeGesture(result);
-
-      if (rawGesture === this.candidateGesture) {
-        this.candidateFrames += 1;
-      } else {
-        this.candidateGesture = rawGesture;
-        this.candidateFrames = 1;
-      }
-
-      // Three-frame stability removes classifier flicker without making
-      // rhythm input feel too sticky.
-      if (
-        this.candidateFrames >= 3 &&
-        this.currentGesture !== this.candidateGesture
-      ) {
-        this.currentGesture = this.candidateGesture;
-        this.onGesture(this.currentGesture, result);
-      }
-    }
-
-    this.frameId = requestAnimationFrame(this.loop);
-  };
-
   stop() {
-    this.running = false;
-
-    if (this.frameId) {
-      cancelAnimationFrame(this.frameId);
-      this.frameId = null;
-    }
-
-    this.stream?.getTracks().forEach((track) => track.stop());
-    this.stream = null;
-
-    if (this.video) {
-      this.video.srcObject = null;
-    }
-
-    this.recognizer?.close?.();
-    this.recognizer = null;
-
-    this.lastVideoTime = -1;
+    super.stop();
     this.currentGesture = "NONE";
     this.candidateGesture = "NONE";
     this.candidateFrames = 0;
