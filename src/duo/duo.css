@@ -59,9 +59,9 @@
   .duo-player { top: 37px; padding: 7px; font-size: 0.62rem; }
   .duo-player--1 { left: 8px; } .duo-player--2 { right: 8px; }
   .duo-hud { top: 10px; font-size: 0.6rem; gap: 8px; }
-  .duo-pad { flex: 1; flex-wrap: wrap; gap: 5px; }
+  .duo-pad { flex: 1; flex-wrap: wrap; gap: 8px; }
   .duo-pad > strong { flex-basis: 100%; font-size: 0.7rem; }
-  .duo-pad button { flex: 1; min-width: 36px; }
+  .duo-pad button { flex: 1; min-width: 44px; }
   .duo-controls { gap: 18px; }
   .duo-overlay__detail { font-size: 0.74rem; }
 }
@@ -72,7 +72,7 @@
   .lab--duo h1 { font-size: 1.6rem; }
   .lab--duo .lead { margin-top: 4px; font-size: 0.78rem; }
   .lab--duo .mode-switch { margin-top: 8px; }
-  .lab--duo .mode-switch__button { min-height: 34px; }
+  .lab--duo .mode-switch__button { min-height: 44px; }
   .duo-catalog { margin: 8px 0; gap: 6px; }
   .duo-catalog > div { padding: 7px 9px; }
   .duo-catalog strong { font-size: 0.7rem; }
