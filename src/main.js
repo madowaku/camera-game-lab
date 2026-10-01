@@ -7,6 +7,7 @@ import { HandBeat } from "./games/handBeat.js";
 import { FingerGunGame } from "./games/fingerGun.js";
 import { EatDontEatGame } from "./games/eatDontEat.js";
 import { DuoArcade } from "./duo/duoArcade.js";
+import { NoteBlasterArcade } from "./blaster/noteBlasterArcade.js";
 import { getInitialLocale, translate } from "./i18n.js";
 
 registerSW({ immediate: true });
@@ -30,6 +31,7 @@ app.innerHTML = `
         <button id="mode-hand-beat" class="mode-switch__button" type="button" data-mode="handBeat"></button>
         <button id="mode-finger-gun" class="mode-switch__button" type="button" data-mode="fingerGun"></button>
         <button id="mode-eat-dont-eat" class="mode-switch__button" type="button" data-mode="eatDontEat"></button>
+        <button id="mode-note-blaster" class="mode-switch__button" type="button" data-mode="noteBlaster"></button>
         <button id="mode-duo-arcade" class="mode-switch__button" type="button" data-mode="duoArcade"></button>
       </nav>
     </header>
@@ -132,6 +134,7 @@ app.innerHTML = `
     </details>
     </div>
     <section id="duo-experience" hidden></section>
+    <section id="note-blaster-experience" hidden></section>
   </section>
 `;
 
@@ -244,6 +247,7 @@ const state = {
 };
 
 const duoArcade = new DuoArcade($("#duo-experience"), state.locale, { onExit: () => selectMode("handBeat") });
+const noteBlaster = new NoteBlasterArcade($("#note-blaster-experience"), state.locale);
 
 function t(key, values) {
   return translate(state.locale, key, values);
@@ -438,6 +442,7 @@ function renderUi() {
     handBeat: "HandBeat",
     fingerGun: "FingerGun",
     eatDontEat: "EatDontEat",
+    noteBlaster: "NoteBlaster",
     duoArcade: "DuoArcade"
   };
   const suffix = modeTitleKey[state.mode];
@@ -454,9 +459,11 @@ function renderUi() {
 
   modeTitle.textContent = t(`mode${suffix}`);
   lead.textContent = t(`lead${suffix}`);
-  $("#solo-experience").hidden = state.mode === "duoArcade";
+  $("#solo-experience").hidden = state.mode === "duoArcade" || state.mode === "noteBlaster";
   $(".lab").classList.toggle("lab--duo", state.mode === "duoArcade");
+  $(".lab").classList.toggle("lab--blaster", state.mode === "noteBlaster");
   duoArcade.setLocale(state.locale);
+  noteBlaster.setLocale(state.locale);
 
   for (const button of modeButtons) {
     button.textContent = t(`mode${modeTitleKey[button.dataset.mode]}`);
@@ -464,7 +471,7 @@ function renderUi() {
     button.disabled = state.cameraLoading;
   }
 
-  if (state.mode === "duoArcade") return;
+  if (state.mode === "duoArcade" || state.mode === "noteBlaster") return;
 
   handBeatPanel.hidden = state.mode !== "handBeat";
   fingerGunPanel.hidden = state.mode !== "fingerGun";
@@ -759,7 +766,7 @@ async function startCamera() {
     state.cameraReady = false;
     state.cameraLoading = false;
     state.cameraStatus = "ERROR";
-    state.message = { key: "cameraStartError" };
+    state.message = { key: error.name === "FrontCameraUnavailableError" ? "frontCameraUnavailable" : "cameraStartError" };
     renderUi();
   }
 }
@@ -870,15 +877,18 @@ async function selectMode(mode) {
 
   state.mode = mode;
   if (mode === "duoArcade") window.history.replaceState(null, "", "#duo");
-  else if (window.location.hash === "#duo") window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  else if (mode === "noteBlaster") window.history.replaceState(null, "", "#note-blaster");
+  else if (["#duo", "#note-blaster"].includes(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
   state.cameraReady = false;
   state.cameraLoading = false;
   state.cameraStatus = "OFF";
   state.message = { key: "cameraPrivacy" };
   duoArcade.deactivate();
+  noteBlaster.deactivate();
   renderUi();
 
   if (mode === "duoArcade") duoArcade.activate();
+  else if (mode === "noteBlaster") noteBlaster.activate();
   else if (resumeCamera) await startCamera();
 }
 
@@ -913,10 +923,14 @@ window.addEventListener("pagehide", () => {
   handInput.stop();
   fingerGunInput.stop();
   faceInput.stop();
+  noteBlaster.deactivate();
 });
 
 renderUi();
 if (window.location.hash === "#duo") void selectMode("duoArcade");
+if (window.location.hash === "#note-blaster") void selectMode("noteBlaster");
 window.addEventListener("hashchange", () => {
   if (window.location.hash === "#duo") void selectMode("duoArcade");
+  else if (window.location.hash === "#note-blaster") void selectMode("noteBlaster");
+  else if (["duoArcade", "noteBlaster"].includes(state.mode)) void selectMode("handBeat");
 });

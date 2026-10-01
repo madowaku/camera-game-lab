@@ -69,6 +69,7 @@ export class DuoArcade {
         // the last round counters so an error cannot erase or invert metrics.
         this.failedMetrics = this.metricsBaseline ? this.roundMetrics() : null;
         this.error = true;
+        this.cameraErrorKey = "error";
       }
       this.render();
     } });
@@ -164,6 +165,7 @@ export class DuoArcade {
     this.abortRound("INPUT_CHANGE");
     this.source = "camera";
     this.error = false;
+    this.cameraErrorKey = "error";
     this.failedMetrics = null;
     this.phase = "calibrating";
     this.manualPause = false;
@@ -177,6 +179,7 @@ export class DuoArcade {
       if (error.name === "AbortError" || !this.active || this.source !== "camera") return;
       this.status = "ERROR";
       this.error = true;
+      this.cameraErrorKey = error.name === "FrontCameraUnavailableError" ? "frontCameraUnavailable" : "error";
       this.input.stop();
     }
     this.render();
@@ -344,12 +347,12 @@ export class DuoArcade {
       label = "EXP-020"; title = this.t("tinyBot"); detail = this.t("touch");
     } else {
       label = "EXP-020"; title = this.t(this.snapshot.ready && !this.unavailable ? "ready" : "tinyBot");
-      detail = this.error ? this.t("error") : this.status === "READY" ? this.t("calibration") : this.t("tinyBotLead");
+      detail = this.error ? this.t(this.cameraErrorKey ?? "error") : this.status === "READY" ? this.t("calibration") : this.t("tinyBotLead");
     }
     this.$(".duo-overlay__label").textContent = label;
     this.$(".duo-overlay__title").textContent = title;
     this.$(".duo-overlay__detail").textContent = detail;
-    this.$(".duo-message").textContent = this.error ? this.t("error") : this.phase === "playing" && !this.paused ? this.t("playing") :
+    this.$(".duo-message").textContent = this.error ? this.t(this.cameraErrorKey ?? "error") : this.phase === "playing" && !this.paused ? this.t("playing") :
       this.snapshot.ready ? this.t("ready") : this.snapshot.calibrationProgress > 0 ? this.t("stable", { progress: Math.round(this.snapshot.calibrationProgress * 100) }) : this.t("calibration");
     this.snapshot.players.forEach((player, index) => {
       const card = this.$(`.duo-player--${index + 1}`);

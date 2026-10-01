@@ -1,6 +1,6 @@
 # DUO ARCADE implementation / playtest handoff
 
-Updated: 2026-10-01 (Asia/Tokyo)
+Updated: 2026-10-02 (Asia/Tokyo)
 
 Sources: [implementation task](specs/DUO_ARCADE_IMPLEMENTATION_TASK_v0.1.md),
 [input foundation](specs/DUO_INPUT_FOUNDATION_SPEC_v0.1.md).
@@ -27,6 +27,7 @@ if neither player rings out. Early ring-out ends a round immediately.
 | --- | --- |
 | `src/input/duoConfig.js` | Camera thresholds, 800ms lost grace, 5s recovery prompt, 20Hz inference target, calibration and mouth hysteresis |
 | `src/input/duoFaceInput.js` | MediaPipe adapter, two faces, mirrored screen coordinates, landscape camera constraints, GPU/CPU shared lifecycle |
+| `src/input/frontCamera.js` | Require front-facing camera, validate returned track, preserve PC webcam compatibility and release rejected/cancelled streams |
 | `src/input/duoTracker.js` | Global position/velocity/scale matching, reserved player slots, stable neutral calibration, normalized state/events |
 | `src/input/duoEmulator.js` | Same contract from keyboard/multiple touch pointers; one action per press |
 | `src/duo/duoArcade.js` | Shared canvas shell, countdown, immediate loss pause, manual pause, result/retry, recalibration, camera failure fallback |
@@ -55,12 +56,17 @@ heuristic, not proof that no swap happened.
 
 ## Verification evidence
 
-- `npm test`: 30 passing checks covering 30 seconds of reordered/jittered
+- `npm test`: 40 passing checks covering 30 seconds of reordered/jittered
   detections, crossings (same/different scale), occlusion, stale video, ambiguity,
   per-player calibration, hysteresis/return re-arming, touch independence,
   collision/knockback/ring-out, paused simulation, five synthetic timed rounds,
   rolling FPS/stalls, recovery counting, JSON export, storage limits/failures and
   ensuring that successful synthetic records never generate a human GO verdict.
+  Camera selection checks cover exact front-camera requests, rear-camera
+  rejection, metadata-free PC webcams, permission denial and cancelled starts.
+  A local UI fixture simulating front-camera unavailability verified JA at
+  800×360, EN at 390×844 and switching to touch input after the error, with no
+  console errors. This fixture does not use the Android camera hardware.
 - `npm run build`: production JS/CSS and PWA build pass. PWA orientation is
   `any` so both the existing solo portrait modes and duo landscape can rotate.
 - In-app browser: 800×360 and 1280×720 canvas, independent touch shots,
@@ -82,6 +88,16 @@ heuristic, not proof that no swap happened.
   claimed; Android browser automation was blocked by the browser URL policy.
 
 ## Android USB playtest
+
+2026-10-02 camera-selection fix: plain `facingMode: "user"` was a preference,
+which could still allow a rear camera. The shared input lifecycle now requests
+`facingMode: { exact: "user" }` and validates the returned track's settings /
+capabilities before attaching video. A facing-mode-only constraint failure can
+retry for PC webcams without direction metadata; identified rear cameras are
+stopped and rejected. Other permission / device errors do not trigger that retry.
+An unavailable front camera shows a specific JA/EN message. The reported Android
+selection failure still needs a physical retest after this change; automated
+camera-selection tests do not prove the A401OP opened its actual front lens.
 
 With the development server running, the connected Android can open:
 

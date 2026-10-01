@@ -36,7 +36,7 @@ export class DuoFaceInput extends BodyInput {
   }
 
   get cameraConstraints() {
-    return { audio: false, video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } };
+    return { audio: false, video: { facingMode: { exact: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } } };
   }
 
   createRecognizer(vision, delegate) {

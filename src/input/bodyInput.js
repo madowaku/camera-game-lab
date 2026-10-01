@@ -2,6 +2,7 @@ import {
   FilesetResolver,
   GestureRecognizer
 } from "@mediapipe/tasks-vision";
+import { openFrontCamera } from "./frontCamera.js";
 
 const WASM_ROOT =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
@@ -53,7 +54,7 @@ export class BodyInput {
   get cameraConstraints() {
     return {
       audio: false,
-      video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 1280 } }
+      video: { facingMode: { exact: "user" }, width: { ideal: 720 }, height: { ideal: 1280 } }
     };
   }
 
@@ -97,7 +98,7 @@ export class BodyInput {
       checkActive();
 
       this.onStatus("REQUESTING_CAMERA");
-      session.stream = await navigator.mediaDevices.getUserMedia(this.cameraConstraints);
+      session.stream = await openFrontCamera(navigator.mediaDevices, this.cameraConstraints, checkActive);
       checkActive();
 
       this.video.srcObject = session.stream;
