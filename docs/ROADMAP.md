@@ -95,3 +95,70 @@ Future normalized events:
 - GESTURE_SEQUENCE
 
 Each experiment should depend on normalized events rather than MediaPipe-specific output wherever practical.
+
+
+## DUO ARCADE — one phone / two players
+
+Shared core test:
+
+- detect two faces in one front camera
+- keep stable P1 / P2 assignment
+- calibrate both players independently
+- expose normalized per-player body input
+- use landscape as a tiny local arcade cabinet
+
+Question: can one phone become an instant two-player physical controller without external hardware?
+
+### EXP-020 — TINY BOT DUEL
+
+Core test:
+
+- face movement => robot movement
+- mouth-open edge => cannon
+- knockback / ring-out
+
+Question: can camera-driven versus play feel immediate and fair?
+
+### EXP-021 — FACE RACER
+
+Core test:
+
+- continuous face/head steering
+- mouth boost
+- shared track
+
+Question: is continuous body steering controllable enough for racing?
+
+### EXP-022 — ZOMBIE DUO
+
+Core test:
+
+- independent camera aiming
+- mouth shooting
+- shared survival objective
+
+Question: does camera co-op create natural callouts and rescue moments?
+
+### EXP-023 — SKY DUEL
+
+Core test:
+
+- P1 pilot
+- P2 gunner
+- two simultaneous control vocabularies for one vehicle
+
+Question: can asymmetric body controls make one shared vehicle fun to operate together?
+
+## Shared duo-input layer
+
+Normalized per-player state should include:
+
+- PRESENT
+- FACE_X / FACE_Y
+- FACE_SCALE
+- HEAD_TILT
+- MOUTH_OPEN
+- EYES_CLOSED
+- PLAYER_LOST / PLAYER_RETURNED
+
+Important: stable identity tracking is part of the game-feel foundation. Do not assign P1/P2 only by sorting X every frame.
