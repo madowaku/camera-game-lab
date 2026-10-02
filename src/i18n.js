@@ -1,5 +1,8 @@
+import { daitaiMessages } from "./daitai/messages.js";
+
 const messages = {
   ja: {
+    ...daitaiMessages.ja,
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",
@@ -135,6 +138,7 @@ const messages = {
     secondsShort: "秒"
   },
   en: {
+    ...daitaiMessages.en,
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",

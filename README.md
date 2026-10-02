@@ -57,6 +57,19 @@ This first OUTCAM prototype intentionally uses screen-space targets rather than 
 
 `EXP-021` here is namespaced under OUTCAM LAB; DUO ARCADE keeps its existing EXP-021 FACE RACER designation.
 
+## EXP-018: DAITAI HERO / だいたい勇者
+
+Open `/#daitai` for a 30-second estimation battle with 12 fixed questions in
+Japanese and English. Move your face left / right and hold briefly to answer.
+For the center choice, move a little sideways and return to neutral. After an
+answer, return to center before the next question. One-face calibration takes
+three seconds; lost or multiple faces pause play. Tap, mouse and 1 / 2 / 3 keys
+work without camera permission.
+
+Results show score, accuracy, average / fastest response and max combo. See
+[prototype progress and real-camera playtest notes](docs/DAITAI_HERO_PROGRESS.md).
+>>>>>>> 56e7143 (Add Daitai Hero, Note Blaster and Guardian Spirit prototypes)
+
 ## Stack
 
 - Vite
