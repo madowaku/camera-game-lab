@@ -105,6 +105,106 @@ export class WatermelonGuide {
 
   beginRound() {
     if (this.status !== "READY" || this.phase === "playing") return;
-    clearUÐ€ôÑ¥µ•ÍÑ…µÀì(€€€Ñ¡¥Ì¹É•µ…¥¹¥¹5Ì€ô5…Ñ ¹µ…à À°Ñ¡¥Ì¹É•µ…¥¹¥¹5Ì€´‘•±Ñ„¤ì(€€€¥˜€¡Ñ¡¥Ì¹É•µ…¥¹¥¹5Ì€ðô€À¤É•ÑÕÉ¸Ñ¡¥Ì¹™¥¹¥Í¡I½Õ¹ ¤ì(€€€Ñ¡¥Ì¹É•¹‘•ÉMÑ…ÑÌ ¤ì(€€€Ñ¡¥Ì¹É…˜€ôÉ•ÅÕ•ÍÑ¹¥µ…Ñ¥½¹É…µ”¡Ñ¡¥Ì¹Ñ¥¬¤ì(€ôì((€ÍÁ…Ý¹Q…É•Ð ¤ìÑ¡¥Ì¹Ñ…É•Ð€ôÉ•…Ñ•]…Ñ•Éµ•±½¹Q…É•Ð ¤ìÑ¡¥Ì¹É•¹‘•ÉQ…É•Ð ¤ìô((€ÍÑÉ¥­”¡Á½¥¹Ð¤ì(€€€¥˜€¡Ñ¡¥Ì¹Á¡…Í”€„ôô€‰Á±…å¥¹œˆñð€…Ñ¡¥Ì¹Ñ…É•Ð¤É•ÑÕÉ¸ì(€€€½¹ÍÐ¹½Ü€ôÁ•É™½Éµ…¹”¹¹½Ü ¤ì(€€€¥˜€¡¹½Ü€´Ñ¡¥Ì¹±…ÍÑMÑÉ¥­•Ð€ð]QI51=9}IU1L¹ÍÝ¥¹½½±‘½Ý¹5Ì¤É•ÑÕÉ¸ì(€€€Ñ¡¥Ì¹±…ÍÑMÑÉ¥­•Ð€ô¹½Üì(€€€½¹ÍÐÉ•ÍÕ±Ð€ôÉ…‘•MÑÉ¥­”¡Ñ¡¥Ì¹Ñ…É•Ð°Á½¥¹Ð¤ì(€€€Ñ¡¥Ì¹…ÑÑ•µÁÑÌ€¬ô€Äì(€€€Ñ¡¥Ì¹Í½É”€¬ôÉ•ÍÕ±Ð¹Á½¥¹ÑÌì(€€€¥˜€¡É•ÍÕ±Ð¹É…‘”€ôôô€‰!%Pˆ¤ìÑ¡¥Ì¹¡¥ÑÌ€¬ô€Äì¹…Ù¥…Ñ½È¹Ù¥‰É…Ñ”ü¸ ÌÔ¤ìô(€€€Ñ¡¥Ì¹Í¡½Ý••‘‰…¬¡É•ÍÕ±Ð¹É…‘”°Á½¥¹Ð¤ì(€€€Ñ¡¥Ì¹Ñ…É•Ð€ô¹Õ±°ì(€€€Ñ¡¥Ì¹É•¹‘•ÉQ…É•Ð ¤ì(€€€Ñ¡¥Ì¹É•¹‘•ÉMÑ…ÑÌ ¤ì(€€€±•…ÉQ¥µ•½ÕÐ¡Ñ¡¥Ì¹™••‘‰…­Q¥µ•È¤ì(€€€Ñ¡¥Ì¹™••‘‰…­Q¥µ•È€ôÍ•ÑQ¥µ•½ÕÐ  ¤€ôøì(€€€€€¥˜€¡Ñ¡¥Ì¹Á¡…Í”€„ôô€‰Á±…å¥¹œˆ¤É•ÑÕÉ¸ì(€€€€€¥˜€¡Ñ¡¥Ì¹…ÑÑ•µÁÑÌ€øô]QI51=9}IU1L¹Ñ…É•Ñ½Õ¹Ð¤Ñ¡¥Ì¹™¥¹¥Í¡I½Õ¹ ¤ì(€€€€€•±Í”ìÑ¡¥Ì¹ÍÁ…Ý¹Q…É•Ð ¤ìÑ¡¥Ì¸ ˆ¹½ÕÑ…´µµ•ÍÍ…”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð ‰Ýµ9•áÐˆ¤ìô(€€€ô°€ØÔÀ¤ì(€ô((€Í¡½Ý••‘‰…¬¡É…‘”°Á½¥¹Ð¤ì(€€€½¹ÍÐ™••‘‰…¬€ôÑ¡¥Ì¸ ˆ¹½ÕÑ…´µ™••‘‰…¬ˆ¤ì(€€€™••‘‰…¬¹¡¥‘‘•¸€ô™…±Í”ì(€€€™••‘‰…¬¹‘…Ñ…Í•Ð¹É…‘”€ôÉ…‘”ì(€€€™••‘‰…¬¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð¡Ý´‘íÉ…‘•lÁuô‘íÉ…‘”¹Í±¥” Ä¤¹Ñ½1½Ý•É…Í” ¥õ€¤ì(€€€™••‘‰…¬¹ÍÑå±”¹±•™Ð€ô€‘í5…Ñ ¹µ…à à°5…Ñ ¹µ¥¸ äÈ°Á½¥¹Ð¹à€¨€ÄÀÀ¤¥ô•€ì(€€€™••‘‰…¬¹ÍÑå±”¹Ñ½À€ô€‘í5…Ñ ¹µ…à ÄÐ°5…Ñ ¹µ¥¸ àØ°Á½¥¹Ð¹ä€¨€ÄÀÀ¤¥ô•€ì(€ô((€™¥¹¥Í¡I½Õ¹ ¤ì¥˜€¡Ñ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆ¤ìÑ¡¥Ì¹…¹•±¹¥µ…Ñ¥½¸ ¤ìÑ¡¥Ì¹Á¡…Í”€ô€‰É•ÍÕ±ÐˆìÑ¡¥Ì¹Ñ…É•Ð€ô¹Õ±°ìÑ¡¥Ì¹É•¹‘•È ¤ìôô(€…¹•±¹¥µ…Ñ¥½¸ ¤ì¥˜€¡Ñ¡¥Ì¹É…˜€„ôô¹Õ±°¤…¹•±¹¥µ…Ñ¥½¹É…µ”¡Ñ¡¥Ì¹É…˜¤ìÑ¡¥Ì¹É…˜€ô¹Õ±°ì±•…ÉQ¥µ•½ÕÐ¡Ñ¡¥Ì¹™••‘‰…­Q¥µ•È¤ìÑ¡¥Ì¹™••‘‰…­Q¥µ•È€ô¹Õ±°ìô(€…¹•±I½Õ¹ ¤ìÑ¡¥Ì¹…¹•±¹¥µ…Ñ¥½¸ ¤ì¥˜€¡Ñ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆ¤Ñ¡¥Ì¹Á¡…Í”€ôÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆ€ü€‰É•…‘äˆ€è€‰¥‘±”ˆìô((€É•¹‘•È ¤ì(€€€™½È€¡½¹ÍÐ•±•µ•¹Ð½˜Ñ¡¥Ì¹É½½Ð¹ÅÕ•ÉåM•±•Ñ½É±° ‰m‘…Ñ„µ½Áåtˆ¤¤•±•µ•¹Ð¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð¡•±•µ•¹Ð¹‘…Ñ…Í•Ð¹½Áä¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ¡½ÝÑ¼ÍÕµµ…Éäˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð ‰¡½ÝQ½A±…äˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ•á¥Ðµ‰ÕÑÑ½¸ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð ‰Ýµá¥Ðˆ¤ì(€€€½¹ÍÐ±½…‘¥¹œ€ôl‰1=%9}5=0ˆ°€‰IEUMQ%9}5I‰t¹¥¹±Õ‘•Ì¡Ñ¡¥Ì¹ÍÑ…ÑÕÌ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ…µ•É„µ‰ÕÑÑ½¸ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð¡±½…‘¥¹œ€ü€‰Ýµ1½…‘¥¹œˆ€èÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆ€ü€‰Ýµ…µ•É…I•…‘äˆ€è€‰Ýµ…µ•É„ˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ…µ•É„µ‰ÕÑÑ½¸ˆ¤¹‘¥Í…‰±•€ô±½…‘¥¹œñðÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆì(€€€½¹ÍÐÍÑ…ÉÐ€ôÑ¡¥Ì¸ ˆ¹½ÕÑ…´µÍÑ…ÉÐµ‰ÕÑÑ½¸ˆ¤ì(€€€ÍÑ…ÉÐ¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð¡Ñ¡¥Ì¹Á¡…Í”€ôôô€‰É•ÍÕ±Ðˆ€ü€‰ÝµI•ÑÉäˆ€è€‰ÝµMÑ…ÉÐˆ¤ì(€€€ÍÑ…ÉÐ¹‘¥Í…‰±•€ôÑ¡¥Ì¹ÍÑ…ÑÕÌ€„ôô€‰IdˆñðÑ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ…µ•É„µÍÑ…Ñ”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆ€ü€‰IH4ƒ
-Ü1%Yˆ€èÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰II=Hˆ€ü€‰5III=Hˆ€è±½…‘¥¹œ€ü€‰5IŠ˜ˆ€è€‰IH4ƒ
-Ü=ˆì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ¡…¹µÍÑ…Ñ”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹¡…¹€üÑ¡¥Ì¹Ð ‰Ýµ!…¹ˆ¤€èÑ¡¥Ì¹Ð ‰Ýµ9½!…¹ˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ¡…¹µÍÑ…Ñ”ˆ¤¹±…ÍÍ1¥ÍÐ¹Ñ½±” ‰¥Ìµ±¥Ù”ˆ°	½½±•…¸¡Ñ¡¥Ì¹¡…¹¤¤ì((€€€½¹ÍÐ…É€ôÑ¡¥Ì¸ ˆ¹½ÕÑ…´µ•¹Ñ•Èµ…Éˆ¤ì(€€€…É¹¡¥‘‘•¸€ôÑ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ•¹Ñ•Èµ±…‰•°ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Ð¡Ñ¡¥Ì¹Á¡…Í”€ôôô€‰É•ÍÕ±Ðˆ€ü€‰ÝµI•ÍÕ±Ðˆ€è€‰•å•‰É½Ý]…Ñ•Éµ•±½¹Õ¥‘”ˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ•¹Ñ•ÈµÑ¥Ñ±”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Á¡…Í”€ôôô€‰É•ÍÕ±Ðˆ€ü€‘íÑ¡¥Ì¹¡¥ÑÍô€¼€‘í]QI51=9}IU1L¹Ñ…É•Ñ½Õ¹Ñõ€€è€‰]QI51=8U%ˆì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ•¹Ñ•Èµ‘•Ñ…¥°ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹Á¡…Í”€ôôô€‰É•ÍÕ±Ðˆ(€€€€€€üÑ¡¥Ì¹Ð ‰ÝµI•ÍÕ±Ñ1¥¹”ˆ°ì¡¥ÑÌèÑ¡¥Ì¹¡¥ÑÌ°Ñ½Ñ…°è]QI51=9}IU1L¹Ñ…É•Ñ½Õ¹Ð°Í½É”èÑ¡¥Ì¹Í½É”ô¤(€€€€€€èÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰II=Hˆ€üÑ¡¥Ì¹Ð ‰Ýµ…µ•É…ÉÉ½Èˆ¤€èÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆ€üÑ¡¥Ì¹Ð ‰ÝµI•…‘äˆ¤€èÑ¡¥Ì¹Ð ‰Ýµ%¹ÑÉ¼ˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µµ•ÍÍ…”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰II=Hˆ€üÑ¡¥Ì¹Ð ‰Ýµ…µ•É…ÉÉ½Èˆ¤€èÑ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆ€üÑ¡¥Ì¹Ð ‰ÝµA±…å¥¹œˆ¤€èÑ¡¥Ì¹ÍÑ…ÑÕÌ€ôôô€‰Idˆ€üÑ¡¥Ì¹Ð ‰ÝµI•…‘äˆ¤€èÑ¡¥Ì¹Ð ‰ÝµAÉ¥Ù…äˆ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µÑ…Àµ±…å•Èˆ¤¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µ±…‰•°ˆ°Ñ¡¥Ì¹Ð ‰ÝµQ…ÁQ•ÍÐˆ¤¤ì(€€€Ñ¡¥Ì¹É•¹‘•ÉMÑ…ÑÌ ¤ìÑ¡¥Ì¹É•¹‘•ÉQ…É•Ð ¤ìÑ¡¥Ì¹É•¹‘•É!…¹ ¤ì(€€€¥˜€¡Ñ¡¥Ì¹Á¡…Í”€„ôô€‰Á±…å¥¹œˆ¤Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ™••‘‰…¬ˆ¤¹¡¥‘‘•¸€ôÑÉÕ”ì(€ô((€É•¹‘•ÉMÑ…ÑÌ ¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µÑ¥µ”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ô€¡Ñ¡¥Ì¹É•µ…¥¹¥¹5Ì€¼€ÄÀÀÀ¤¹Ñ½¥á• Ä¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µÍ½É”ˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ôMÑÉ¥¹œ¡Ñ¡¥Ì¹Í½É”¤ì(€€€Ñ¡¥Ì¸ ˆ¹½ÕÑ…´µ™ÉÕ¥Ðˆ¤¹Ñ•áÑ½¹Ñ•¹Ð€ô€‘í5…Ñ ¹µ¥¸¡Ñ¡¥Ì¹…ÑÑ•µÁÑÌ°]QI51=9}IU1L¹Ñ…É•Ñ½Õ¹Ð¥ô€¼€‘í]QI51=9}IU1L¹Ñ…É•Ñ½Õ¹Ñõ€ì(€ô((€É•¹‘•ÉQ…É•Ð ¤ì(€€€½¹ÍÐ•±•µ•¹Ð€ôÑ¡¥Ì¸ ˆ¹½ÕÑ…´µÝ…Ñ•Éµ•±½¸ˆ¤ì(€€€½¹ÍÐÙ¥Í¥‰±”€ôÑ¡¥Ì¹Á¡…Í”€ôôô€‰Á±…å¥¹œˆ€˜˜	½½±•…¸¡Ñ¡¥Ì¹Ñ…É•Ð¤ì(€€€•±•µ•¹Ð¹¡¥‘‘•¸€ô€…Ù¥Í¥‰±”ì(€€€¥˜€¡Ù¥Í¥‰±”¤ì•±•µ•¹Ð¹ÍÑå±”¹±•™Ð€ô€‘íÑ¡¥Ì¹Ñ…É•Ð¹à€¨€ÄÀÁô•€ì•±•µ•¹Ð¹ÍÑå±”¹Ñ½À€ô€‘íÑ¡¥Ì¹Ñ…É•Ð¹ä€¨€ÄÀÁô•€ìô(€ô((€É•¹‘•É!…¹ ¤ì(€€€½¹ÍÐ•±•µ•¹Ð€ôÑ¡¥Ì¸ ˆ¹½ÕÑ…´µ¡…¹ˆ¤ì(€€€•±•µ•¹Ð¹¡¥‘‘•¸€ô€…Ñ¡¥Ì¹¡…¹ì(€€€¥˜€¡Ñ¡¥Ì¹¡…¹¤ì•±•µ•¹Ð¹ÍÑå±”¹±•™Ð€ô€‘íÑ¡¥Ì¹¡…¹¹à€¨€ÄÀÁô•€ì•±•µ•¹Ð¹ÍÑå±”¹Ñ½À€ô€‘íÑ¡¥Ì¹¡…¹¹ä€¨€ÄÀÁô•€ìô(€ô)ô(
+    clearTimeout(this.feedbackTimer);
+    this.score = this.hits = this.attempts = 0;
+    this.remainingMs = WATERMELON_RULES.durationMs;
+    this.lastTickAt = performance.now();
+    this.lastStrikeAt = -Infinity;
+    this.phase = "playing";
+    this.spawnTarget();
+    this.render();
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  tick = (timestamp) => {
+    if (!this.active || this.phase !== "playing") return;
+    const delta = this.lastTickAt === null ? 0 : Math.max(0, Math.min(250, timestamp - this.lastTickAt));
+    this.lastTickAt = timestamp;
+    this.remainingMs = Math.max(0, this.remainingMs - delta);
+    if (this.remainingMs <= 0) return this.finishRound();
+    this.renderStats();
+    this.raf = requestAnimationFrame(this.tick);
+  };
+
+  spawnTarget() { this.target = createWatermelonTarget(); this.renderTarget(); }
+
+  strike(point) {
+    if (this.phase !== "playing" || !this.target) return;
+    const now = performance.now();
+    if (now - this.lastStrikeAt < WATERMELON_RULES.swingCooldownMs) return;
+    this.lastStrikeAt = now;
+    const result = gradeStrike(this.target, point);
+    this.attempts += 1;
+    this.score += result.points;
+    if (result.grade === "HIT") { this.hits += 1; navigator.vibrate?.(35); }
+    this.showFeedback(result.grade, point);
+    this.target = null;
+    this.renderTarget();
+    this.renderStats();
+    clearTimeout(this.feedbackTimer);
+    this.feedbackTimer = setTimeout(() => {
+      if (this.phase !== "playing") return;
+      if (this.attempts >= WATERMELON_RULES.targetCount) this.finishRound();
+      else { this.spawnTarget(); this.$(".outcam-message").textContent = this.t("wmNext"); }
+    }, 650);
+  }
+
+  showFeedback(grade, point) {
+    const feedback = this.$(".outcam-feedback");
+    feedback.hidden = false;
+    feedback.dataset.grade = grade;
+    feedback.textContent = this.t(`wm${grade[0]}${grade.slice(1).toLowerCase()}`);
+    feedback.style.left = `${Math.max(8, Math.min(92, point.x * 100))}%`;
+    feedback.style.top = `${Math.max(14, Math.min(86, point.y * 100))}%`;
+  }
+
+  finishRound() { if (this.phase === "playing") { this.cancelAnimation(); this.phase = "result"; this.target = null; this.render(); } }
+  cancelAnimation() { if (this.raf !== null) cancelAnimationFrame(this.raf); this.raf = null; clearTimeout(this.feedbackTimer); this.feedbackTimer = null; }
+  cancelRound() { this.cancelAnimation(); if (this.phase === "playing") this.phase = this.status === "READY" ? "ready" : "idle"; }
+
+  render() {
+    for (const element of this.root.querySelectorAll("[data-copy]")) element.textContent = this.t(element.dataset.copy);
+    this.$(".outcam-howto summary").textContent = this.t("howToPlay");
+    this.$(".outcam-exit-button").textContent = this.t("wmExit");
+    const loading = ["LOADING_MODEL", "REQUESTING_CAMERA"].includes(this.status);
+    this.$(".outcam-camera-button").textContent = this.t(loading ? "wmLoading" : this.status === "READY" ? "wmCameraReady" : "wmCamera");
+    this.$(".outcam-camera-button").disabled = loading || this.status === "READY";
+    const start = this.$(".outcam-start-button");
+    start.textContent = this.t(this.phase === "result" ? "wmRetry" : "wmStart");
+    start.disabled = this.status !== "READY" || this.phase === "playing";
+    this.$(".outcam-camera-state").textContent = this.status === "READY" ? "REAR CAM Â· LIVE" : this.status === "ERROR" ? "CAMERA ERROR" : loading ? "CAMERAâ€¦" : "REAR CAM Â· OFF";
+    this.$(".outcam-hand-state").textContent = this.hand ? this.t("wmHand") : this.t("wmNoHand");
+    this.$(".outcam-hand-state").classList.toggle("is-live", Boolean(this.hand));
+
+    const card = this.$(".outcam-center-card");
+    card.hidden = this.phase === "playing";
+    this.$(".outcam-center-label").textContent = this.t(this.phase === "result" ? "wmResult" : "eyebrowWatermelonGuide");
+    this.$(".outcam-center-title").textContent = this.phase === "result" ? `${this.hits} / ${WATERMELON_RULES.targetCount}` : "WATERMELON GUIDE";
+    this.$(".outcam-center-detail").textContent = this.phase === "result"
+      ? this.t("wmResultLine", { hits: this.hits, total: WATERMELON_RULES.targetCount, score: this.score })
+      : this.status === "ERROR" ? this.t("wmCameraError") : this.status === "READY" ? this.t("wmReady") : this.t("wmIntro");
+    this.$(".outcam-message").textContent = this.status === "ERROR" ? this.t("wmCameraError") : this.phase === "playing" ? this.t("wmPlaying") : this.status === "READY" ? this.t("wmReady") : this.t("wmPrivacy");
+    this.$(".outcam-tap-layer").setAttribute("aria-label", this.t("wmTapTest"));
+    this.renderStats(); this.renderTarget(); this.renderHand();
+    if (this.phase !== "playing") this.$(".outcam-feedback").hidden = true;
+  }
+
+  renderStats() {
+    this.$(".outcam-time").textContent = (this.remainingMs / 1000).toFixed(1);
+    this.$(".outcam-score").textContent = String(this.score);
+    this.$(".outcam-fruit").textContent = `${Math.min(this.attempts, WATERMELON_RULES.targetCount)} / ${WATERMELON_RULES.targetCount}`;
+  }
+
+  renderTarget() {
+    const element = this.$(".outcam-watermelon");
+    const visible = this.phase === "playing" && Boolean(this.target);
+    element.hidden = !visible;
+    if (visible) { element.style.left = `${this.target.x * 100}%`; element.style.top = `${this.target.y * 100}%`; }
+  }
+
+  renderHand() {
+    const element = this.$(".outcam-hand");
+    element.hidden = !this.hand;
+    if (this.hand) { element.style.left = `${this.hand.x * 100}%`; element.style.top = `${this.hand.y * 100}%`; }
+  }
+}
