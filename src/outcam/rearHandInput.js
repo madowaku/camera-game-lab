@@ -1,5 +1,5 @@
 import { BodyInput } from "../input/bodyInput.js";
-import { WATERMELON_RULES, detectDownwardSwing } from "./watermelonRules.js";
+import { SwingTracker } from "./swingTracker.js";
 
 function projectPoint(point, video, stage) {
   const rect = stage.getBoundingClientRect();
@@ -9,20 +9,19 @@ function projectPoint(point, video, stage) {
   const width = sourceWidth * scale;
   const height = sourceHeight * scale;
   return {
-    x: Math.max(0, Math.min(1, (point.x * width - (width - rect.width) / 2) / rect.width)),
-    y: Math.max(0, Math.min(1, (point.y * height - (height - rect.height) / 2) / rect.height))
+    x: (point.x * width - (width - rect.width) / 2) / rect.width,
+    y: (point.y * height - (height - rect.height) / 2) / rect.height
   };
 }
 
 export class RearHandInput extends BodyInput {
-  constructor(video, stage, { onStatus, onHand, onSwing } = {}) {
+  constructor(video, stage, { onStatus, onHand, onSwing, getTarget } = {}) {
     super(video, { onStatus });
     this.stage = stage;
     this.onHand = onHand ?? (() => {});
     this.onSwing = onSwing ?? (() => {});
-    this.lastPoint = null;
-    this.lastFrameAt = null;
-    this.lastSwingAt = -Infinity;
+    this.swingTracker = new SwingTracker();
+    this.getTarget = getTarget ?? (() => null);
   }
 
   get cameraConstraints() {
@@ -34,15 +33,17 @@ export class RearHandInput extends BodyInput {
 
   async openCamera(mediaDevices, constraints, checkActive) {
     const stream = await mediaDevices.getUserMedia(constraints);
-    checkActive();
+    try { checkActive(); } catch (error) {
+      stream.getTracks().forEach(track => track.stop());
+      throw error;
+    }
     return stream;
   }
 
   processResult(result, timestamp) {
     const landmarks = result?.landmarks?.[0];
     if (!landmarks?.length) {
-      this.lastPoint = null;
-      this.lastFrameAt = null;
+      this.swingTracker.reset();
       this.onHand(null);
       return;
     }
@@ -53,23 +54,20 @@ export class RearHandInput extends BodyInput {
       x: wrist.x * 0.55 + middle.x * 0.45,
       y: wrist.y * 0.55 + middle.y * 0.45
     }, this.video, this.stage);
+    if (point.x < 0 || point.x > 1 || point.y < 0 || point.y > 1) {
+      this.swingTracker.reset();
+      this.onHand(null);
+      return;
+    }
     this.onHand(point);
 
-    const elapsed = this.lastFrameAt === null ? Infinity : timestamp - this.lastFrameAt;
-    if (timestamp - this.lastSwingAt >= WATERMELON_RULES.swingCooldownMs &&
-        detectDownwardSwing(this.lastPoint, point, elapsed)) {
-      this.lastSwingAt = timestamp;
-      this.onSwing(point);
-    }
-    this.lastPoint = point;
-    this.lastFrameAt = timestamp;
+    const strike = this.swingTracker.update(point, timestamp, this.getTarget());
+    if (strike) this.onSwing(strike);
   }
 
   stop() {
     super.stop();
-    this.lastPoint = null;
-    this.lastFrameAt = null;
-    this.lastSwingAt = -Infinity;
+    this.swingTracker.reset();
     this.onHand(null);
   }
 }

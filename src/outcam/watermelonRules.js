@@ -18,9 +18,9 @@ export function createWatermelonTarget(random = Math.random) {
   };
 }
 
-export function gradeStrike(target, strike) {
+export function gradeStrike(target, strike, aspectRatio = 0.78) {
   if (!target || !strike) return { grade: "MISS", points: 0, distance: Infinity };
-  const dx = (strike.x - target.x) * 0.78;
+  const dx = (strike.x - target.x) * aspectRatio;
   const dy = strike.y - target.y;
   const distance = Math.hypot(dx, dy);
   if (distance <= WATERMELON_RULES.hitRadius) return { grade: "HIT", points: 100, distance };

@@ -8,6 +8,10 @@ export class WatermelonGuide {
     this.root = root;
     this.locale = locale;
     this.onExit = onExit ?? (() => {});
+    this.mode = "camera";
+    this.results = [];
+    this.cameraRequest = 0;
+    this.countdownMs = 0;
     this.active = false;
     this.status = "OFF";
     this.phase = "idle";
@@ -34,14 +38,16 @@ export class WatermelonGuide {
           <div class="outcam-center-card"><small class="outcam-center-label"></small><strong class="outcam-center-title"></strong><p class="outcam-center-detail"></p></div>
           <button class="outcam-tap-layer" type="button"></button>
         </section>
-        <section class="outcam-stats" aria-live="polite">
+        <section class="outcam-stats">
           <div><span data-copy="wmTime"></span><strong class="outcam-time">30.0</strong></div>
           <div><span data-copy="wmScore"></span><strong class="outcam-score">0</strong></div>
           <div><span data-copy="wmFruit"></span><strong class="outcam-fruit">0 / 3</strong></div>
         </section>
+        <ol class="outcam-results" hidden></ol>
         <div class="outcam-actions">
           <button class="button button--primary outcam-camera-button" type="button"></button>
           <button class="button outcam-start-button" type="button" disabled></button>
+          <button class="button outcam-demo-button" type="button"></button>
           <button class="button outcam-exit-button" type="button"></button>
         </div>
         <p class="outcam-message" role="status"></p>
@@ -52,25 +58,40 @@ export class WatermelonGuide {
     this.video = this.$(".outcam-video");
     this.stage = this.$(".outcam-stage");
     this.input = new RearHandInput(this.video, this.stage, {
-      onStatus: (status) => { this.status = status; if (status === "ERROR") this.phase = "idle"; this.render(); },
+      onStatus: (status) => { this.status = status; if (status === "ERROR") { this.cancelRound(); this.phase = "idle"; this.target = null; } this.render(); },
       onHand: (point) => { this.hand = point; this.renderHand(); },
-      onSwing: (point) => this.strike(point)
+      onSwing: (point) => { if (this.mode === "camera") this.strike(point); },
+      getTarget: () => this.phase === "playing" ? this.target : null
     });
 
     this.$(".outcam-camera-button").addEventListener("click", () => this.startCamera());
+    this.$(".outcam-demo-button").addEventListener("click", () => {
+      ++this.cameraRequest;
+      this.cancelRound();
+      this.input.stop();
+      this.status = "OFF";
+      this.mode = "demo";
+      this.phase = "ready";
+      this.beginRound();
+    });
     this.$(".outcam-start-button").addEventListener("click", () => this.beginRound());
     this.$(".outcam-exit-button").addEventListener("click", this.onExit);
     this.$(".outcam-tap-layer").addEventListener("pointerdown", (event) => {
-      if (this.phase !== "playing") return;
+      if (this.phase !== "playing" || this.mode !== "demo") return;
       const rect = this.stage.getBoundingClientRect();
       this.strike({ x: (event.clientX - rect.left) / rect.width, y: (event.clientY - rect.top) / rect.height });
     });
     this.onKeyDown = (event) => {
-      if (!this.active || this.phase !== "playing" || event.code !== "Space") return;
+      if (!this.active || this.mode !== "demo" || this.phase !== "playing" || event.code !== "Space" || event.repeat || event.target?.closest("button, input, select, summary, a")) return;
       event.preventDefault();
       this.strike(this.hand ?? { x: 0.5, y: 0.66 });
     };
     window.addEventListener("keydown", this.onKeyDown);
+    this.onVisibility = () => {
+      this.lastTickAt = null;
+      this.input.swingTracker.reset();
+    };
+    document.addEventListener("visibilitychange", this.onVisibility);
     this.render();
   }
 
@@ -80,21 +101,29 @@ export class WatermelonGuide {
 
   deactivate() {
     this.active = false;
+    ++this.cameraRequest;
     this.cancelRound();
     this.input.stop();
     this.status = "OFF";
     this.phase = "idle";
+    this.mode = "camera";
     this.target = null;
     this.root.hidden = true;
   }
 
   async startCamera() {
     if (["LOADING_MODEL", "REQUESTING_CAMERA", "READY"].includes(this.status)) return;
+    this.cancelRound();
+    this.mode = "camera";
+    this.target = null;
+    const request = ++this.cameraRequest;
     try {
       await this.input.start();
+      if (!this.active || request !== this.cameraRequest) return;
       this.status = "READY";
       this.phase = "ready";
     } catch (error) {
+      if (!this.active || request !== this.cameraRequest) return;
       console.error(error);
       this.input.stop();
       this.status = "ERROR";
@@ -104,36 +133,54 @@ export class WatermelonGuide {
   }
 
   beginRound() {
-    if (this.status !== "READY" || this.phase === "playing") return;
-    clearTimeout(this.feedbackTimer);
+    if (!this.active || (this.mode === "camera" && this.status !== "READY") || ["playing", "countdown"].includes(this.phase)) return;
+    this.cancelAnimation();
+    this.results = [];
+    this.input.swingTracker.reset();
     this.score = this.hits = this.attempts = 0;
     this.remainingMs = WATERMELON_RULES.durationMs;
     this.lastTickAt = performance.now();
     this.lastStrikeAt = -Infinity;
-    this.phase = "playing";
-    this.spawnTarget();
+    this.phase = "countdown";
+    this.countdownMs = 3000;
+    this.target = null;
     this.render();
     this.raf = requestAnimationFrame(this.tick);
   }
 
   tick = (timestamp) => {
-    if (!this.active || this.phase !== "playing") return;
-    const delta = this.lastTickAt === null ? 0 : Math.max(0, Math.min(250, timestamp - this.lastTickAt));
+    if (!this.active || !["playing", "countdown"].includes(this.phase)) return;
+    if (document.hidden) { this.lastTickAt = null; this.raf = requestAnimationFrame(this.tick); return; }
+    const delta = this.lastTickAt === null ? 0 : Math.max(0, timestamp - this.lastTickAt);
     this.lastTickAt = timestamp;
+    if (this.phase === "countdown") {
+      const previousSecond = Math.ceil(this.countdownMs / 1000);
+      this.countdownMs = Math.max(0, this.countdownMs - delta);
+      if (this.countdownMs === 0) { this.phase = "playing"; this.spawnTarget(); }
+      if (Math.ceil(this.countdownMs / 1000) !== previousSecond) this.render();
+      this.raf = requestAnimationFrame(this.tick);
+      return;
+    }
     this.remainingMs = Math.max(0, this.remainingMs - delta);
     if (this.remainingMs <= 0) return this.finishRound();
     this.renderStats();
     this.raf = requestAnimationFrame(this.tick);
   };
 
-  spawnTarget() { this.target = createWatermelonTarget(); this.renderTarget(); }
+  spawnTarget() { this.input.swingTracker.reset(); this.$(".outcam-feedback").hidden = true; this.target = createWatermelonTarget(); this.renderTarget(); }
 
   strike(point) {
-    if (this.phase !== "playing" || !this.target) return;
+    if (document.hidden || this.phase !== "playing" || !this.target) return;
     const now = performance.now();
     if (now - this.lastStrikeAt < WATERMELON_RULES.swingCooldownMs) return;
     this.lastStrikeAt = now;
-    const result = gradeStrike(this.target, point);
+    // Account for elapsed time even if input arrives before the next timer frame.
+    if (this.lastTickAt !== null) this.remainingMs = Math.max(0, this.remainingMs - Math.max(0, now - this.lastTickAt));
+    this.lastTickAt = now;
+    if (this.remainingMs <= 0) { this.finishRound(); return; }
+    const rect = this.stage.getBoundingClientRect();
+    const result = gradeStrike(this.target, point, rect.width / rect.height);
+    this.results.push(result);
     this.attempts += 1;
     this.score += result.points;
     if (result.grade === "HIT") { this.hits += 1; navigator.vibrate?.(35); }
@@ -160,31 +207,47 @@ export class WatermelonGuide {
 
   finishRound() { if (this.phase === "playing") { this.cancelAnimation(); this.phase = "result"; this.target = null; this.render(); } }
   cancelAnimation() { if (this.raf !== null) cancelAnimationFrame(this.raf); this.raf = null; clearTimeout(this.feedbackTimer); this.feedbackTimer = null; }
-  cancelRound() { this.cancelAnimation(); if (this.phase === "playing") this.phase = this.status === "READY" ? "ready" : "idle"; }
+  cancelRound() { this.cancelAnimation(); if (["playing", "countdown"].includes(this.phase)) this.phase = this.status === "READY" ? "ready" : "idle"; }
 
   render() {
     for (const element of this.root.querySelectorAll("[data-copy]")) element.textContent = this.t(element.dataset.copy);
     this.$(".outcam-howto summary").textContent = this.t("howToPlay");
+    this.$(".outcam-demo-button").textContent = this.t("wmDemo");
+    this.$(".outcam-demo-button").disabled = ["playing", "countdown"].includes(this.phase);
     this.$(".outcam-exit-button").textContent = this.t("wmExit");
     const loading = ["LOADING_MODEL", "REQUESTING_CAMERA"].includes(this.status);
     this.$(".outcam-camera-button").textContent = this.t(loading ? "wmLoading" : this.status === "READY" ? "wmCameraReady" : "wmCamera");
-    this.$(".outcam-camera-button").disabled = loading || this.status === "READY";
+    this.$(".outcam-camera-button").disabled = loading || this.status === "READY" || ["playing", "countdown"].includes(this.phase);
     const start = this.$(".outcam-start-button");
     start.textContent = this.t(this.phase === "result" ? "wmRetry" : "wmStart");
-    start.disabled = this.status !== "READY" || this.phase === "playing";
-    this.$(".outcam-camera-state").textContent = this.status === "READY" ? "REAR CAM · LIVE" : this.status === "ERROR" ? "CAMERA ERROR" : loading ? "CAMERA…" : "REAR CAM · OFF";
+    start.disabled = (this.mode === "camera" && this.status !== "READY") || ["playing", "countdown"].includes(this.phase);
+    this.$(".outcam-camera-state").textContent = this.mode === "demo" ? "DEMO · TAP" : this.status === "READY" ? "CAMERA · LIVE" : this.status === "ERROR" ? "CAMERA ERROR" : loading ? "CAMERA…" : "REAR CAM · OFF";
     this.$(".outcam-hand-state").textContent = this.hand ? this.t("wmHand") : this.t("wmNoHand");
     this.$(".outcam-hand-state").classList.toggle("is-live", Boolean(this.hand));
 
     const card = this.$(".outcam-center-card");
     card.hidden = this.phase === "playing";
     this.$(".outcam-center-label").textContent = this.t(this.phase === "result" ? "wmResult" : "eyebrowWatermelonGuide");
-    this.$(".outcam-center-title").textContent = this.phase === "result" ? `${this.hits} / ${WATERMELON_RULES.targetCount}` : "WATERMELON GUIDE";
+    this.$(".outcam-center-title").textContent = this.phase === "countdown" ? String(Math.ceil(this.countdownMs / 1000)) : this.phase === "result" ? `${this.hits} / ${WATERMELON_RULES.targetCount}` : "WATERMELON GUIDE";
     this.$(".outcam-center-detail").textContent = this.phase === "result"
       ? this.t("wmResultLine", { hits: this.hits, total: WATERMELON_RULES.targetCount, score: this.score })
-      : this.status === "ERROR" ? this.t("wmCameraError") : this.status === "READY" ? this.t("wmReady") : this.t("wmIntro");
-    this.$(".outcam-message").textContent = this.status === "ERROR" ? this.t("wmCameraError") : this.phase === "playing" ? this.t("wmPlaying") : this.status === "READY" ? this.t("wmReady") : this.t("wmPrivacy");
+      : this.phase === "countdown" ? this.t(this.mode === "demo" ? "wmDemoGuide" : "wmCountdown") : this.status === "ERROR" ? this.t("wmCameraError") : this.mode === "demo" ? this.t("wmDemoGuide") : this.status === "READY" ? this.t("wmReady") : this.t("wmIntro");
+    this.$(".outcam-message").textContent = this.mode === "demo" ? this.t("wmDemoGuide") : this.status === "ERROR" ? this.t("wmCameraError") : this.phase === "playing" ? this.t("wmPlaying") : this.status === "READY" ? this.t("wmReady") : this.t("wmPrivacy");
     this.$(".outcam-tap-layer").setAttribute("aria-label", this.t("wmTapTest"));
+    this.$(".outcam-tap-layer").hidden = this.mode !== "demo" || this.phase !== "playing";
+    const results = this.$(".outcam-results");
+    results.hidden = this.phase !== "result";
+    results.replaceChildren();
+    if (this.phase === "result") {
+      for (let i = 0; i < WATERMELON_RULES.targetCount; i++) {
+        const result = this.results[i];
+        const item = document.createElement("li");
+        item.textContent = result
+          ? `${i + 1}. ${this.t(`wm${result.grade[0]}${result.grade.slice(1).toLowerCase()}`)} · ${this.t("wmDistance", { distance: (result.distance * 100).toFixed(1) })}`
+          : `${i + 1}. ${this.t("wmUnplayed")}`;
+        results.append(item);
+      }
+    }
     this.renderStats(); this.renderTarget(); this.renderHand();
     if (this.phase !== "playing") this.$(".outcam-feedback").hidden = true;
   }
@@ -203,6 +266,8 @@ export class WatermelonGuide {
   }
 
   renderHand() {
+    this.$(".outcam-hand-state").textContent = this.mode === "demo" ? "TAP" : this.hand ? this.t("wmHand") : this.t("wmNoHand");
+    this.$(".outcam-hand-state").classList.toggle("is-live", Boolean(this.hand));
     const element = this.$(".outcam-hand");
     element.hidden = !this.hand;
     if (this.hand) { element.style.left = `${this.hand.x * 100}%`; element.style.top = `${this.hand.y * 100}%`; }
