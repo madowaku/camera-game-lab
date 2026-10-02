@@ -177,3 +177,61 @@ face/mouth state, keyboard/touch fallback, local metrics and EXP-020 duel are
 implemented. EXP-021–023 wait for the five-round physical camera gate; synthetic
 tracking tests and fallback rounds do not satisfy it. Current evidence and
 remaining physical checks are in [DUO_ARCADE_PROGRESS.md](DUO_ARCADE_PROGRESS.md).
+
+
+## DUO RELATION LAB — two bodies as one sensor
+
+Design status: ready. Camera implementation waits for the EXP-020 physical five-round gate.
+
+The next branch of DUO ARCADE stops treating P1 and P2 only as separate controllers.
+
+Shared relation signals may include:
+
+- pair midpoint
+- relative angle
+- normalized distance
+- height difference
+- approach / separation velocity
+- dynamic role state
+- information asymmetry
+
+### EXP-024 — HUMAN JOYSTICK
+
+Two face positions become one analog vector.
+
+Question: can two people intentionally steer one object through their relative geometry?
+
+### EXP-025 — HUMAN BRIDGE
+
+The line between both players' face positions is the bridge itself.
+
+Question: does literal between-player geometry feel like a genuinely camera-native game object?
+
+### EXP-026 — LIGHT & SHADOW
+
+P1 moves the light source; P2 moves a runner who can only travel safely through shadow.
+
+Question: can one player's body movement rewrite the other player's navigable world in real time?
+
+### EXP-027 — PARALLEL WORLD
+
+P1 sees red hazards, P2 sees blue hazards, and both control different axes of one traveler.
+
+Question: can partial information plus camera control make communication more important than dexterity?
+
+### EXP-028 — FACE CHICKEN
+
+Pair distance becomes a bluffing / commitment meter, with an explicit no-contact safety band.
+
+Question: can interpersonal distance create tension without rewarding physical contact?
+
+### EXP-029 — HOT POTATO CROWN
+
+One capability transfers back and forth between players during the round.
+
+Question: does moving role ownership create stronger social play than fixed symmetric roles?
+
+Specs:
+
+- [DUO_RELATION_LAB_SPEC_v0.1.md](specs/DUO_RELATION_LAB_SPEC_v0.1.md)
+- [DUO_RELATION_LAB_IMPLEMENTATION_TASK_v0.1.md](specs/DUO_RELATION_LAB_IMPLEMENTATION_TASK_v0.1.md)
