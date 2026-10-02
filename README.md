@@ -68,7 +68,6 @@ work without camera permission.
 
 Results show score, accuracy, average / fastest response and max combo. See
 [prototype progress and real-camera playtest notes](docs/DAITAI_HERO_PROGRESS.md).
->>>>>>> 56e7143 (Add Daitai Hero, Note Blaster and Guardian Spirit prototypes)
 
 ## Stack
 
