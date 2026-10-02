@@ -43,6 +43,16 @@ Space provide a camera-free demo. Open `#/game/solo-pinch-world` from Feed or Ex
 All three tasks lead to CLEAR, RETRY, NEXT and a source-labeled share result.
 Physical mobile alignment, pinch reliability and game feel still need playtests.
 
+## EXP-030: GHOST TRAIL
+
+Escape your past in a 30-second front-camera round. Your nose controls a bright
+ring while 3 / 6 / 9 / 12-second echoes replay your stored positions. Three lives,
+near-miss bonuses, stable tracking recovery, JA / EN, and shared RETRY / NEXT.
+Open `#/game/solo-ghost-trail` or `#ghost-trail`; a touch / mouse / arrow-key demo
+works without camera permission. See [implementation and QA](docs/GHOST_TRAIL_PROGRESS.md)
+and the [five-round human playtest sheet](docs/GHOST_TRAIL_PLAYTEST.md).
+Physical camera acceptance and the human playtest are still pending.
+
 ## First playable: HAND BEAT v0.1
 
 A ~15 second rhythm prototype using four hand inputs:
