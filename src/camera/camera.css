@@ -1,0 +1,36 @@
+.ci-view { width: min(100%, 480px); margin: 0 auto; color: #e7ead8; padding: 8px 0 20px; }
+.ci-topline, .ci-stage-number, .ci-time, .ci-progress, .ci-frame-label, .ci-overlay-kicker { font-family: "Cascadia Mono", Consolas, monospace; }
+.ci-topline { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: #a8b4a2; letter-spacing: .035em; }
+.ci-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 20px 0 14px; }
+.ci-stage-number { color: #bfd69b; font-size: 11px; }
+.ci-title { font-family: Impact, Haettenschweiler, sans-serif; font-weight: 400; font-size: clamp(23px, 5.3vw, 34px); line-height: 1.12; margin: 7px 0 0; }
+.ci-time { font-size: 12px; color: #a8b4a2; white-space: nowrap; }
+.ci-stage { position: relative; isolation: isolate; width: 100%; aspect-ratio: 4/5; background: #112b26; overflow: hidden; border: 1px solid #466047; touch-action: none; outline-offset: 4px; }
+.ci-stage:focus-visible { outline: 2px solid #c7e9a5; }
+.ci-stage video, .ci-stage canvas { position: absolute; width: 100%; height: 100%; inset: 0; }
+.ci-stage video { object-fit: cover; opacity: 0; }
+.ci-stage.has-feed video { opacity: .46; }
+.ci-stage.has-feed::after { content: ""; pointer-events: none; position: absolute; inset: 0; background: #112b261f; z-index: -1; }
+.ci-frame-label { position: absolute; top: 19px; left: 22px; font-size: 9px; letter-spacing: .12em; color: #d1dfb885; pointer-events: none; }
+.ci-warning { position: absolute; bottom: 18px; left: 12px; right: 12px; text-align: center; color: #ffdcaa; font-size: 12px; pointer-events: none; }
+.ci-overlay { position: absolute; inset: 0; background: #102a26dc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; text-align: center; }
+.ci-overlay[hidden], .ci-view [hidden] { display: none !important; }
+.ci-overlay-kicker { font-size: 10px; letter-spacing: .13em; color: #bbd397; }
+.ci-overlay h3 { max-width: 320px; font-size: clamp(23px, 6vw, 34px); line-height: 1.4; margin: 16px 0; text-wrap: balance; }
+.ci-overlay-detail { font-size: 13px; line-height: 1.7; margin: 0 0 12px; }
+.ci-overlay-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.ci-view button { min-height: 44px; border: 1px solid #6a7f58; background: transparent; color: #dce5c6; border-radius: 5px; padding: 10px 12px; font: inherit; font-size: 12px; cursor: pointer; }
+.ci-view button:hover { background: #bad68c20; }
+.ci-view button:focus-visible { outline: 2px solid #d7f6b6; outline-offset: 3px; }
+.ci-view button:disabled { opacity: .42; cursor: default; }
+.ci-overlay-actions button { background: #c2de9c; color: #19352c; border: 0; font-weight: 700; }
+.ci-progress { display: flex; align-items: center; gap: 12px; margin: 18px 0 12px; font-size: 10px; color: #75836d; }
+.ci-progress span { flex: 1; border-top: 2px solid #3c4938; padding-top: 8px; }
+.ci-progress .is-current { color: #dce9c9; border-color: #dce9c9; }
+.ci-progress .is-complete { color: #a8cb7d; border-color: #a8cb7d; }
+.ci-instruction { font-size: 14px; line-height: 1.7; margin: 0 0 14px; min-height: 24px; }
+.ci-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.ci-controls button { flex: 1 1 auto; }
+.ci-hint { font-size: 11px; line-height: 1.7; color: #a8b4a2; margin: 12px 0 0; }
+.ci-receipt { margin-top: 12px; font-size: 13px; color: #d4e4bd; }
+@media (prefers-reduced-motion: reduce) { .ci-view * { scroll-behavior: auto; } }

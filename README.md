@@ -149,6 +149,18 @@ work without camera permission.
 Results show score, accuracy, average / fastest response and max combo. See
 [prototype progress and real-camera playtest notes](docs/DAITAI_HERO_PROGRESS.md).
 
+## EXP-043: THE CAMERA IS IT
+
+Point your phone to create the platforms for an automatic walker. Only the
+framed world exists; a soft margin lets you recover disappearing ground.
+Five stages move from looking ahead to framing two distant landing surfaces.
+Open `#/game/outcam-the-camera-is-it` or `/#camera-is-it` from Feed or Explore.
+Rear-camera background ON/OFF supports the same-rule comparison; drag and arrow
+keys provide a camera-free demo. Each stage lasts 15–30 seconds, with CLEAR,
+failed-stage RETRY and JA / EN. Camera and orientation require HTTPS or localhost.
+See [implementation and five-session playtest gate](docs/CAMERA_IS_IT_PROGRESS.md).
+Physical Android/iOS sensor checks and human playtests remain pending.
+
 ## Stack
 
 - Vite

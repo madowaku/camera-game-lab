@@ -43,7 +43,7 @@ export function mountPlatform(app) {
     $(".sheet-close").focus();
   }
   function info(game) {
-    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${t("privacyText")}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
+    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("privacyText"))}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
     if (session?.game.id === game.id) $(".sheet-play").remove();
     else $(".sheet-play").addEventListener("click", (event) => { event.preventDefault(); closeSheet(); action("play", game); });
   }
@@ -80,7 +80,9 @@ export function mountPlatform(app) {
     if (!session?.result) return;
     const game = session.game;
     result.hidden = false; cacheRoot.classList.add("platform-has-result");
-    result.innerHTML = `<p class="platform-kicker">${t("nextHint")}</p><h2>${t("completed")}</h2><p>${esc(resultSummary(session.result))} · ${session.result.score ?? 0} ${locale === "ja" ? "点" : "pts"}</p><div class="result-actions"><button type="button" data-result-action="retry">↻ ${t("retry")}</button><button type="button" data-result-action="next">${t("next")} ↑</button><button type="button" data-result-action="share">↗ ${t("shareResult")}</button></div>`;
+    const resultTitle = session.result[locale === "ja" ? "titleJa" : "titleEn"] ?? t("completed");
+    const scoreText = session.result.scored === false ? "" : ` · ${session.result.score ?? 0} ${locale === "ja" ? "点" : "pts"}`;
+    result.innerHTML = `<p class="platform-kicker">${t("nextHint")}</p><h2>${esc(resultTitle)}</h2><p>${esc(resultSummary(session.result))}${scoreText}</p><div class="result-actions"><button type="button" data-result-action="retry">↻ ${t("retry")}</button><button type="button" data-result-action="next">${t("next")} ↑</button><button type="button" data-result-action="share">↗ ${t("shareResult")}</button></div>`;
     result.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
     // Keep result controls in reach after a full-screen game.
     result.scrollIntoView({ block: "nearest", behavior: "instant" });
@@ -116,10 +118,11 @@ export function mountPlatform(app) {
       events.emit("retry", { id: game.id });
       session.started = false; session.result = null; result.hidden = true; cacheRoot.classList.remove("platform-has-result");
       launcher.retry(session.source);
+      cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
     }
   });
   function launchCopy(game) {
-    panel.innerHTML = `<p class="platform-kicker">${t("before")}</p><span class="launch-number">${game.exp} / ${game.category}</span><h1>${esc(titleOf(game, locale))}</h1><p class="launch-reason">${game.requiresMicrophone ? t("voiceReason") : t("reason", { input: game.input.map((input) => inputLabel(input, locale)).join("・") })}</p><p class="launch-local">${t("local")}</p>${game.orientation === "landscape" ? `<div class="orientation-guide"><span aria-hidden="true">▯ ↻ ▭</span><p>${t("rotate")}</p><small>${t("rotateDetail")}</small></div>` : ""}<div class="launch-controls"><button type="button" class="launch-camera" disabled>${t(game.requiresMicrophone ? "microphone" : "camera")}</button>${game.demo ? `<button type="button" class="launch-demo" disabled>${t("demo")}</button>` : ""}</div><p class="launch-status" role="status">${t("loading")}</p>`;
+    panel.innerHTML = `<p class="platform-kicker">${t("before")}</p><span class="launch-number">${game.exp} / ${game.category}</span><h1>${esc(titleOf(game, locale))}</h1><p class="launch-reason">${esc(game[locale === "ja" ? "launchReasonJa" : "launchReasonEn"] ?? (game.requiresMicrophone ? t("voiceReason") : t("reason", { input: game.input.map((input) => inputLabel(input, locale)).join("・") })))}</p><p class="launch-local">${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("local"))}</p>${game.orientation === "landscape" ? `<div class="orientation-guide"><span aria-hidden="true">▯ ↻ ▭</span><p>${t("rotate")}</p><small>${t("rotateDetail")}</small></div>` : ""}<div class="launch-controls"><button type="button" class="launch-camera" disabled>${t(game.requiresMicrophone ? "microphone" : "camera")}</button>${game.demo ? `<button type="button" class="launch-demo" disabled>${t("demo")}</button>` : ""}</div><p class="launch-status" role="status">${t("loading")}</p>`;
     panel.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
   }
   function updateChrome() {

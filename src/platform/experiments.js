@@ -54,10 +54,19 @@ export const experiments = Object.freeze([
     titleJa: "だいたい勇者", titleEn: "DAITAI HERO", subtitleJa: "顔を左右に動かして、だいたいの答えを選べ。", subtitleEn: "Lean left or right. Your best guess is your weapon.",
     input: ["FACE"], accent: "#efca7b", tags: ["quiz"], aliases: ["#daitai"], module: "daitai", demo: true, motif: "hero",
     load: () => import("../daitai/daitaiHeroView.js").then((m) => (root, locale) => new m.DaitaiHeroView(root, locale)) }),
+  define({ id: "outcam-the-camera-is-it", exp: "EXP-043", collection: "OUTCAM", category: "OUTCAM",
+    titleJa: "THE CAMERA IS IT", titleEn: "THE CAMERA IS IT", subtitleJa: "映している場所だけ、世界が存在する。", subtitleEn: "Only the world you frame exists.",
+    input: ["ORIENTATION"], duration: 25, accent: "#c2de9c", tags: ["rear camera", "framing", "puzzle", "視野", "5 stages"],
+    launchReasonJa: "スマホを向けた場所だけ、足場が存在します。自動で歩く彼を出口へ。1ステージ15〜30秒、全5ステージ。",
+    launchReasonEn: "Point your phone to create the path for an automatic walker. Five stages, 15–30 seconds each.",
+    privacyJa: "アウトカメラと姿勢センサーを使います。映像は端末内で表示し、録画・送信しません。実写背景は途中でOFFにできます。",
+    privacyEn: "Uses the rear camera and orientation sensor. Video stays on your device, without recording or uploading. You can switch the live background off during play.",
+    aliases: ["#camera-is-it"], module: "camera-is-it", demo: true, motif: "viewfinder",
+    load: () => import("../camera/view.js").then((m) => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];
-export const inputs = ["HAND", "FACE", "BODY", "VOICE", "BLINK", "MOUTH", "PINCH"];
+export const inputs = ["HAND", "FACE", "BODY", "VOICE", "BLINK", "MOUTH", "PINCH", "ORIENTATION"];
 export const titleOf = (game, locale) => game[locale === "ja" ? "titleJa" : "titleEn"];
 export const subtitleOf = (game, locale) => game[locale === "ja" ? "subtitleJa" : "subtitleEn"];
 
