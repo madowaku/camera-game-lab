@@ -58,6 +58,10 @@ export class BodyInput {
     };
   }
 
+  openCamera(mediaDevices, constraints, checkActive) {
+    return openFrontCamera(mediaDevices, constraints, checkActive);
+  }
+
   start() {
     if (this.running) return Promise.resolve();
     if (this.starting) return this.starting;
@@ -98,7 +102,7 @@ export class BodyInput {
       checkActive();
 
       this.onStatus("REQUESTING_CAMERA");
-      session.stream = await openFrontCamera(navigator.mediaDevices, this.cameraConstraints, checkActive);
+      session.stream = await this.openCamera(navigator.mediaDevices, this.cameraConstraints, checkActive);
       checkActive();
 
       this.video.srcObject = session.stream;

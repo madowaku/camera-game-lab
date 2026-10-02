@@ -7,6 +7,7 @@ import { HandBeat } from "./games/handBeat.js";
 import { FingerGunGame } from "./games/fingerGun.js";
 import { EatDontEatGame } from "./games/eatDontEat.js";
 import { DuoArcade } from "./duo/duoArcade.js";
+import { WatermelonGuide } from "./outcam/watermelonGuide.js";
 import { getInitialLocale, translate } from "./i18n.js";
 
 registerSW({ immediate: true });
@@ -31,6 +32,7 @@ app.innerHTML = `
         <button id="mode-finger-gun" class="mode-switch__button" type="button" data-mode="fingerGun"></button>
         <button id="mode-eat-dont-eat" class="mode-switch__button" type="button" data-mode="eatDontEat"></button>
         <button id="mode-duo-arcade" class="mode-switch__button" type="button" data-mode="duoArcade"></button>
+        <button id="mode-watermelon-guide" class="mode-switch__button" type="button" data-mode="watermelonGuide"></button>
       </nav>
     </header>
 
@@ -132,6 +134,7 @@ app.innerHTML = `
     </details>
     </div>
     <section id="duo-experience" hidden></section>
+    <section id="watermelon-experience" hidden></section>
   </section>
 `;
 
@@ -244,6 +247,7 @@ const state = {
 };
 
 const duoArcade = new DuoArcade($("#duo-experience"), state.locale, { onExit: () => selectMode("handBeat") });
+const watermelonGuide = new WatermelonGuide($("#watermelon-experience"), state.locale, { onExit: () => selectMode("handBeat") });
 
 function t(key, values) {
   return translate(state.locale, key, values);
@@ -438,7 +442,8 @@ function renderUi() {
     handBeat: "HandBeat",
     fingerGun: "FingerGun",
     eatDontEat: "EatDontEat",
-    duoArcade: "DuoArcade"
+    duoArcade: "DuoArcade",
+    watermelonGuide: "WatermelonGuide"
   };
   const suffix = modeTitleKey[state.mode];
 
@@ -454,9 +459,12 @@ function renderUi() {
 
   modeTitle.textContent = t(`mode${suffix}`);
   lead.textContent = t(`lead${suffix}`);
-  $("#solo-experience").hidden = state.mode === "duoArcade";
+  const fullExperience = state.mode === "duoArcade" || state.mode === "watermelonGuide";
+  $("#solo-experience").hidden = fullExperience;
   $(".lab").classList.toggle("lab--duo", state.mode === "duoArcade");
+  $(".lab").classList.toggle("lab--outcam", state.mode === "watermelonGuide");
   duoArcade.setLocale(state.locale);
+  watermelonGuide.setLocale(state.locale);
 
   for (const button of modeButtons) {
     button.textContent = t(`mode${modeTitleKey[button.dataset.mode]}`);
@@ -464,7 +472,7 @@ function renderUi() {
     button.disabled = state.cameraLoading;
   }
 
-  if (state.mode === "duoArcade") return;
+  if (fullExperience) return;
 
   handBeatPanel.hidden = state.mode !== "handBeat";
   fingerGunPanel.hidden = state.mode !== "fingerGun";
@@ -870,15 +878,18 @@ async function selectMode(mode) {
 
   state.mode = mode;
   if (mode === "duoArcade") window.history.replaceState(null, "", "#duo");
-  else if (window.location.hash === "#duo") window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  else if (mode === "watermelonGuide") window.history.replaceState(null, "", "#watermelon");
+  else if (["#duo", "#watermelon"].includes(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
   state.cameraReady = false;
   state.cameraLoading = false;
   state.cameraStatus = "OFF";
   state.message = { key: "cameraPrivacy" };
   duoArcade.deactivate();
+  watermelonGuide.deactivate();
   renderUi();
 
   if (mode === "duoArcade") duoArcade.activate();
+  else if (mode === "watermelonGuide") watermelonGuide.activate();
   else if (resumeCamera) await startCamera();
 }
 
@@ -913,10 +924,13 @@ window.addEventListener("pagehide", () => {
   handInput.stop();
   fingerGunInput.stop();
   faceInput.stop();
+  watermelonGuide.deactivate();
 });
 
 renderUi();
 if (window.location.hash === "#duo") void selectMode("duoArcade");
+else if (window.location.hash === "#watermelon") void selectMode("watermelonGuide");
 window.addEventListener("hashchange", () => {
   if (window.location.hash === "#duo") void selectMode("duoArcade");
+  else if (window.location.hash === "#watermelon") void selectMode("watermelonGuide");
 });

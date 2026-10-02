@@ -49,6 +49,14 @@ Run the five rounds using [Human Playtest Pass v0.1](docs/TINY_BOT_DUEL_HUMAN_PL
 The result's local playtest record includes round duration, recovery counts and
 minimum inference FPS, and can download the browser's receipts as JSON.
 
+## OUTCAM LAB: EXP-021 WATERMELON GUIDE
+
+Open `/#watermelon` on a phone. The camera operator uses the rear camera and sees an AR watermelon the other player cannot see. Guide them by voice; a fast downward hand swing is tracked and graded HIT / CLOSE / MISS against the on-screen target. Three watermelons, 30-second cap. For desktop testing, tap the camera image to strike at that point.
+
+This first OUTCAM prototype intentionally uses screen-space targets rather than floor-plane/depth anchoring. The research question is whether the camera-mediated information asymmetry is fun before adding heavier world tracking.
+
+`EXP-021` here is namespaced under OUTCAM LAB; DUO ARCADE keeps its existing EXP-021 FACE RACER designation.
+
 ## Stack
 
 - Vite
