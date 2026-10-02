@@ -1,5 +1,8 @@
 const messages = {
   ja: {
+    eyebrowTensionDuel: "CAMERA GAME LAB / EXP-021 · TENSION",
+    modeTensionDuel: "TENSION DUEL",
+    leadTensionDuel: "指でネットを張れ！ 一台のカメラで、二人の15秒ラリー。",
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",
@@ -130,6 +133,9 @@ const messages = {
     secondsShort: "秒"
   },
   en: {
+    eyebrowTensionDuel: "CAMERA GAME LAB / EXP-021 · TENSION",
+    modeTensionDuel: "TENSION DUEL",
+    leadTensionDuel: "Stretch the net between your fingers! Two players, one camera, a 15-second rally.",
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",

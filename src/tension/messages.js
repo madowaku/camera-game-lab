@@ -1,0 +1,35 @@
+export const copy = {
+  ja: {
+    start: 'カメラで遊ぶ', retry: 'もう一度・15秒', back: '実験一覧へ', demo: 'カメラなしで試す', camera: 'カメラで遊ぶ',
+    intro: '親指と人差し指で、Cを作ろう。', detail: '左右に1人ずつ。指の間のネットで球を返す、15秒の対戦。',
+    steps: ['Cを作ろう', '指の間にネット！', '球を返そう！'], waiting: '左右に1つずつ、Cを映してね',
+    ready: '準備OK', missing: 'Cを映してね', loading: '手を見つける準備中…', permission: 'カメラの使用を許可してね',
+    error: 'カメラを起動できません。ブラウザのカメラ許可と通信を確認して、もう一度試してね。',
+    lost: '左右にCを映すと再開します', hidden: '画面に戻ると再開します', result: '引き分け！', wins: 'の勝ち！',
+    guide: 'ネットを傾けると方向が変わる。指を開くと強く返せる。自分側の端を抜けると相手に1点。',
+    privacy: '映像と手の判定は端末内で処理。映像の保存・送信はしません。', how: '遊び方・操作',
+    rotate: 'スマホを横にすると、二人で遊びやすいよ。', sound: '音', fullscreen: '画面を広げる',
+    demoGuide: '画面の左右をそれぞれドラッグ。下の操作でもネットを動かせます。',
+    keys: 'キーボード：P1 W/Sで上下、Q/Aで傾き、E/Dで開く。P2 ↑/↓、O/L、I/K。',
+    position: '高さ', angle: '傾き', opening: '指の開き', states: ['ゆるい', 'ふつう', '強い', '開きすぎ'],
+    hits: '返球', rally: '連続返球', skip: '説明をスキップ', point: 'ポイント！', serve: 'サーブ',
+    cameraFailed: 'カメラが停止しました。もう一度起動するか、カメラなしで試してね。',
+    arena: '指のネット対戦フィールド', mode: 'カメラなしのお試し', resume: '続きを遊ぶ'
+  },
+  en: {
+    start: 'Play with camera', retry: 'Play again · 15s', back: 'Back to experiments', demo: 'Try without camera', camera: 'Play with camera',
+    intro: 'Make a C with your thumb and index finger.', detail: 'One player on each side. Bounce the ball with your finger net in a 15-second duel.',
+    steps: ['Make a C', 'Your net appears!', 'Return the ball!'], waiting: 'Show one C on each side',
+    ready: 'Ready', missing: 'Show a C', loading: 'Preparing hand tracking…', permission: 'Allow camera access to play',
+    error: 'Camera could not start. Check camera permission and your connection, then try again.',
+    lost: 'Show both C shapes to resume', hidden: 'Return to the screen to resume', result: 'Draw!', wins: ' wins!',
+    guide: 'Tilt to aim. Open your fingers for a stronger return. If the ball passes your edge, your opponent scores.',
+    privacy: 'Video and hand tracking stay on your device. Video is never saved or uploaded.', how: 'How to play & controls',
+    rotate: 'Turn your phone sideways for more room to play together.', sound: 'Sound', fullscreen: 'Expand screen',
+    demoGuide: 'Drag each side of the field to move a net, or use the controls below.',
+    keys: 'Keyboard: P1 W/S to move, Q/A to tilt, E/D to stretch. P2 ↑/↓, O/L, I/K.',
+    position: 'Height', angle: 'Tilt', opening: 'Finger spacing', states: ['Slack', 'Normal', 'Tension', 'Over tension'],
+    hits: 'Returns', rally: 'Best rally', skip: 'Skip tips', point: 'Point!', serve: 'Serve',
+    cameraFailed: 'Camera stopped. Restart it or try without camera.', arena: 'Finger net duel field', mode: 'Camera-free tryout', resume: 'Resume'
+  }
+};

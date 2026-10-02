@@ -136,3 +136,9 @@ Camera frames are intended to be processed on-device in the browser and are not 
 6. CRANE TACTICS CAM — pinch-and-carry tactical prototype
 
 The reusable asset is the **body-input layer**, not any single game.
+
+## TENSION DUEL v0.1
+
+Open `#tension-duel` after starting the app. Make a C with each player's thumb and index finger, then return the ball with the elastic net. A round lasts 15 active-play seconds. Longer tracking loss pauses both ball and clock; retry reuses the camera. JA/EN, a camera-free tryout, drag/keyboard/range controls and short readiness tips are included.
+
+Run `npm test`, `npm run test:tension-ui`, and `npm run build` to verify rules, synthetic UI state transitions and the production bundle. Browser rendering, physical camera recognition and the two-person playtest remain unverified; see [implementation report](docs/TENSION_DUEL_PROGRESS.md) and [human checklist](docs/TENSION_DUEL_PLAYTEST.md).

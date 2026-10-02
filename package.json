@@ -12,12 +12,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "cf:dev": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "test:tension-ui": "node scripts/verify-tension-ui.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "1.0.1"
   },
   "devDependencies": {
+    "jsdom": "26.1.0",
     "vite": "8.3.1",
     "vite-plugin-pwa": "1.3.0",
     "wrangler": "4.142.0"
