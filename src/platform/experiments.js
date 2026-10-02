@@ -50,6 +50,15 @@ export const experiments = Object.freeze([
     input: ["HAND"], players: 2, accent: "#75ec9b", tags: ["rear camera", "AR", "co-op"],
     aliases: ["#watermelon"], module: "watermelon", demo: true, motif: "melon",
     load: () => import("../outcam/watermelonGuide.js").then((m) => (root, locale, options) => new m.WatermelonGuide(root, locale, options)) }),
+  define({ id: "outcam-false-bridge", exp: "EXP-025", collection: "OUTCAM", category: "OUTCAM",
+    titleJa: "FALSE BRIDGE", titleEn: "FALSE BRIDGE", subtitleJa: "身近な形が、橋になる。カメラを動かして世界をつなごう。", subtitleEn: "An ordinary shape. An extraordinary fit. Move your camera, mend a world.",
+    launchReasonJa: "アウトカメラに映る身近な形を、白いガイドへ。スマホや物の位置・角度・距離を変えて、合ったと思ったらLOCK。5つの小さな世界を完成させよう。",
+    launchReasonEn: "Use the rear camera to bring an everyday shape into the white guide. Move your phone or the object, change the distance, then tap LOCK when it fits. Complete five little worlds.",
+    privacyJa: "アウトカメラだけを使います。LOCKした部分の画像はプレイ中だけ端末内に保持し、終了後の離脱時に破棄します。画像の保存・送信や認識モデルのダウンロードはありません。",
+    privacyEn: "Rear camera only. Locked image cutouts stay in memory during play and are discarded when you leave. No image saving, uploads or recognition model downloads.",
+    input: ["CAMERA"], duration: 120, accent: "#efc584", tags: ["perspective", "puzzle", "rear camera", "遠近法", "見立て"],
+    aliases: ["#false-bridge"], module: "falseBridge", demo: true, motif: "bridge",
+    load: () => import("../falseBridge/view.js").then(m => m.createView) }),
   define({ id: "solo-daitai-hero", exp: "EXP-018", collection: "SOLO", category: "SOLO",
     titleJa: "だいたい勇者", titleEn: "DAITAI HERO", subtitleJa: "顔を左右に動かして、だいたいの答えを選べ。", subtitleEn: "Lean left or right. Your best guess is your weapon.",
     input: ["FACE"], accent: "#efca7b", tags: ["quiz"], aliases: ["#daitai"], module: "daitai", demo: true, motif: "hero",
@@ -57,7 +66,7 @@ export const experiments = Object.freeze([
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];
-export const inputs = ["HAND", "FACE", "BODY", "VOICE", "BLINK", "MOUTH", "PINCH"];
+export const inputs = ["HAND", "FACE", "BODY", "VOICE", "BLINK", "MOUTH", "PINCH", "CAMERA"];
 export const titleOf = (game, locale) => game[locale === "ja" ? "titleJa" : "titleEn"];
 export const subtitleOf = (game, locale) => game[locale === "ja" ? "subtitleJa" : "subtitleEn"];
 

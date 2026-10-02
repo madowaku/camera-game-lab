@@ -120,6 +120,25 @@ This first OUTCAM prototype intentionally uses screen-space targets rather than 
 
 `EXP-021` here is namespaced under OUTCAM LAB; DUO ARCADE keeps its existing EXP-021 FACE RACER designation.
 
+## EXP-025: FALSE BRIDGE
+
+Open `/#/game/outcam-false-bridge` (or `/#false-bridge`) to complete five little
+worlds with everyday shapes seen through the rear camera. Set an empty background,
+hold still for one second, align a shape, then tap LOCK. The clipped camera image
+stays in the world while the character crosses or climbs; the last stage retains
+a bridge while you add a pillar. No object recognition or model download.
+
+Coverage, nearby spill and line angle provide forgiving GOOD / GREAT / PERFECT
+feedback. Darkness, background movement or weak evidence offer LOOK GOOD? with
+accept / retry. Demo mode uses draggable material, angle/size sliders and keys,
+without requesting a camera. JA / EN, result sharing, RETRY and NEXT are supported.
+
+Images stay in memory and are discarded on departure. Local completion receipts
+contain measurements and camera/demo/self-judgment provenance, never images.
+See [implementation and verification](docs/FALSE_BRIDGE_PROGRESS.md) and the
+[five-session human playtest gate](docs/FALSE_BRIDGE_PLAYTEST.md). Physical mobile
+camera quality and the fun of the interaction are still unverified.
+
 ## EXP-020: GUARDIAN SPIRIT
 
 Open `/#guardian` to summon WARDEN behind your mirrored front-camera image.

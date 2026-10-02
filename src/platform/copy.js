@@ -18,6 +18,6 @@ const messages = {
     rotate: "Turn your phone sideways to fit both players.", rotateDetail: "You can also continue in portrait.", ready: "Starts automatically when you're ready", saved: "Added to favorites", removed: "Removed from favorites", copied: "Share text and URL copied", shared: "Shared", copyManually: "Select and copy your link", notFound: "We couldn't find that experiment.", completed: "EXPERIMENT COMPLETE", nextHint: "WHAT WILL YOU PLAY NEXT?", feedLabel: "Game discovery feed. Use Up and Down keys to browse.", preview: "PREVIEW", photoResume: "Preparing camera for PHOTO MODE…",
   },
 };
-export const inputLabel = (input, locale) => locale === "ja" ? ({ HAND: "手", FACE: "顔", BODY: "からだ", VOICE: "声", BLINK: "まばたき", MOUTH: "口", PINCH: "つまむ" }[input] ?? input) : input;
+export const inputLabel = (input, locale) => locale === "ja" ? ({ HAND: "手", FACE: "顔", BODY: "からだ", VOICE: "声", BLINK: "まばたき", MOUTH: "口", PINCH: "つまむ", CAMERA: "カメラの位置・角度" }[input] ?? input) : input;
 export function copy(locale, key, values = {}) { return (messages[locale]?.[key] ?? messages.en[key] ?? key).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? ""); }
 export const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
