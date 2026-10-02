@@ -27,6 +27,30 @@ A 15-second face-input spike with 12 randomized items. Open your mouth for food 
 
 The app supports Japanese and English. The selected language is saved in the browser.
 
+## EXP-019: NOTE BLASTER
+
+Open `/#note-blaster` to shoot notes with your voice. Enable the front camera
+and microphone, then hold a comfortable "Do" for one second to set your own
+reference pitch. Sing Do / Re / Mi / Fa / So to fire from your tracked mouth
+onto the corresponding staff position. Hold a note to keep firing. The round
+ends after 30 active seconds or three enemy breaches, and reports score,
+accuracy, PERFECT rate and max combo. Twenty consecutive hits trigger a
+five-second fever with larger piercing notes and doubled score.
+
+Keys 1–5 and held touch buttons are available in the explicitly labeled practice
+mode. Practice scores never update the voice high score. In voice mode the note
+buttons play reference tones; they do not shoot. Sound effects are off by
+default to keep speaker output out of the microphone. Missing face tracking,
+interrupted audio or a hidden tab pauses gameplay; pause/resume, recalibration,
+round cancellation and camera/mic teardown are available.
+
+Camera and microphone need HTTPS or localhost. Audio and images are processed
+on-device and never recorded or uploaded. MediaPipe's initial model/WASM load
+requires a network connection. Physical camera alignment and voice usability
+still need device playtesting; synthetic inputs do not establish game feel.
+See [implementation and playtest notes](docs/NOTE_BLASTER_PROGRESS.md) and
+the [original specification](docs/specs/EXP-019_NOTE_BLASTER_SPEC_v0.1.md).
+
 ## DUO ARCADE: EXP-020 TINY BOT DUEL
 
 Open `/#duo` for the landscape two-player shell. Two faces share one front
@@ -56,6 +80,23 @@ Open `/#watermelon` on a phone. The camera operator uses the rear camera and see
 This first OUTCAM prototype intentionally uses screen-space targets rather than floor-plane/depth anchoring. The research question is whether the camera-mediated information asymmetry is fun before adding heavier world tracking.
 
 `EXP-021` here is namespaced under OUTCAM LAB; DUO ARCADE keeps its existing EXP-021 FACE RACER designation.
+
+## EXP-020: GUARDIAN SPIRIT
+
+Open `/#guardian` to summon WARDEN behind your mirrored front-camera image.
+Sweep one hand to punch, extend an arm to shoot, spread both arms to shield,
+and raise both hands with a full spirit gauge to defeat the boss. The active
+round lasts about 30 seconds, followed by victory capture and a four-pose PHOTO
+MODE. Photos are composed locally and can be saved as PNG, with or without UI.
+
+The camera-free demo uses A / D (punch), S (shot), F (shield), W (ascension),
+or the visible touch controls. Tracking loss freezes the round and requires
+three seconds of continuous reacquisition. Camera/demo receipts and photo
+metrics stay in localStorage. The existing EXP-020 TINY BOT DUEL is retained
+separately; Guardian uses `EXP-020-GUARDIAN-SPIRIT` in its receipts.
+
+See [specification](docs/specs/EXP-020_GUARDIAN_SPIRIT_SPEC_v0.1.md) and
+[human playtest checklist](docs/GUARDIAN_SPIRIT_PLAYTEST.md).
 
 ## EXP-018: DAITAI HERO / だいたい勇者
 

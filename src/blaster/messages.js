@@ -1,0 +1,24 @@
+const messages = {
+  ja: {
+    audioPaused: "マイクを再開してね",
+    title: "歌え。撃て。", subtitle: "音程が武器になる。", mode: "SURVIVAL 30", intro: "声の高さで狙いを変えて、五線譜を守ろう。",
+    camera: "カメラ＋マイクを起動", loading: "入力を準備中…", demo: "キー・タッチで試す", voiceMode: "声でプレイ", demoMode: "キー・タッチ体験", demoNotice: "体験モード：1〜5キー、または音を長押しして発射。声の記録とは別に扱います。",
+    privacy: "カメラ映像と音声は端末内で処理。録画・録音・アップロードはしません。",
+    idle: "あなたの声がコントローラー。", idleDetail: "カメラとマイクを許可して、自分の「ド」を決めよう。",
+    calibrate: "出しやすい高さで「ドー」", calibrateDetail: "1秒ほど、同じ高さで伸ばしてね。その声を「ド」の基準にします。",
+    ready: "その声が、あなたのド。", readyDetail: "下の音を聴いて高さを確認。敵と同じ音を歌おう。", base: "基準のド", recalibrate: "ドを測り直す", start: "30秒チャレンジ開始", again: "もう一度プレイ", disconnect: "カメラ・マイクを停止",
+    score: "スコア", combo: "コンボ", best: "ベスト", hp: "残りライフ", time: "残り時間", accuracy: "命中率", perfect: "PERFECT率", maxCombo: "最大コンボ", hits: "撃破数",
+    countdown: "準備はいい？", noFace: "顔と口を枠の中央に映してね", paused: "一時停止", pauseDetail: "続けるを押すと再開します。", pause: "一時停止", resume: "続ける", stop: "ラウンドを終了", stopped: "ラウンドを終了しました", finish: "30秒、歌いきった！", gameOver: "五線譜が突破された！",
+    result: "YOUR PERFORMANCE", pitch: "今の音", silence: "声を出してみよう", offPitch: "音を少し上げ下げしてね", level: "LEVEL", source: "入力", notes: "ド レ ミ ファ ソ", noteNames: ["ド", "レ", "ミ", "ファ", "ソ"], listen: "音を聴く", playNote: "を発射", sound: "効果音", soundOff: "効果音 OFF", soundOn: "効果音 ON", howto: "遊び方", step1: "自分のドを決める", step1detail: "楽な高さで1秒歌う。絶対音感は不要。", step2: "敵の高さを歌う", step2detail: "高い声で上の音へ。ド・レ・ミ・ファ・ソで狙う。", step3: "伸ばして連射", step3detail: "口から音符が飛ぶ。3回突破される前に倒そう。", fever: "FEVER · スコア ×2", hint: "ド・ミ → ド・レ・ミ → 5音へ", error: "カメラかマイクを起動できませんでした。許可設定と接続を確認して、もう一度起動してください。", modelError: "顔検出の読み込みに失敗しました。接続を確認して再試行してください。", deviceLost: "カメラかマイクの接続が切れました。もう一度起動してください。", unsupported: "カメラとマイクにはHTTPSまたはlocalhostが必要です。", count: "音を歌って発射", cameraLabel: "あなたのインカメラ映像", canvasLabel: "五線譜上の敵へ、声の音程に合わせた音符弾を撃つゲーム", permission: "カメラ・マイクの許可を待っています", demoReady: "音を選んで、撃ってみよう。", demoReadyDetail: "1〜5キー、または下の音を長押し。声で遊ぶときはカメラ＋マイクを起動。"
+  },
+  en: {
+    audioPaused: "Resume your microphone",
+    title: "SING. AIM.", subtitle: "BLAST.", mode: "SURVIVAL 30", intro: "Turn your voice into a weapon. Defend the staff.",
+    camera: "Enable camera + mic", loading: "Preparing your inputs…", demo: "Try keys / touch", voiceMode: "VOICE CONTROL", demoMode: "KEYS / TOUCH", demoNotice: "Practice mode: hold keys 1–5 or a note below to fire. Voice records are kept separately.",
+    privacy: "Camera and audio are processed on your device. No recording or uploads.",
+    idle: "Your voice. Your controller.", idleDetail: "Allow camera and microphone, then find your own Do.", calibrate: "Sing a comfortable “Dooo”", calibrateDetail: "Hold one steady pitch for a second. That becomes your Do.", ready: "That voice is your Do.", readyDetail: "Listen to the notes below. Sing the same note as an enemy.", base: "YOUR DO", recalibrate: "Recalibrate Do", start: "Start 30-second round", again: "Play again", disconnect: "Stop camera + mic",
+    score: "SCORE", combo: "COMBO", best: "BEST", hp: "LIVES", time: "TIME LEFT", accuracy: "ACCURACY", perfect: "PERFECT RATE", maxCombo: "MAX COMBO", hits: "DESTROYED",
+    countdown: "Ready to sing?", noFace: "Keep your face and mouth in the camera frame", paused: "PAUSED", pauseDetail: "Press resume to continue.", pause: "Pause", resume: "Resume", stop: "End round", stopped: "Round ended", finish: "30 seconds. Well sung!", gameOver: "The staff was breached!", result: "YOUR PERFORMANCE", pitch: "YOUR NOTE", silence: "Make a sound", offPitch: "Adjust your pitch a little", level: "LEVEL", source: "INPUT", notes: "DO RE MI FA SO", noteNames: ["DO", "RE", "MI", "FA", "SO"], listen: "Listen to", playNote: " fire", sound: "Sound effects", soundOff: "SOUND OFF", soundOn: "SOUND ON", howto: "HOW TO PLAY", step1: "Find your Do", step1detail: "Hold a comfortable note for a second. No perfect pitch needed.", step2: "Sing the enemy’s note", step2detail: "Higher voice, higher aim. Play with Do, Re, Mi, Fa, So.", step3: "Hold to keep firing", step3detail: "Notes fly from your mouth. Stop enemies before three get through.", fever: "FEVER · SCORE ×2", hint: "DO / MI → DO / RE / MI → all 5 notes", error: "Could not start the camera or microphone. Check permissions and connections, then retry.", modelError: "Face tracking could not load. Check your connection and retry.", deviceLost: "Camera or microphone disconnected. Enable them again to continue.", unsupported: "Camera and microphone require HTTPS or localhost.", count: "Sing to fire", cameraLabel: "Your front camera", canvasLabel: "Shoot enemies on the musical staff with notes controlled by your voice pitch", permission: "Waiting for camera / microphone permission", demoReady: "Pick a note. Take a shot.", demoReadyDetail: "Hold keys 1–5 or a note below. Enable camera + mic to play with your voice."
+  }
+};
+export function blasterText(locale, key) { return messages[locale]?.[key] ?? messages.en[key] ?? key; }

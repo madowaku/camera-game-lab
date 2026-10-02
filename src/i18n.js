@@ -2,10 +2,16 @@ import { daitaiMessages } from "./daitai/messages.js";
 
 const messages = {
   ja: {
+    eyebrowGuardian: "CAMERA GAME LAB / EXP-020",
+    modeGuardian: "GUARDIAN SPIRIT",
+    leadGuardian: "あなたが動く。背後の守護霊が、その動きを超常の力へ変える。",
     ...daitaiMessages.ja,
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",
+    eyebrowNoteBlaster: "CAMERA GAME LAB / EXP-019",
+    modeNoteBlaster: "NOTE BLASTER",
+    leadNoteBlaster: "声で五線譜を撃つ。Sing. Aim. Blast.",
     eyebrowDuoArcade: "CAMERA GAME LAB / EXP-020–023",
     eyebrowWatermelonGuide: "OUTCAM LAB / EXP-021",
     modeDuoArcade: "DUO ARCADE",
@@ -138,7 +144,13 @@ const messages = {
     secondsShort: "秒"
   },
   en: {
+    eyebrowGuardian: "CAMERA GAME LAB / EXP-020",
+    modeGuardian: "GUARDIAN SPIRIT",
+    leadGuardian: "You move. Your guardian turns it into otherworldly power.",
     ...daitaiMessages.en,
+    eyebrowNoteBlaster: "CAMERA GAME LAB / EXP-019",
+    modeNoteBlaster: "NOTE BLASTER",
+    leadNoteBlaster: "Shoot the staff with your voice. Sing. Aim. Blast.",
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",

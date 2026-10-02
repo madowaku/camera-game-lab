@@ -7,8 +7,10 @@ import { HandBeat } from "./games/handBeat.js";
 import { FingerGunGame } from "./games/fingerGun.js";
 import { EatDontEatGame } from "./games/eatDontEat.js";
 import { DuoArcade } from "./duo/duoArcade.js";
-import { DaitaiHeroView } from "./daitai/daitaiHeroView.js";
 import { WatermelonGuide } from "./outcam/watermelonGuide.js";
+import { DaitaiHeroView } from "./daitai/daitaiHeroView.js";
+import { GuardianExperience } from "./guardian/guardianExperience.js";
+import { NoteBlasterArcade } from "./blaster/noteBlasterArcade.js";
 import { getInitialLocale, translate } from "./i18n.js";
 
 registerSW({ immediate: true });
@@ -33,8 +35,10 @@ app.innerHTML = `
         <button id="mode-finger-gun" class="mode-switch__button" type="button" data-mode="fingerGun"></button>
         <button id="mode-eat-dont-eat" class="mode-switch__button" type="button" data-mode="eatDontEat"></button>
         <button id="mode-daitai-hero" class="mode-switch__button" type="button" data-mode="daitaiHero"></button>
+        <button id="mode-note-blaster" class="mode-switch__button" type="button" data-mode="noteBlaster"></button>
         <button id="mode-duo-arcade" class="mode-switch__button" type="button" data-mode="duoArcade"></button>
         <button id="mode-watermelon-guide" class="mode-switch__button" type="button" data-mode="watermelonGuide"></button>
+        <button id="mode-guardian" class="mode-switch__button" type="button" data-mode="guardian"></button>
       </nav>
     </header>
 
@@ -136,8 +140,10 @@ app.innerHTML = `
     </details>
     </div>
     <section id="duo-experience" hidden></section>
-    <section id="daitai-experience" hidden></section>
     <section id="watermelon-experience" hidden></section>
+    <section id="daitai-experience" hidden></section>
+    <section id="guardian-experience" hidden></section>
+    <section id="note-blaster-experience" hidden></section>
   </section>
 `;
 
@@ -250,8 +256,10 @@ const state = {
 };
 
 const duoArcade = new DuoArcade($("#duo-experience"), state.locale, { onExit: () => selectMode("handBeat") });
-const daitaiHero = new DaitaiHeroView($("#daitai-experience"), state.locale);
 const watermelonGuide = new WatermelonGuide($("#watermelon-experience"), state.locale, { onExit: () => selectMode("handBeat") });
+const daitaiHero = new DaitaiHeroView($("#daitai-experience"), state.locale);
+const guardianExperience = new GuardianExperience($("#guardian-experience"), state.locale);
+const noteBlaster = new NoteBlasterArcade($("#note-blaster-experience"), state.locale);
 
 function t(key, values) {
   return translate(state.locale, key, values);
@@ -446,8 +454,10 @@ function renderUi() {
     handBeat: "HandBeat",
     fingerGun: "FingerGun",
     eatDontEat: "EatDontEat",
+    noteBlaster: "NoteBlaster",
     duoArcade: "DuoArcade",
     daitaiHero: "DaitaiHero",
+    guardian: "Guardian",
     watermelonGuide: "WatermelonGuide"
   };
   const suffix = modeTitleKey[state.mode];
@@ -464,14 +474,18 @@ function renderUi() {
 
   modeTitle.textContent = t(`mode${suffix}`);
   lead.textContent = t(`lead${suffix}`);
-  const fullExperience = ["duoArcade", "watermelonGuide", "daitaiHero"].includes(state.mode);
+  const fullExperience = ["duoArcade", "watermelonGuide", "noteBlaster", "guardian", "daitaiHero"].includes(state.mode);
   $("#solo-experience").hidden = fullExperience;
   $(".lab").classList.toggle("lab--duo", state.mode === "duoArcade");
   $(".lab").classList.toggle("lab--outcam", state.mode === "watermelonGuide");
+  $(".lab").classList.toggle("lab--blaster", state.mode === "noteBlaster");
   duoArcade.setLocale(state.locale);
+  watermelonGuide.setLocale(state.locale);
   daitaiHero.setLocale(state.locale);
   $(".lab").classList.toggle("lab--daitai", state.mode === "daitaiHero");
-  watermelonGuide.setLocale(state.locale);
+  noteBlaster.setLocale(state.locale);
+  $(".lab").classList.toggle("lab--guardian", state.mode === "guardian");
+  guardianExperience.setLocale(state.locale);
 
   for (const button of modeButtons) {
     button.textContent = t(`mode${modeTitleKey[button.dataset.mode]}`);
@@ -886,20 +900,26 @@ async function selectMode(mode) {
   state.mode = mode;
   if (mode === "duoArcade") window.history.replaceState(null, "", "#duo");
   else if (mode === "watermelonGuide") window.history.replaceState(null, "", "#watermelon");
+  else if (mode === "noteBlaster") window.history.replaceState(null, "", "#note-blaster");
+  else if (mode === "guardian") window.history.replaceState(null, "", "#guardian");
   else if (mode === "daitaiHero") window.history.replaceState(null, "", "#daitai");
-  else if (["#duo", "#watermelon", "#daitai"].includes(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  else if (["#duo", "#watermelon", "#note-blaster", "#guardian", "#daitai"].includes(window.location.hash)) window.history.replaceState(null, "", window.location.pathname + window.location.search);
   state.cameraReady = false;
   state.cameraLoading = false;
   state.cameraStatus = "OFF";
   state.message = { key: "cameraPrivacy" };
   duoArcade.deactivate();
-  daitaiHero.deactivate();
   watermelonGuide.deactivate();
+  daitaiHero.deactivate();
+  guardianExperience.deactivate();
+  noteBlaster.deactivate();
   renderUi();
 
   if (mode === "duoArcade") duoArcade.activate();
-  else if (mode === "daitaiHero") daitaiHero.activate();
   else if (mode === "watermelonGuide") watermelonGuide.activate();
+  else if (mode === "daitaiHero") daitaiHero.activate();
+  else if (mode === "noteBlaster") noteBlaster.activate();
+  else if (mode === "guardian") guardianExperience.activate();
   else if (resumeCamera) await startCamera();
 }
 
@@ -935,15 +955,20 @@ window.addEventListener("pagehide", () => {
   fingerGunInput.stop();
   faceInput.stop();
   watermelonGuide.deactivate();
+  noteBlaster.deactivate();
 });
 
 renderUi();
 if (window.location.hash === "#duo") void selectMode("duoArcade");
 else if (window.location.hash === "#watermelon") void selectMode("watermelonGuide");
 else if (window.location.hash === "#daitai") void selectMode("daitaiHero");
+else if (window.location.hash === "#note-blaster") void selectMode("noteBlaster");
+else if (window.location.hash === "#guardian") void selectMode("guardian");
 window.addEventListener("hashchange", () => {
   if (window.location.hash === "#duo") void selectMode("duoArcade");
   else if (window.location.hash === "#watermelon") void selectMode("watermelonGuide");
   else if (window.location.hash === "#daitai") void selectMode("daitaiHero");
-  else if (["duoArcade", "watermelonGuide", "daitaiHero"].includes(state.mode)) void selectMode("handBeat");
+  else if (window.location.hash === "#note-blaster") void selectMode("noteBlaster");
+  else if (window.location.hash === "#guardian") void selectMode("guardian");
+  else if (["duoArcade", "watermelonGuide", "noteBlaster", "guardian", "daitaiHero"].includes(state.mode)) void selectMode("handBeat");
 });
