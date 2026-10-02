@@ -90,6 +90,9 @@ export function mountPlatform(app) {
     onPhotoError: () => toast(t("failed")),
     onState(snapshot, game) {
       if (!session || session.game.id !== game.id || !session.begun) return;
+      // A controller can recover from denied camera access into its demo mode.
+      // Retry must keep the mode that actually produced the result.
+      if (["camera", "demo"].includes(snapshot.source)) session.source = snapshot.source;
       if (["playing", "countdown"].includes(snapshot.phase) && !session.started) {
         session.started = true; recent.record(game.id); events.emit("game_start", { id: game.id, source: snapshot.source });
       }

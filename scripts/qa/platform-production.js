@@ -12,13 +12,14 @@ async (page) => {
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
   await page.locator('.lab-feed').waitFor();
+  const catalogSize = await page.locator('.feed-card').count();
   const cached = await page.evaluate(async () => {
     const all = [];
     for (const name of await caches.keys()) for (const request of await (await caches.open(name)).keys()) all.push(request.url);
     return all;
   });
   check(cached.some(url => url.includes('/index.html')), 'PWA shell installed in cache');
-  check(!cached.some(url => /\/(soloExperience|bodyInput|duoArcade|guardianExperience|daitaiHeroView|watermelonGuide|noteBlasterArcade|fingerGunTheme)-.*\.js/.test(url)), 'PWA does not precache game or MediaPipe JS');
+  check(!cached.some(url => /\/(view|faceInput|soloExperience|bodyInput|duoArcade|guardianExperience|daitaiHeroView|watermelonGuide|noteBlasterArcade|fingerGunTheme)-.*\.js/.test(url)), 'PWA does not precache game or MediaPipe JS');
   await page.locator('.lab-feed').focus(); await page.keyboard.press('End');
   await page.waitForFunction(() => document.querySelector('.feed-card:last-child').inert === false);
   check(await page.evaluate(() => window.__sensorRequests) === 0, 'scrolling production feed requests no sensors');
@@ -27,7 +28,7 @@ async (page) => {
   try {
     await page.reload();
     await page.locator('.lab-feed').waitFor();
-    check(await page.locator('.feed-card').count() === 8, 'cached feed works offline');
+    check(await page.locator('.feed-card').count() === catalogSize, 'cached feed works offline');
     await page.waitForFunction(() => document.querySelector('.preview-asset')?.naturalWidth > 0);
     check(true, 'cached hero image works offline');
   } finally { await page.context().setOffline(false); }

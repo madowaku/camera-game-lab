@@ -13,9 +13,9 @@ import { createLauncher, releaseResources, snapshotOf } from "../src/platform/la
 function memory() { const map = new Map(); return { getItem: (key) => map.get(key) ?? null, setItem: (key, value) => map.set(key, value) }; }
 test("registry describes every playable module and accepts namespaced display number collisions", () => {
   assert.deepEqual(validateRegistry(experiments), []);
-  assert.equal(experiments.length, 9);
+  assert.equal(experiments.length, 10);
   assert.equal(experiments.filter((game) => game.exp === "EXP-020").length, 2);
-  assert.equal(new Set(experiments.map((game) => game.id)).size, 9);
+  assert.equal(new Set(experiments.map((game) => game.id)).size, 10);
 });
 test("registry rejects duplicate canonical ids, slugs, aliases and invalid metadata", () => {
   assert.match(validateRegistry([...experiments, experiments[0]]).join(" "), /Duplicate canonical id/);

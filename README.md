@@ -7,7 +7,7 @@ The lab is a shared input playground for camera-native game ideas: hand gestures
 ## LAB FEED — platform v0.1
 
 The home screen is a portrait, vertically snapping feed: one experiment per
-screen, swipe to discover, PLAY to launch. Nine games are registered
+screen, swipe to discover, PLAY to launch. Games are registered
 in `src/platform/experiments.js` with independent canonical IDs and lazy loaders.
 Favorites, recent history and feed ordering stay on-device. FEED / EXPLORE,
 JA / EN, sharing, input explanations and result RETRY / NEXT are shared by the shell.
@@ -22,6 +22,9 @@ See [architecture, registry schema, compatibility and QA](docs/PLATFORM_V01.md)
 and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
 `npm run dev -- --host 127.0.0.1` to preview locally.
 
+The [Expansion Blitz report](docs/EXPANSION_BLITZ_V01.md) records the two added
+experiments, 138 tests, browser evidence and the remaining spec/human gates.
+
 ## EXP-004: BLINK HORROR
 
 Look to escape; close both eyes to hide while the thing behind you retreats.
@@ -30,6 +33,15 @@ tracking-loss pauses. A camera-free Space / hold-button demo follows the same ru
 Open `#/game/solo-blink-horror` from Feed or Explore. Results preserve camera/demo
 provenance through RETRY, NEXT and SHARE. See [implementation and QA](docs/BLINK_HORROR_PROGRESS.md).
 Physical-camera acceptance and human playtests are still pending.
+
+## EXP-005: PINCH WORLD
+
+Use your thumb and index finger as virtual tweezers: pick up a circle, carry a
+square through a wall's gap, then place a triangle precisely. Only a fresh pinch
+grabs; tracking loss gently drops without throwing. Touch/drag and arrow keys +
+Space provide a camera-free demo. Open `#/game/solo-pinch-world` from Feed or Explore.
+All three tasks lead to CLEAR, RETRY, NEXT and a source-labeled share result.
+Physical mobile alignment, pinch reliability and game feel still need playtests.
 
 ## First playable: HAND BEAT v0.1
 

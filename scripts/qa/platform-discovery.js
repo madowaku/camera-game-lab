@@ -1,6 +1,7 @@
 // Playwright CLI run-code --filename. Use a disposable browser profile.
 async (page) => {
   const base = new URL(page.url()).origin;
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   const checks = [], errors = [], requests = [];
   const check = (value, name) => { if (!value) throw Error(name); checks.push(name); };
   page.on('pageerror', error => errors.push(error.message));
@@ -12,6 +13,7 @@ async (page) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto(base + '/#/feed/solo-hand-beat');
   await page.reload();
+  const catalogSize = await page.locator('.feed-card').count();
   await page.locator('.platform-onboarding').waitFor();
   await page.waitForFunction(() => document.querySelector('.preview-asset')?.naturalWidth > 0);
   await page.screenshot({ path: 'output/playwright/platform-onboarding-360.png' });
@@ -79,6 +81,7 @@ async (page) => {
     check(await page.locator('.feed-card').first().evaluate(el => el.clientHeight === innerHeight), `one viewport per game ${size.width}`);
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => document.querySelectorAll('.preview-active').length === 0);
   check(await page.locator('.preview-active').count() === 0, 'reduced motion stops previews');
   await page.setViewportSize({ width: 360, height: 500 });
   await page.locator('.lab-feed').focus(); await page.keyboard.press('ArrowDown');
@@ -91,12 +94,15 @@ async (page) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.locator('[data-nav="explore"]').click();
   await page.locator('[data-input="BLINK"]').click();
+  check(await page.locator('.explore-card').count() === 1 && (await page.locator('.explore-card').textContent()).includes('BLINK HORROR'), 'BLINK filter discovers the new eye game');
+  await page.locator('[data-category="DUO"]').click();
   check(await page.locator('.explore-empty').isVisible(), 'empty filter has recovery');
+  await page.locator('[data-category="ALL"]').click();
   await page.locator('[data-input="ALL"]').click();
   await page.locator('#experiment-search').fill('guardian');
   check(await page.locator('.explore-card').count() === 1, 'search finds matching game');
   await page.locator('[data-clear]').click();
-  check(await page.locator('.explore-card').count() === 8, 'clear restores all games');
+  check(await page.locator('.explore-card').count() === catalogSize, 'clear restores all games');
   await page.screenshot({ path: 'output/playwright/platform-explore-360.png' });
   await page.goto(base + '/#/game/does-not-exist');
   check(await page.locator('.explore-page .sheet-play').isVisible(), 'invalid link has return path');

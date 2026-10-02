@@ -58,6 +58,8 @@ Core test:
 
 Question: can losing vision itself become the central horror mechanic?
 
+Implemented in the 2026-10-03 Expansion Blitz. [Software verification and remaining physical tests](BLINK_HORROR_PROGRESS.md). Play via `#/game/solo-blink-horror`.
+
 ## EXP-005 — PINCH WORLD
 
 Core test:
@@ -67,6 +69,8 @@ Core test:
 - release
 
 Question: can the hand behave like a physical object in the game world rather than a cursor?
+
+Implemented as three sequential tasks in the 2026-10-03 Expansion Blitz. [Software verification and remaining physical tests](PINCH_WORLD_PROGRESS.md). Play via `#/game/solo-pinch-world`.
 
 ## EXP-006 — CRANE TACTICS CAM
 
@@ -80,6 +84,8 @@ Core test:
 Question: does direct hand manipulation make the tactical crane fantasy instantly legible?
 
 ## Shared body-input layer
+
+`src/input/eyeState.js` and `pinchState.js` now normalize eye state and direct pinch geometry/edges. Their adapters reuse the existing camera/model lifecycle. This does not establish physical playtest acceptance or unlock CRANE TACTICS / DUO gates.
 
 Future normalized events:
 

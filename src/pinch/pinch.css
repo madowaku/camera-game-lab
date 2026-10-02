@@ -1,0 +1,47 @@
+.pw-view { --pw-paper:#e7e3cf; --pw-ink:#183a31; --pw-coral:#ec8d6d; width:min(100%,560px); margin:auto; font-family:var(--pl-font); }
+.pw-toolbar,.pw-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.pw-source,.pw-time { font:10px var(--pl-mono); color:#d0d1bd; }
+.pw-view button { min-height:44px; padding:8px 13px; border:1px solid #506858; border-radius:6px; background:#263b31; color:var(--pw-paper); font-size:12px; font-weight:700; cursor:pointer; }
+.pw-view button:hover { background:#3a5144; }
+.pw-view button:focus-visible { outline:3px solid var(--pw-paper); outline-offset:3px; }
+.pw-steps { display:flex; align-items:center; gap:8px; }
+.pw-steps span { display:grid; place-items:center; width:30px; height:30px; border:1px solid #657363; border-radius:50%; font:11px var(--pl-mono); color:#b4bdab; }
+.pw-steps span.is-current { border-color:var(--pw-paper); color:var(--pw-paper); box-shadow:0 0 0 3px #e7e3cf16; }
+.pw-steps span.is-done { background:#b7d6ab; color:#193a31; border-color:#b7d6ab; }
+.pw-steps i { height:1px; width:28px; background:#657363; }
+.pw-time { font-size:14px; }
+.pw-stage { position:relative; width:100%; aspect-ratio:1; overflow:hidden; background:var(--pw-paper); border:1px solid #a5ab96; border-radius:3px; isolation:isolate; touch-action:none; user-select:none; -webkit-user-select:none; }
+.pw-stage.is-demo { cursor:none; }
+.pw-stage:focus { outline:none; }
+.pw-stage:focus-visible { outline:3px solid #b7d6ab; outline-offset:4px; }
+.pw-stage video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1); opacity:.55; filter:saturate(.5); }
+.pw-world { position:absolute; inset:0; width:100%; height:100%; }
+.pw-world text { font:25px var(--pl-mono); fill:var(--pw-ink); font-weight:700; }
+.pw-socket { fill:#bfd1b685; stroke:#3c7160; stroke-width:.04; stroke-dasharray:.13 .08; }
+.pw-object { fill:var(--pw-coral); stroke:var(--pw-ink); stroke-width:.06; }
+.pw-object-shadow { fill:#1b342b38; }
+.pw-world .pw-pattern { fill:none; stroke:var(--pw-ink); stroke-width:.06; stroke-dasharray:none; opacity:.45; }
+.pw-object-shadow .pw-pattern { display:none; }
+.pw-object.is-held { fill:#ffc29a; stroke-width:.085; }
+.pw-object.is-eligible { fill:#ffc29a; stroke-width:.08; }
+.pw-tweezer { opacity:.9; }
+.pw-tweezer.is-pinching :is(.pw-thumb,.pw-index) { fill:#d6ecaf; }
+.pw-message { position:absolute; left:8%; right:8%; top:34%; text-align:center; color:var(--pw-ink); font-size:17px; font-weight:700; line-height:1.7; pointer-events:none; }
+.pw-message:not(:empty) { padding:20px 12px; border:1px solid #667863; background:#f2efdff5; border-radius:3px; }
+.pw-caption { display:flex; gap:18px; margin-top:22px; align-items:flex-start; }
+.pw-task-number { font:44px/1 var(--pl-display); color:var(--pw-coral); }
+.pw-caption h2 { font-size:20px; line-height:1.2; margin:0 0 8px; color:var(--pw-paper); }
+.pw-caption p { margin:0; color:#c9cfbc; font-size:14px; line-height:1.6; }
+.pw-hint { color:#a6b39e; font-size:11px; line-height:1.7; margin:18px 0 4px; }
+.pw-receipt { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center; color:var(--pw-ink); background:#e7e3cff5; cursor:auto; }
+.pw-receipt small { font:11px var(--pl-mono); }
+.pw-receipt h2 { font:clamp(28px,8vw,45px)/1.1 var(--pl-display); margin:18px 0 12px; }
+.pw-receipt strong { font:36px var(--pl-mono); }
+.pw-receipt p { font-size:11px; line-height:1.6; margin:6px 0; }
+.pw-receipt .pw-clean { font-size:13px; font-weight:700; margin-block:10px; }
+.pw-stage.is-result { aspect-ratio:auto; height:290px; }
+.pw-recovery { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+.pw-debug { margin-top:14px; color:#a6b39e; font:11px var(--pl-mono); }
+.pw-debug summary { cursor:pointer; min-height:44px; display:flex; align-items:center; }
+.pw-debug pre { overflow:auto; white-space:pre-wrap; }
+@media (min-width:900px) { .pw-stage:not(.is-result) { width:min(100%,480px); margin:auto; } }

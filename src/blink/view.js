@@ -41,9 +41,9 @@ class BlinkView {
     for (const name of ["pointerup", "pointercancel", "lostpointercapture"]) this.$(".bh-hide").addEventListener(name, () => hold(false), { signal });
     window.addEventListener("keydown", (e) => { if (e.code === "Space" && (!e.target.closest("button,a,input,textarea,summary") || e.target === this.$(".bh-hide"))) { e.preventDefault(); hold(true); } }, { signal });
     window.addEventListener("keyup", (e) => { if (e.code === "Space") { e.preventDefault(); hold(false); } }, { signal });
-    window.addEventListener("blur", () => { hold(false); this.game.setPaused(true); }, { signal });
+    window.addEventListener("blur", () => { hold(false); this.game.setPaused(true); this.audio.update(this.game); }, { signal });
     window.addEventListener("focus", () => { this.game.setPaused(false); this.lastTick = performance.now(); }, { signal });
-    document.addEventListener("visibilitychange", () => { hold(false); this.game.setPaused(document.hidden); this.lastTick = performance.now(); }, { signal });
+    document.addEventListener("visibilitychange", () => { hold(false); this.game.setPaused(document.hidden); this.audio.update(this.game); this.lastTick = performance.now(); }, { signal });
     this.$(".bh-sound").addEventListener("click", () => { this.audio.setMuted(!this.audio.muted); this.render(); }, { signal });
     this.$(".bh-retry").addEventListener("click", () => void this.startCamera(), { signal });
     this.$(".bh-demo").addEventListener("click", () => this.startDemo(), { signal });
