@@ -4,6 +4,24 @@ Experimental web games where **your body is the controller**.
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 
+## LAB FEED — platform v0.1
+
+The home screen is a portrait, vertically snapping feed: one experiment per
+screen, swipe to discover, PLAY to launch. Eight existing games are registered
+in `src/platform/experiments.js` with independent canonical IDs and lazy loaders.
+Favorites, recent history and feed ordering stay on-device. FEED / EXPLORE,
+JA / EN, sharing, input explanations and result RETRY / NEXT are shared by the shell.
+No camera, microphone or MediaPipe model starts while browsing previews.
+
+Existing links such as `/#duo`, `/#guardian`, `/#note-blaster`, `/#daitai` and
+`/#watermelon` still open the corresponding game launcher. Game logic and local
+metrics remain in the existing modules. New compatible games need one registry
+entry to appear in discovery.
+
+See [architecture, registry schema, compatibility and QA](docs/PLATFORM_V01.md)
+and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
+`npm run dev -- --host 127.0.0.1` to preview locally.
+
 ## First playable: HAND BEAT v0.1
 
 A ~15 second rhythm prototype using four hand inputs:

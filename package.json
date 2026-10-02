@@ -7,7 +7,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

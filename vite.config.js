@@ -6,12 +6,21 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
+      // Lazy game/MediaPipe JS is cached only after an actual game visit.
+      workbox: {
+        globPatterns: ["**/*.{html,css,svg,webp}", "assets/index-*.js", "assets/workbox-window*.js"],
+        runtimeCaching: [{
+          urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/assets/") && url.pathname.endsWith(".js"),
+          handler: "CacheFirst",
+          options: { cacheName: "camera-lab-game-modules-v1", expiration: { maxEntries: 64, maxAgeSeconds: 2592000 } },
+        }],
+      },
       manifest: {
         name: "Camera Game Lab",
         short_name: "Cam Game Lab",
         description: "Experimental camera games where your body is the controller.",
-        theme_color: "#0b0d10",
-        background_color: "#0b0d10",
+        theme_color: "#10120f",
+        background_color: "#10120f",
         display: "standalone",
         orientation: "any",
         icons: [
