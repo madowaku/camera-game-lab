@@ -70,6 +70,8 @@ export function mountPlatform(app) {
     else if (name === "info") info(game);
   }
   function resultSummary(data) {
+    const localized = data?.[locale === "ja" ? "summaryJa" : "summaryEn"] ?? data?.summary;
+    if (localized) return localized;
     if (data?.winner != null) return data.winner ? (locale === "ja" ? `P${data.winner}の勝ち！` : `P${data.winner} wins!`) : (locale === "ja" ? "引き分け！" : "A draw!");
     if (data?.accuracy != null) return `${Math.round(data.accuracy)}% ${locale === "ja" ? "成功" : "accuracy"}`;
     return t("completed");

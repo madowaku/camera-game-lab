@@ -13,9 +13,9 @@ import { createLauncher, releaseResources, snapshotOf } from "../src/platform/la
 function memory() { const map = new Map(); return { getItem: (key) => map.get(key) ?? null, setItem: (key, value) => map.set(key, value) }; }
 test("registry describes every playable module and accepts namespaced display number collisions", () => {
   assert.deepEqual(validateRegistry(experiments), []);
-  assert.equal(experiments.length, 8);
+  assert.equal(experiments.length, 9);
   assert.equal(experiments.filter((game) => game.exp === "EXP-020").length, 2);
-  assert.equal(new Set(experiments.map((game) => game.id)).size, 8);
+  assert.equal(new Set(experiments.map((game) => game.id)).size, 9);
 });
 test("registry rejects duplicate canonical ids, slugs, aliases and invalid metadata", () => {
   assert.match(validateRegistry([...experiments, experiments[0]]).join(" "), /Duplicate canonical id/);
@@ -82,7 +82,14 @@ test("share adapters carry game, score, summary and canonical URL", () => {
   const game = experiments[0], payload = resultPayload(game, { score: 850, summary: "Great rhythm!" }, "en", "https://example.test/lab/?v=1#duo");
   assert.equal(payload.url, "https://example.test/lab/?v=1#/game/solo-hand-beat");
   assert.match(payload.text, /HAND BEAT · 850 pts · Great rhythm!/);
-  assert.equal(gameUrl(experiments[4], "https://example.test"), "https://example.test/#/game/duo-tiny-bot-duel");
+  assert.equal(gameUrl(experiments.find((entry) => entry.id === "duo-tiny-bot-duel"), "https://example.test"), "https://example.test/#/game/duo-tiny-bot-duel");
+});
+test("localized experiment result summaries preserve camera versus demo provenance in shares", () => {
+  const game = experiments.find((entry) => entry.id === "solo-blink-horror");
+  const camera = resultPayload(game, { score: 100, summaryJa: "カメラ · 脱出", summaryEn: "Camera · ESCAPED" }, "ja", "https://example.test");
+  const demo = resultPayload(game, { score: 100, summaryJa: "デモ · 脱出", summaryEn: "Demo · ESCAPED" }, "en", "https://example.test");
+  assert.match(camera.text, /カメラ · 脱出/); assert.match(demo.text, /Demo · ESCAPED/);
+  assert.equal(camera.url, demo.url);
 });
 test("Web Share preferred; unsupported images still share text", async () => {
   let actual;
