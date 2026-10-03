@@ -1,6 +1,7 @@
 import { escapeHtml } from "./copy.js";
+import { artworkMarkup } from "./gameArtwork.js";
 
-// Small, inline, silent illustrations. No canvas loop, media permission or game imports.
+// Lazy, silent artwork. No canvas loop, media permission or game imports.
 const hand = `<path d="M102 234c-22-26-48-58-51-72-3-14 9-22 19-12l29 28V78c0-17 23-17 23 0v65-96c0-17 24-17 24 0v93-73c0-17 24-17 24 0v81-48c0-17 23-17 23 0v91c0 32-16 54-32 63v23h-59Z"/>`;
 const motifs = {
   softServe: `<g class="preview-float"><ellipse cx="150" cy="265" rx="43" ry="7" fill="#6e9b7640"/><path d="m104 181 92 0-37 83q-9 14-18 0Z" fill="#e8b86d" stroke="#aa753d" stroke-width="2"/><g stroke="#b87d42" stroke-width="2" opacity=".65"><path d="m110 192 62 51m-54-30 44 36m-34-57 52 39m-56-6 63-32m-55 51 46-34m-36 48 32-28"/></g><ellipse cx="150" cy="182" rx="49" ry="12" fill="#f1cd85"/><g fill="#fff5d9" stroke="#dbcbad" stroke-width="2"><ellipse cx="150" cy="174" rx="53" ry="19"/><ellipse cx="153" cy="151" rx="46" ry="18"/><ellipse cx="148" cy="128" rx="38" ry="17"/><ellipse cx="152" cy="107" rx="28" ry="15"/><path d="M133 93q-5-14 10-20t13-24q26 27 13 44Z"/></g><g stroke="#fffef0" stroke-width="4" fill="none" stroke-linecap="round"><path d="M112 171q34-15 76 0M123 148q29-13 61 0M127 126q20-12 42 0"/></g><g fill="#815a36"><ellipse cx="141" cy="211" rx="2" ry="3"/><ellipse cx="159" cy="211" rx="2" ry="3"/></g><path d="M145 220q5 5 10 0" stroke="#815a36" stroke-width="2" fill="none"/></g><g stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"><path d="M58 165H27l11-10m-11 10 11 10M242 165h31l-11-10m11 10-11 10"/></g><path d="m232 75 4-11 4 11 11 4-11 4-4 11-4-11-11-4Z" fill="currentColor"/>`,
@@ -21,8 +22,9 @@ const motifs = {
 };
 
 export function previewMarkup(game) {
-  if (game.previewAsset && game.previewType === "image") return `<img class="preview-asset" data-src="${escapeHtml(game.previewAsset)}" alt="" loading="lazy" decoding="async">`;
+  if (game.previewAsset && game.previewType === "image") return `<img class="preview-asset game-artwork game-artwork--generated" width="768" height="768" data-src="${escapeHtml(game.previewAsset)}" alt="" loading="lazy" decoding="async">`;
   if (game.previewAsset && game.previewType === "video") return `<video class="preview-asset" data-src="${escapeHtml(game.previewAsset)}" muted loop playsinline preload="none" aria-hidden="true"></video>`;
+  if (game.motif !== "softServe") return artworkMarkup(game);
   return `<div class="preview-orbit"></div><svg class="preview-drawing" viewBox="0 0 300 300" aria-hidden="true">${motifs[game.motif] ?? motifs.hand}</svg><span class="preview-coordinate" aria-hidden="true">X 0.50<br>Y 0.50</span><span class="preview-input" aria-hidden="true">${game.input.join(" + ")}</span>`;
 }
 

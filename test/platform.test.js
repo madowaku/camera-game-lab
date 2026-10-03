@@ -157,5 +157,16 @@ test("result cleanup releases both camera and mic; result adapter leaves game da
 });
 test("DUO input snapshot data is not confused with the optional controller snapshot method", () => {
   const instance = { snapshot: { ready: true, players: [] }, phase: "result", result: { hits: [2, 3], winner: 1, reason: "TIME" } };
-  assert.deepEqual(snapshotOf(instance, "duo").result, { score: 5, winner: 1, reason: "TIME" });
+  assert.deepEqual(snapshotOf(instance, "duo").result, { score: 5, hits: [2, 3], winner: 1, reason: "TIME" });
+});
+
+test("legacy touch and DUO fallback normalize practice provenance for retry and sharing", () => {
+  assert.equal(snapshotOf({ control: "TAP", screen: "PLAYING" }, "daitai").source, "demo");
+  assert.equal(snapshotOf({ control: "FACE", screen: "PLAYING" }, "daitai").source, "camera");
+  assert.equal(snapshotOf({ source: "fallback", phase: "playing" }, "duo").source, "demo");
+  assert.equal(snapshotOf({ source: "voice", phase: "playing" }, "blaster").source, "voice");
+  const game = experiments.find(g => g.id === 'duo-tiny-bot-duel');
+  assert.match(resultPayload(game, { score: 0, source: 'demo' }, 'ja').text, /練習/);
+  assert.doesNotMatch(resultPayload(game, { score: 0, source: 'camera' }, 'en').text, /Practice/);
+  assert.doesNotMatch(resultPayload(game, { score: 0, scored: false }, 'en').text, /pts/);
 });

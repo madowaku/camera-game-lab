@@ -3,7 +3,7 @@ import { translate } from "../i18n.js";
 import { FaceZoneInput } from "../input/faceZoneInput.js";
 import { DaitaiHeroGame } from "../games/daitaiHero.js";
 
-const mage = `<svg viewBox="0 0 120 120" fill="none" aria-hidden="true"><path d="M27 92 45 57h30l19 35-16 11H42Z" fill="currentColor"/><path d="m30 51 25-37 11 25 19 8-8 8H35Z" fill="currentColor"/><path d="M43 56h35v25H43Z" fill="#172922"/><path d="M48 63h8v5h-8m11-5h8v5h-8" stroke="#eff2ce" stroke-width="3"/><path d="M85 66v39m-7-42 7-9 8 9-8 9Z" stroke="#e9c66a" stroke-width="4"/><path d="m28 17 3 6 6 2-6 3-3 6-2-6-6-3 6-2Z" fill="#e9c66a"/></svg>`;
+const mage = `<img src="/artwork/sprites/hero-sprite-v1.webp" alt="" width="512" height="497" decoding="async">`;
 
 export class DaitaiHeroView {
   constructor(root, locale = "ja") {

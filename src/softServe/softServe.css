@@ -84,3 +84,11 @@
 @media(min-width:600px) { .ss-logo { width:300px; height:180px; }.ss-hero { height:235px; }.ss-result-food { height:300px; }.platform--soft-serve .platform-game { max-width:500px; } }
 @media(max-height:650px) { .ss-logo { height:112px; width:205px; }.ss-hero { height:160px; }.ss-result-logo { height:75px; }.ss-result-food { height:200px; }.ss-stage { height:290px; } }
 @media(prefers-reduced-motion:reduce) { .platform--soft-serve * { transition:none!important; scroll-behavior:auto; } }
+
+.ss-hero:has(.ss-key-art) { height:auto; aspect-ratio:1.4; max-width:350px; overflow:hidden; border-radius:22px; }
+.ss-key-art { display:block; width:100%; height:100%; object-fit:cover; object-position:center 65%; }
+.ss-hero:has(.ss-key-art) .ss-hero-note { top:auto; bottom:9px; right:8px; transform:rotate(3deg); }
+.ss-hero:has(.ss-key-art) .ss-spark { display:none; }
+
+.platform--soft-serve .game-music { color:#70452f; border-color:#d8b697; background:#fffdf7; }
+.platform--soft-serve .game-music[aria-pressed="true"] { color:#70452f; }

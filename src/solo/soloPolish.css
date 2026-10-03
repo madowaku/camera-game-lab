@@ -1,0 +1,17 @@
+.platform--arcade #solo-experience { max-width:440px; margin:auto; }
+.platform--arcade #solo-experience .stage { border-radius:12px; border-color:var(--pl-border); }
+.platform--arcade #solo-experience .target__icon:has(.solo-illustration) { width:min(180px,42vw); min-height:0; margin-inline:auto; font-size:0; }
+.solo-illustration { display:block; width:100%; height:100%; }
+.platform--arcade #solo-experience .upcoming .solo-illustration { width:36px; height:36px; margin:auto; }
+.platform--arcade #solo-experience .target--eat { border:0; border-radius:0; background:transparent; padding:0; }
+.platform--arcade #solo-experience .target__label { font-size:clamp(20px,5vw,28px); letter-spacing:.02em; }
+.platform--arcade #solo-experience .scoreboard { border:1px solid var(--pl-border); border-radius:8px; background:var(--pl-surface); }
+.platform--arcade #solo-experience .scoreboard strong { color:var(--accent); }
+.platform--arcade #solo-experience .stage--playing ~ .actions { display:none; }
+/* All targets spawn above y=.78; the prompt belongs below that firing field. */
+.platform--arcade .stage--finger-gun.stage--playing .target--finger { position:absolute; left:16px; right:16px; bottom:16px; width:auto; margin:0; padding:9px; background:#10120fdd; border-radius:6px; }
+.platform--arcade .stage--finger-gun.stage--playing .target--finger .target__icon { display:none; }
+.platform--arcade .stage--finger-gun.stage--playing .target--finger .target__label { margin:0; font-size:12px; }
+.platform--arcade .stage--finger-gun.stage--playing .target--finger .feedback { margin-top:4px; min-height:18px; font-size:12px; }
+.platform--arcade .finger-target__ring { border-color:#ffdba4; background:radial-gradient(circle,#ee96744d 0 32%,#fff0cf26 33% 59%,#ee96744d 60%); box-shadow:none; }
+@media (prefers-reduced-motion:reduce) { .solo-illustration { transition:none; } }

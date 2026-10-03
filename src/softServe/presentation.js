@@ -1,3 +1,4 @@
+import { artworkAssets } from "../platform/artworkAssets.js";
 import logo from "./assets/logo.png";
 import { drawPortrait, heroShape } from "./renderer.js";
 import { messages } from "./messages.js";
@@ -11,7 +12,7 @@ export function launchMarkup(game, locale) {
   return `<section class="ss-entry" data-mode="play" data-face="ORIGINAL"><img class="ss-logo" src="${logo}" alt="SOFT SERVE" width="720" height="480"><h1>${t.entryTitle}</h1><p class="ss-tagline">${t.entryTagline}</p>
     <div class="creator-mode-tabs" role="group" aria-label="PLAY / CREATOR"><button type="button" data-creator-mode="play" aria-pressed="true">PLAY</button><button type="button" data-creator-mode="creator" aria-pressed="false">CREATOR 🎬</button></div>
     <div class="creator-face-picker" hidden><p>${t.faceChoice}</p><div class="creator-face-options" role="group" aria-label="Face mode">${[["ORIGINAL",t.faceOriginal],["EFFECT",t.faceEffect],["HIDE",t.faceHide]].map(([mode,description])=>`<button type="button" data-face-mode="${mode}" aria-pressed="${mode==="ORIGINAL"}">${mode}<small>${description}</small></button>`).join("")}</div><p class="creator-notice">${t.creatorNotice}</p></div>
-    <div class="ss-hero"><canvas aria-hidden="true"></canvas><span class="ss-hero-note">${t.virtualCone}</span><i class="ss-spark ss-spark-a" aria-hidden="true">✦</i><i class="ss-spark ss-spark-b" aria-hidden="true">✧</i></div>
+    <div class="ss-hero"><img class="ss-key-art" src="${artworkAssets[game.id]}" alt="" width="768" height="768" decoding="async"><span class="ss-hero-note">${t.virtualCone}</span><i class="ss-spark ss-spark-a" aria-hidden="true">✦</i><i class="ss-spark ss-spark-b" aria-hidden="true">✧</i></div>
     <ol class="launch-steps ss-entry-steps">${t.steps.map((s,i)=>`<li><b>${i+1}</b>${s}</li>`).join("")}</ol>
     <div class="launch-controls"><button type="button" class="launch-camera ss-primary" disabled>${t.challenge}</button><button type="button" class="launch-howto">${t.howto}</button><button type="button" class="launch-demo" disabled>${t.tryDemo}</button></div>
     <p class="launch-status" role="status"></p><p class="ss-entry-privacy">${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"])}</p></section>`;

@@ -90,7 +90,7 @@ export class TinyBotDuel {
     this.onFeedback(winner === null ? "warning" : "win", winner);
   }
 
-  render(ctx, width, height, { locale = "en" } = {}) {
+  render(ctx, width, height, { locale = "en", botArt = null } = {}) {
     const text = locale === "ja" ? { ring: "押し出して勝て", fire: "口を開けて撃つ" } : { ring: "PUSH THEM OUT", fire: "OPEN MOUTH TO FIRE" };
     ctx.clearRect(0, 0, width, height);
     const baseY = height * 0.62, floorHeight = height * 0.12;
@@ -119,18 +119,24 @@ export class TinyBotDuel {
       const color = index === 0 ? "#65f4dd" : "#ffafca";
       ctx.save(); ctx.translate(x, y);
       ctx.shadowColor = color; ctx.shadowBlur = bot.hitFlash > 0 ? 22 : 8;
-      ctx.fillStyle = bot.hitFlash > 0 ? "#fff" : color;
-      ctx.fillRect(-size * 0.4, 0, size * 0.8, size * 0.65);
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = "#152234"; ctx.fillRect(-size * 0.28, size * 0.14, size * 0.56, size * 0.23);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(-size * 0.19, size * 0.21, size * 0.11, size * 0.08);
-      ctx.fillRect(size * 0.09, size * 0.21, size * 0.11, size * 0.08);
-      ctx.fillStyle = color;
-      ctx.fillRect(-size * 0.3, size * 0.68, size * 0.22, size * 0.22);
-      ctx.fillRect(size * 0.08, size * 0.68, size * 0.22, size * 0.22);
-      const facing = this.bots[1 - index].x >= bot.x ? 1 : -1;
-      ctx.fillRect(facing * size * 0.36 - size * 0.09, size * 0.42, size * 0.3 * facing, size * 0.16);
+      if (botArt?.complete && botArt.naturalWidth) {
+        const artHeight = size * 1.1, artWidth = artHeight * (botArt.naturalWidth / 2) / botArt.naturalHeight;
+        ctx.drawImage(botArt, index * botArt.naturalWidth / 2, 0, botArt.naturalWidth / 2, botArt.naturalHeight, -artWidth / 2, -size * .15, artWidth, artHeight);
+      } else {
+        ctx.fillStyle = bot.hitFlash > 0 ? "#fff" : color;
+        ctx.fillRect(-size * 0.4, 0, size * 0.8, size * 0.65);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#152234"; ctx.fillRect(-size * 0.28, size * 0.14, size * 0.56, size * 0.23);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(-size * 0.19, size * 0.21, size * 0.11, size * 0.08);
+        ctx.fillRect(size * 0.09, size * 0.21, size * 0.11, size * 0.08);
+        ctx.fillStyle = color;
+        ctx.fillRect(-size * 0.3, size * 0.68, size * 0.22, size * 0.22);
+        ctx.fillRect(size * 0.08, size * 0.68, size * 0.22, size * 0.22);
+        const facing = this.bots[1 - index].x >= bot.x ? 1 : -1;
+        ctx.fillRect(facing * size * 0.36 - size * 0.09, size * 0.42, size * 0.3 * facing, size * 0.16);
+      }
+      ctx.shadowBlur = 0; ctx.fillStyle = color;
       ctx.font = `900 ${Math.max(11, size * 0.28)}px system-ui`;
       ctx.fillText(`P${bot.id}`, 0, -size * 0.22);
       ctx.restore();

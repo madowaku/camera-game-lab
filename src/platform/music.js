@@ -1,0 +1,107 @@
+import { escapeHtml as esc } from "./copy.js";
+
+export const tracks = Object.freeze({
+  stage: { id: "stage", title: "8-bit Stage1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1982", volume: .16, load: () => import("../assets/music/stageOne.js") },
+  cozy: { id: "cozy", title: "みるくぷりん", creator: "キュス", url: "https://opentracks.com/bgm/detail/16072", volume: .22, load: () => import("../assets/music/milkPudding.js") },
+  spooky: { id: "spooky", title: "不穏ROOM", creator: "MAKOOTO", url: "https://opentracks.com/bgm/detail/9957", volume: .2, load: () => import("../assets/music/uneasyRoom.js") },
+  finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
+});
+const themes = {
+  "solo-finger-gun": "finger", "solo-eat-dont-eat": "cozy", "solo-blink-horror": "spooky",
+  "solo-pinch-world": "cozy", "solo-ghost-trail": "spooky", "voice-note-blaster": "stage",
+  "duo-tiny-bot-duel": "stage", "guardian-spirit": "stage", "outcam-watermelon-guide": "stage",
+  "outcam-false-bridge": "cozy", "outcam-frame-smuggler": "spooky", "solo-daitai-hero": "stage",
+  "outcam-the-camera-is-it": "cozy", "solo-soft-serve": "cozy",
+};
+export function trackForGame(game, source) {
+  // Singing must not hear the soundtrack through the microphone. HAND BEAT
+  // already supplies its own timed beat; an unrelated tempo would mislead.
+  if (game.requiresMicrophone && source !== "demo") return null;
+  return tracks[themes[game.id]] ?? null;
+}
+export function musicAudible(snapshot, foreground = true) {
+  return foreground && !snapshot?.paused && ["playing", "locked", "review", "clear", "stage-clear"].includes(snapshot?.phase);
+}
+export function musicCreditMarkup(game, locale) {
+  const track = tracks[themes[game.id]];
+  if (!track) return "";
+  const note = game.requiresMicrophone ? (locale === "ja" ? " · 練習のみ。歌うモードではBGMを止めます。" : " · Practice only. BGM stays silent while singing.") : "";
+  return `<p class="game-music-credit">BGM: <a href="${track.url}" target="_blank" rel="noopener noreferrer">${esc(track.title)}</a> / ${esc(track.creator)} · OpenTracks${note}</p>`;
+}
+
+// One optional music owner for the active round. Created/resumed only by a
+// player tap; importing this module or browsing the catalog never loads audio.
+export class MusicBed {
+  constructor({ enabled = true, contextFactory = () => {
+    const Ctor = window.AudioContext ?? window.webkitAudioContext;
+    return Ctor ? new Ctor() : null;
+  }, fetchBytes = url => fetch(url).then(r => r.arrayBuffer()) } = {}) {
+    this.enabled = enabled; this.contextFactory = contextFactory; this.fetchBytes = fetchBytes;
+    this.cache = new Map(); this.token = 0; this.context = null; this.source = null;
+    this.track = null; this.buffer = null; this.offset = 0; this.wanted = false; this.failed = false;
+  }
+  arm(track) {
+    this.stop(); this.track = track; this.failed = false;
+    if (this.enabled && track) this.prime();
+  }
+  prime() {
+    if (!this.track || !this.enabled) return;
+    try {
+      this.context ??= this.contextFactory();
+      if (!this.context) { this.failed = true; return; }
+      void this.context.resume().catch(() => {});
+      if (this.loading) return;
+      if (this.buffer) { this.sync(); return; }
+      const token = this.token, track = this.track, context = this.context;
+      const cached = this.cache.get(track.id);
+      this.loading = true;
+      const decode = cached ? Promise.resolve(cached) : track.load()
+        .then(({ default: url }) => this.fetchBytes(url))
+        .then(bytes => token === this.token && context === this.context ? context.decodeAudioData(bytes) : null);
+      void decode.then(buffer => {
+        if (!buffer || token !== this.token || context !== this.context) return;
+        // Keep one decoded track; four stereo buffers would cost ~75MB on a phone.
+        this.cache.clear(); this.cache.set(track.id, buffer);
+        this.loading = false; this.buffer = buffer; this.sync();
+      }).catch(() => {
+        if (token === this.token) { this.loading = false; this.failed = true; }
+      });
+    } catch { this.failed = true; }
+  }
+  update(snapshot, foreground = true) {
+    this.wanted = musicAudible(snapshot, foreground);
+    this.sync();
+  }
+  setEnabled(value) {
+    this.enabled = value;
+    if (value) this.prime();
+    else this.pause();
+    this.sync();
+  }
+  sync() {
+    if (!this.enabled || !this.wanted || !this.buffer || !this.context || this.context.state !== "running") { this.pause(); return; }
+    if (this.source) return;
+    try {
+      const node = this.context.createBufferSource(), gain = this.context.createGain();
+      node.buffer = this.buffer; node.loop = true;
+      gain.gain.setValueAtTime(0, this.context.currentTime);
+      gain.gain.linearRampToValueAtTime(this.track.volume, this.context.currentTime + .12);
+      node.connect(gain); gain.connect(this.context.destination);
+      this.startedAt = this.context.currentTime;
+      node.start(0, this.offset % this.buffer.duration);
+      this.source = node; this.gain = gain;
+    } catch { this.failed = true; }
+  }
+  pause() {
+    if (!this.source) return;
+    this.offset = (this.offset + Math.max(0, this.context.currentTime - this.startedAt)) % this.buffer.duration;
+    try { this.source.stop(); this.source.disconnect(); this.gain.disconnect(); } catch { /* Already stopped. */ }
+    this.source = null; this.gain = null;
+  }
+  stop() {
+    ++this.token; this.pause();
+    const context = this.context; this.context = null;
+    if (context && context.state !== "closed") void context.close().catch(() => {});
+    this.track = null; this.buffer = null; this.offset = 0; this.wanted = false; this.loading = false;
+  }
+}

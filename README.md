@@ -13,10 +13,20 @@ Favorites, recent history and feed ordering stay on-device. FEED / EXPLORE,
 JA / EN, sharing, input explanations and result RETRY / NEXT are shared by the shell.
 No camera, microphone or MediaPipe model starts while browsing previews.
 
+All 14 experiments besides SOFT SERVE now have illustrated entrances, three
+game-specific actions, JA / EN how-to sheets and a single primary result with
+measured stats, practice provenance, RETRY and sharing. HAND BEAT, FINGER GUN
+and EAT / DON'T EAT also use illustrated gameplay cues. See the
+[quality alignment pass and verification](docs/QUALITY_ALIGNMENT_PROGRESS.md).
+
+The original 15-game lineup now uses generated key art in discovery and game entrances. HAND BEAT, EAT / DON'T EAT, TINY BOT DUEL and DAITAI HERO also use generated transparent gameplay sprites. OpenTracks music has shared BGM ON/OFF and round lifecycle handling; HAND BEAT keeps its timed beat and singing mode stays music-free. See [generated media, music licenses and verification](docs/GENERATED_MEDIA_PASS_V01.md).
+
 Existing links such as `/#duo`, `/#guardian`, `/#note-blaster`, `/#daitai` and
 `/#watermelon` still open the corresponding game launcher. Game logic and local
 metrics remain in the existing modules. New compatible games need one registry
 entry to appear in discovery.
+
+Camera input now follows the [Reliability Matrix, Input Law and first-use gates](docs/CAMERA_INPUT_RELIABILITY_V01.md). P0 input v0.2 replaces small finger triggers with a target lock, palm/fist manipulation and four distinct canned gestures. SOFT SERVE previews attachment immediately and confirms it with a short hold ring. Human Input Gates A–E remain pending.
 
 See [architecture, registry schema, compatibility and QA](docs/PLATFORM_V01.md)
 and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
@@ -24,6 +34,16 @@ and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
 
 The [Expansion Blitz report](docs/EXPANSION_BLITZ_V01.md) records the two added
 experiments, 138 tests, browser evidence and the remaining spec/human gates.
+
+## EXP-016: NOTE EATER
+
+Eat a note and make a tune. Move your face to choose among five pentatonic
+shapes, open your mouth once per bite, and grow a backing groove over 30 seconds.
+Open `#/game/solo-note-eater` or `#note-eater`. Camera-free drag/arrows and
+tap/Space practice, JA/EN, YOUR MELODY replay, RETRY/NEXT/SHARE and the shared
+CREATOR face modes/highlight replay are supported. No microphone or fixed song.
+See [implementation and verification](docs/NOTE_EATER_PROGRESS.md) and the
+[pending physical-device/human gates](docs/NOTE_EATER_PLAYTEST.md).
 
 ## EXP-004: BLINK HORROR
 
@@ -36,12 +56,13 @@ Physical-camera acceptance and human playtests are still pending.
 
 ## EXP-005: PINCH WORLD
 
-Use your thumb and index finger as virtual tweezers: pick up a circle, carry a
-square through a wall's gap, then place a triangle precisely. Only a fresh pinch
-grabs; tracking loss gently drops without throwing. Touch/drag and arrow keys +
-Space provide a camera-free demo. Open `#/game/solo-pinch-world` from Feed or Explore.
-All three tasks lead to CLEAR, RETRY, NEXT and a source-labeled share result.
-Physical mobile alignment, pinch reliability and game feel still need playtests.
+Move your palm over a shape, close your fist to pick it up, then open your hand
+to drop it in its matching socket. Carry the square through a wall's gap and
+place the triangle. A fresh palm-to-fist edge grabs; tracking loss gently drops
+without throwing. Touch/drag and arrow keys + Space provide a camera-free demo.
+Open `#/game/solo-pinch-world` from Feed or Explore. The historical title and
+route stay compatible. Physical camera reliability and the first-use gates still
+need human playtests.
 
 ## EXP-030: GHOST TRAIL
 
@@ -67,20 +88,20 @@ six human observations, local round records and JSON export. The real two-person
 five-round gate is still pending. See the [specification](docs/specs/EXP-035_FRAME_SMUGGLER_SPEC_v0.1.md)
 and [playtest checklist and verification](docs/FRAME_SMUGGLER_PLAYTEST.md).
 
-## First playable: HAND BEAT v0.1
+## First playable: HAND BEAT input v0.2
 
 A ~15 second rhythm prototype using four hand inputs:
 
 - ✋ OPEN
 - ✊ FIST
 - ✌️ PEACE
-- 🤏 PINCH
+- 👍 THUMB UP
 
 The first goal is not a full game. It is to test whether camera input feels immediate, readable, fun, and shareable on a phone.
 
 ## EXP-002: FINGER GUN
 
-A 15-second target-shooting spike. Point with your index finger, raise your thumb to arm, and fold it once to fire. The reticle follows the projected index-finger direction; hits score 100 points.
+A 15-second target-shooting spike. Point with your index finger and hold the reticle on a target for 0.25 seconds to auto-fire. The lock ring shows progress; your thumb can stay relaxed. The reticle follows the projected index-finger direction; hits score 100 points.
 
 The round plays a 15-second excerpt of [8-bit Aggressive1 by もっぴーさうんど](https://opentracks.com/bgm/detail/1978) as background music. Its source, license, checksum, and edit details are recorded in [`src/assets/music/LICENSE.md`](src/assets/music/LICENSE.md). Vite inlines the encoded audio into the game bundle, so deployment does not expose a standalone MP3 asset.
 
@@ -301,7 +322,7 @@ Camera frames are intended to be processed on-device in the browser and are not 
 2. FINGER GUN — finger-gun aiming / shooting
 3. EAT / DON'T EAT — mouth-open decision game
 4. BLINK HORROR — eyes-open / eyes-closed horror rule
-5. PINCH WORLD — pinch / drag / release interaction
+5. PINCH WORLD — palm / fist / open manipulation
 6. CRANE TACTICS CAM — pinch-and-carry tactical prototype
 
 The reusable asset is the **body-input layer**, not any single game.

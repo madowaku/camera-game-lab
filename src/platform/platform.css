@@ -200,3 +200,10 @@ body { background:var(--pl-bg); color:var(--pl-text); }
   .platform *,.platform *::before,.platform *::after { animation:none !important; transition:none !important; }
 }
 @media (forced-colors:active) { * { scrollbar-color:auto; } .platform button,.feed-card,.platform-sheet { border:1px solid ButtonText; } .platform :focus-visible { outline-color:Highlight; } }
+
+.game-music { min-height:44px; min-width:66px; padding:6px 8px; border:1px solid var(--pl-border); border-radius:8px; color:var(--pl-text); background:transparent; font:10px var(--pl-mono); flex-shrink:0; }
+.game-music[aria-pressed="true"] { color:var(--accent); }
+.game-music:disabled { opacity:.5; }
+.game-music-credit { color:var(--pl-muted); font-size:11px; line-height:1.8; }
+.game-music-credit a { text-decoration:underline; text-underline-offset:3px; }
+@media(max-width:400px) { .game-topbar { gap:6px; }.game-name { font-size:9px; }.game-back { font-size:11px; } }

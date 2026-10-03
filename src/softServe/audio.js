@@ -9,7 +9,7 @@ export class SoftServeAudio {
     if (!this.enabled || !this.context || this.context.state !== "running") return;
     if (type === "clean") { [523,659,784,1047].forEach((note,i)=>this.tone(note, i * .105, .17, .055)); return; }
     const c = this.context, oscillator = c.createOscillator(), gain = c.createGain(), at = c.currentTime;
-    const frequency = { swirl: 540, lick: 540, serve: 420, splat: 100, melted: 150, pour: 180 }[type] ?? 300;
+    const frequency = { attached: 880, swirl: 540, lick: 540, serve: 420, splat: 100, melted: 150, pour: 180 }[type] ?? 300;
     oscillator.type = "sine";
     oscillator.frequency.setValueAtTime(frequency, at); oscillator.frequency.exponentialRampToValueAtTime(frequency * (type === "lick" ? .55 : type === "splat" ? .3 : 1.5), at + .14);
     gain.gain.setValueAtTime(.0001, at); gain.gain.exponentialRampToValueAtTime(type === "pour" ? .025 : .1, at + .012); gain.gain.exponentialRampToValueAtTime(.0001, at + .19);

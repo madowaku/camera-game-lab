@@ -59,7 +59,23 @@ export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reduc
     const steel=c.createLinearGradient(w*.36,0,w*.64,0);[[0,"#ae9386"],[.25,"#fff9ef"],[.7,"#e9d7c8"],[1,"#8d7366"]].forEach(([p,v])=>steel.addColorStop(p,v));c.fillStyle=steel;c.beginPath();c.roundRect(w*.405,-12,w*.19,h*.13,[0,0,16,16]);c.fill();c.fillStyle="#e9cabe";c.beginPath();c.roundRect(w*.454,h*.085,w*.092,h*.055,6);c.fill();c.fillStyle="#8b6c5e";ellipse(c,w*.5,h*.14,w*.039,h*.012);
     if(serving&&!game.paused){const end=game.catching?Math.max(h*.17,game.tip.y*h):h*.92,wave=reducedMotion?0:Math.sin(game.elapsedMs/120)*w*.004;c.lineCap="round";c.strokeStyle="#d2bfa2";c.lineWidth=w*.03;c.beginPath();c.moveTo(w*.5,h*.14);c.bezierCurveTo(w*.5+wave,end*.4,w*.5-wave,end*.7,w*.5,end);c.stroke();c.strokeStyle="#fff9e9";c.lineWidth=w*.021;c.stroke();}
   }
+  c.save();
+  if(ready)c.globalAlpha=game.paused?.18:.28+game.attachmentProgress*.55;
   drawFood(c,game.captureShape(),{w,h,x,y});
+  c.restore();
+  if(ready&&!game.paused){
+    const radius=w*.105,cy=y-w*.06;
+    c.strokeStyle="#76584955";c.lineWidth=4;c.beginPath();c.arc(x,cy,radius,0,Math.PI*2);c.stroke();
+    c.strokeStyle="#a9404d";c.lineWidth=5;c.beginPath();c.arc(x,cy,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*game.attachmentProgress);c.stroke();
+    c.fillStyle="#583a2d";c.font="800 "+Math.max(13,w*.04)+"px 'Yu Gothic',sans-serif";c.textAlign="center";
+    c.fillText(game.readyMs>0?"HOLD…":locale==="ja"?"✋ 中央へ":"✋ TO THE MIDDLE",x,cy-radius-14);
+  }
+  if(animation?.attachmentAge<650){
+    c.save();c.globalAlpha=1-clamp((animation.attachmentAge-350)/300);
+    c.fillStyle="#fffaf0";c.beginPath();c.roundRect(x-w*.18,y-h*.15,w*.36,h*.07,18);c.fill();
+    c.fillStyle="#a9404d";c.textAlign="center";c.font="800 "+Math.max(15,w*.05)+"px 'Yu Gothic',sans-serif";
+    c.fillText(locale==="ja"?"カチッ！🍦":"CLICK! 🍦",x,y-h*.105);c.restore();
+  }
   if(game.melt>25&&game.amount>0){c.fillStyle="#fff5df";for(let i=0;i<3;i++){const dy=(game.elapsedMs/1700+i*.33)%1;ellipse(c,x+(i-1)*w*.068,y+dy*w*.14,w*.009,w*.018);}}
   if(eating){const tip=game.tip;c.strokeStyle="#fff9ed";c.lineWidth=2;c.setLineDash([3,6]);c.beginPath();c.arc(tip.x*w,tip.y*h,w*.072,0,Math.PI*2);c.stroke();c.setLineDash([]);if(mouth){c.strokeStyle=open?"#fff8eb":"#f57682";c.lineWidth=2.5;c.beginPath();c.ellipse(mouth.x*w,mouth.y*h,w*.032,open?w*.025:w*.006,0,0,Math.PI*2);c.stroke();}}
   const age=animation?.biteAge??Infinity,bite=animation?.bite;

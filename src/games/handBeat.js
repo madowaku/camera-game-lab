@@ -2,26 +2,26 @@ const LABELS = {
   OPEN: { icon: "✋", text: "OPEN" },
   FIST: { icon: "✊", text: "FIST" },
   PEACE: { icon: "✌️", text: "PEACE" },
-  PINCH: { icon: "🤏", text: "PINCH" }
+  THUMB_UP: { icon: "👍", text: "THUMB_UP" }
 };
 
 const SEQUENCE = [
   "OPEN",
   "FIST",
   "PEACE",
-  "PINCH",
+  "THUMB_UP",
   "FIST",
   "OPEN",
-  "PINCH",
+  "THUMB_UP",
   "PEACE",
   "OPEN",
   "PEACE",
   "FIST",
-  "PINCH",
+  "THUMB_UP",
   "PEACE",
   "OPEN",
   "FIST",
-  "PINCH"
+  "THUMB_UP"
 ];
 
 const BEAT_MS = 920;

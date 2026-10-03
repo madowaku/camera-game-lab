@@ -13,7 +13,9 @@ import { resultPayload, sharePayload } from "./share.js";
 import { mountFeed } from "./feed.js";
 import { mountExplore } from "./explore.js";
 import { createLauncher } from "./launcher.js";
-import { previewMarkup } from "./preview.js";
+import * as arcadePresentation from "./gamePresentation.js";
+import "./gamePresentation.css";
+import { MusicBed, trackForGame, musicCreditMarkup } from "./music.js";
 
 export function mountPlatform(app) {
   const invalid = validateRegistry(experiments);
@@ -26,10 +28,29 @@ export function mountPlatform(app) {
   const t = (key, values) => copy(locale, key, values);
   app.classList.add("platform");
   app.innerHTML = `<header class="platform-header"><a class="platform-brand" href="#/" aria-label="CAMERA GAME LAB · FEED"><span class="brand-frame" aria-hidden="true"><i></i></span><span>CAMERA<br>GAME LAB</span></a><nav aria-label="Navigation"><a href="#/" data-nav="feed">FEED</a><a href="#/explore" data-nav="explore">EXPLORE</a></nav><button class="platform-locale" type="button" aria-label="Switch language"></button></header>
-    <div id="platform-view"></div><div class="platform-game" hidden><div class="game-topbar"><a class="game-back" href="#/"></a><span class="game-name"></span><button type="button" class="game-info" aria-label="Info">ⓘ</button></div><div class="launch-panel"></div><div class="game-cache lab"></div><div class="platform-result" hidden></div></div>
+    <div id="platform-view"></div><div class="platform-game" hidden><div class="game-topbar"><a class="game-back" href="#/"></a><span class="game-name"></span><button type="button" class="game-music" aria-pressed="true">BGM ON</button><button type="button" class="game-info" aria-label="Info">ⓘ</button></div><div class="launch-panel"></div><div class="game-cache lab"></div><div class="platform-result" hidden></div></div>
     <dialog class="platform-sheet" aria-labelledby="sheet-title"><button type="button" class="sheet-close">×</button><div class="sheet-content"></div></dialog><div class="platform-toast" role="status" aria-live="polite"></div><div class="onboarding-slot"></div>`;
   const $ = (selector) => app.querySelector(selector);
   const view = $("#platform-view"), gamePage = $(".platform-game"), panel = $(".launch-panel"), cacheRoot = $(".game-cache"), result = $(".platform-result"), sheet = $("dialog");
+  const music = new MusicBed({ enabled: storage.read("camera-game-lab-bgm-v1", true) });
+  let musicTimer;
+  function updateMusic() {
+    music.update(launcher.snapshot(), !document.hidden && document.hasFocus());
+  }
+  function armMusic() {
+    clearInterval(musicTimer);
+    music.arm(trackForGame(session.game, session.source));
+    updateMusicChrome();
+    musicTimer = setInterval(updateMusic, 120);
+  }
+  function stopMusic() { clearInterval(musicTimer); music.stop(); }
+  function updateMusicChrome() {
+    const available = route?.view === "game" && !!trackForGame(route.experiment, session?.source ?? "camera");
+    const button = $(".game-music"); button.disabled = !available;
+    button.textContent = available ? `BGM ${music.enabled ? "ON" : "OFF"}` : route?.experiment?.id === "solo-hand-beat" ? "BEAT" : "BGM —";
+    button.setAttribute("aria-pressed", String(available && music.enabled));
+    button.setAttribute("aria-label", available ? (locale === "ja" ? `BGMを${music.enabled ? "消す" : "つける"}` : `Turn BGM ${music.enabled ? "off" : "on"}`) : (locale === "ja" ? "このモードのBGMは停止しています" : "BGM is silent in this mode"));
+  }
   let sheetTrigger;
   function toast(message) { clearTimeout(toastTimer); $(".platform-toast").textContent = message; $(".platform-toast").classList.add("is-visible"); toastTimer = setTimeout(() => $(".platform-toast").classList.remove("is-visible"), 3200); }
   function closeSheet() { if (sheet.open) sheet.close(); }
@@ -44,7 +65,7 @@ export function mountPlatform(app) {
     $(".sheet-close").focus();
   }
   function info(game) {
-    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("privacyText"))}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
+    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("privacyText"))}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}${musicCreditMarkup(game, locale)}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
     if (session?.game.id === game.id) $(".sheet-play").remove();
     else $(".sheet-play").addEventListener("click", (event) => { event.preventDefault(); closeSheet(); action("play", game); });
   }
@@ -90,12 +111,14 @@ export function mountPlatform(app) {
       result.querySelector("button")?.focus({ preventScroll: true });
       window.scrollTo(0, 0); return;
     }
-    const resultTitle = session.result[locale === "ja" ? "titleJa" : "titleEn"] ?? t("completed");
-    const scoreText = session.result.scored === false ? "" : ` · ${session.result.score ?? 0} ${locale === "ja" ? "点" : "pts"}`;
-    result.innerHTML = `<p class="platform-kicker">${t("nextHint")}</p><h2>${esc(resultTitle)}</h2><p>${esc(resultSummary(session.result))}${scoreText}</p><div class="result-actions"><button type="button" data-result-action="retry">↻ ${t("retry")}</button><button type="button" data-result-action="next">${t("next")} ↑</button><button type="button" data-result-action="share">↗ ${t("shareResult")}</button></div>`;
+    cacheRoot.hidden = !["guardian", "duo", "smuggler"].includes(game.module);
+    result.classList.add("arcade-result");
+    result.innerHTML = arcadePresentation.resultMarkup(game, session.result, locale);
+    gamePage.insertBefore(result, cacheRoot);
     result.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
     // Keep result controls in reach after a full-screen game.
-    result.scrollIntoView({ block: "nearest", behavior: "instant" });
+    result.querySelector('[data-result-action="retry"]').focus({ preventScroll: true });
+    window.scrollTo(0, 0);
   }
   const launcher = createLauncher(cacheRoot, {
     onExit: () => navigate(feedRoute(feedId)),
@@ -106,11 +129,14 @@ export function mountPlatform(app) {
       // A controller can recover from denied camera access into its demo mode.
       // Retry must keep the mode that actually produced the result.
       if (["camera", "demo"].includes(snapshot.source)) session.source = snapshot.source;
+      if (trackForGame(game, session.source)?.id !== music.track?.id) { music.arm(trackForGame(game, session.source)); updateMusicChrome(); }
+      music.update(snapshot, !document.hidden && document.hasFocus());
       if (["playing", "countdown"].includes(snapshot.phase) && !session.started) {
         session.started = true; recent.record(game.id); events.emit("game_start", { id: game.id, source: snapshot.source });
       }
       if (snapshot.phase === "result" && snapshot.result && !session.result) {
-        session.result = { ...snapshot.result }; events.emit(snapshot.result.reason === "STOPPED" ? "game_abort" : "game_complete", { id: game.id, score: snapshot.result.score, source: snapshot.source });
+        stopMusic();
+        session.result = { ...snapshot.result, source: snapshot.source ?? session.source }; events.emit(snapshot.result.reason === "STOPPED" ? "game_abort" : "game_complete", { id: game.id, score: snapshot.result.score, source: snapshot.source });
         // Let the game finish its own result render / receipt before releasing input.
         const completed = session;
         queueMicrotask(() => { if (session === completed) { launcher.releaseResult(); showResult(); } });
@@ -123,6 +149,7 @@ export function mountPlatform(app) {
     session.resultCleanup?.(); session.resultCleanup = null;
     session.presentation?.discardResult?.(session.result);
     session.started = false; session.result = null; result.hidden = true; cacheRoot.hidden = false; cacheRoot.classList.remove("platform-has-result");
+    armMusic();
     launcher.retry(session.source);
     cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
   }
@@ -145,14 +172,13 @@ export function mountPlatform(app) {
       panel.innerHTML = session.presentation.launchMarkup(game, locale);
       session.presentation.paint(panel); return;
     }
-    const steps = game[locale === "ja" ? "launchStepsJa" : "launchStepsEn"];
-    panel.classList.toggle("has-guide", !!steps);
-    const guide = steps ? `<div class="launch-quick-guide"><div class="launch-illustration">${previewMarkup(game)}</div><ol class="launch-steps">${steps.map(([title, detail], i) => `<li><span aria-hidden="true">${["↔", "↑", "◯"][i]}</span><div><strong>${i + 1}. ${esc(title)}</strong><small>${esc(detail)}</small></div></li>`).join("")}</ol></div>` : "";
-    panel.innerHTML = `<p class="platform-kicker">${t("before")}</p><span class="launch-number">${game.exp} / ${game.category}</span><h1>${esc(titleOf(game, locale))}</h1>${guide}<p class="launch-reason">${esc(game[locale === "ja" ? "launchReasonJa" : "launchReasonEn"] ?? (game.requiresMicrophone ? t("voiceReason") : t("reason", { input: game.input.map((input) => inputLabel(input, locale)).join("・") })))}</p><p class="launch-local">${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("local"))}</p>${game.orientation === "landscape" ? `<div class="orientation-guide"><span aria-hidden="true">▯ ↻ ▭</span><p>${t("rotate")}</p><small>${t("rotateDetail")}</small></div>` : ""}<div class="launch-controls"><button type="button" class="launch-camera" disabled>${t(game.requiresMicrophone ? "microphone" : "camera")}</button>${game.demo ? `<button type="button" class="launch-demo" disabled>${t("demo")}</button>` : ""}</div><p class="launch-status" role="status">${t("loading")}</p>`;
+    panel.classList.remove("has-guide");
+    panel.innerHTML = arcadePresentation.launchMarkup(game, locale);
     panel.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
   }
   function updateChrome() {
     document.documentElement.lang = locale;
+    updateMusicChrome();
     $("nav").setAttribute("aria-label", locale === "ja" ? "メインナビゲーション" : "Main navigation");
     $(".platform-locale").textContent = locale === "ja" ? "EN" : "JA";
     $(".platform-locale").setAttribute("aria-label", locale === "ja" ? "Switch to English" : "日本語に切り替える");
@@ -177,7 +203,7 @@ export function mountPlatform(app) {
     const generation = ++routeGeneration;
     if (feed) { feedId = feed.id; feed.destroy(); feed = null; }
     if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, started: session.started });
-    session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); session = null; launcher.stop(); closeSheet(); viewAbort.abort(); viewAbort = new AbortController();
+    session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); session = null; stopMusic(); launcher.stop(); closeSheet(); viewAbort.abort(); viewAbort = new AbortController();
     $(".onboarding-slot").replaceChildren();
     route = resolveRoute(location.hash);
     view.hidden = route.view === "game"; gamePage.hidden = route.view !== "game"; result.hidden = true;
@@ -185,6 +211,11 @@ export function mountPlatform(app) {
     const customTheme = route.view === "game" && route.experiment?.module === "softServe";
     app.classList.toggle("platform--soft-serve", customTheme);
     document.body.classList.toggle("soft-serve-page", customTheme);
+    const noteEaterTheme = route.view === "game" && route.experiment?.module === "noteEater";
+    app.classList.toggle("platform--note-eater", noteEaterTheme);
+    document.body.classList.toggle("note-eater-page", noteEaterTheme);
+    app.classList.toggle("platform--arcade", route.view === "game" && !customTheme);
+    result.classList.remove("arcade-result");
     panel.hidden = false; cacheRoot.hidden = true; cacheRoot.classList.remove("platform-has-result");
     updateChrome(); window.scrollTo(0, 0);
     document.title = `${route.experiment ? titleOf(route.experiment, locale) : route.view === "explore" ? "EXPLORE" : "LAB FEED"} · CAMERA GAME LAB`;
@@ -223,19 +254,26 @@ export function mountPlatform(app) {
     if (!session || session.begun) return;
     session.begun = true; session.source = source;
     panel.hidden = true; cacheRoot.hidden = false;
+    armMusic();
     launcher.begin(session.source, session.presentation?.readOptions?.(panel) ?? {});
   }
   panel.addEventListener("click", (event) => {
     const presentationAction = session?.presentation?.handleLaunchClick?.(panel, event);
     if (presentationAction === "start-camera") { beginRound("camera"); return; }
     if (presentationAction) return;
-    if (event.target.closest(".launch-howto") && session?.presentation) {
-      showSheet(session.presentation.howtoMarkup(session.game, locale)); return;
+    if (event.target.closest(".launch-howto") && session) {
+      showSheet((session.presentation ?? arcadePresentation).howtoMarkup(session.game, locale) + musicCreditMarkup(session.game, locale)); return;
     }
     const button = event.target.closest(".launch-camera, .launch-demo");
     if (!button || button.disabled || !session || session.begun) return;
     beginRound(button.classList.contains("launch-demo") ? "demo" : "camera");
   });
+  $(".game-music").addEventListener("click", () => {
+    music.setEnabled(!music.enabled); storage.write("camera-game-lab-bgm-v1", music.enabled); updateMusicChrome(); updateMusic();
+  });
+  cacheRoot.addEventListener("click", () => { if (session?.begun && !session.result) { music.prime(); updateMusic(); } });
+  document.addEventListener("visibilitychange", updateMusic);
+  window.addEventListener("blur", updateMusic); window.addEventListener("focus", updateMusic);
   $(".game-info").addEventListener("click", () => route.experiment && info(route.experiment));
   $(".platform-locale").addEventListener("click", () => {
     locale = locale === "ja" ? "en" : "ja";
@@ -251,7 +289,7 @@ export function mountPlatform(app) {
   window.addEventListener("resize", () => {
     if (session?.presentation) session.presentation.paint(session.result ? result : panel, session.result);
   });
-  window.addEventListener("pagehide", () => { session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
+  window.addEventListener("pagehide", () => { session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); stopMusic(); launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
   window.addEventListener("pageshow", (event) => { if (event.persisted) void renderRoute(); });
   void renderRoute();
 }

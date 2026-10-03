@@ -1,12 +1,12 @@
-import { PinchInput } from "../input/pinchInput.js";
-import { projectPinch } from "../input/pinchState.js";
+import { GripInput } from "../input/gripInput.js";
+import { projectGrip } from "../input/gripState.js";
 import { PinchWorldGame } from "../games/pinchWorld.js";
 import { PinchAudio } from "./audio.js";
 import "./pinch.css";
 
 const messages = {
-  en: { demo: "DEMO · TOUCH / KEYS", camera: "CAMERA · REAL FINGERS", sound: "SOUND", muted: "MUTED", tasks: ["PICK", "CARRY", "PLACE"], instruction: ["Pinch the circle. Release in its socket.", "Carry the square through the gap.", "A little precision. Place the triangle."], held: "Release in the matching socket.", blocked: "Your fingers pass. The object stays.", wait: "Show an open hand", countdown: "Ready your fingers", pause: "PAUSED", missing: "Show your hand", loading: "Preparing camera…", error: "Camera unavailable. Retry or try the demo.", retry: "RETRY CAMERA", tryDemo: "TRY DEMO", keys: "Drag with a finger · or arrows + hold Space", cameraHint: "Open your fingers, then pinch around the shape.", clear: "WORLD COMPLETE", clean: "CLEAN RUN", grabs: "grabs", misses: "missed pinches", releases: "early releases", tracking: "tracking drops", resultDemo: "Demo result", resultCamera: "Camera result", debug: "Debug input", board: "Tiny world. Pinch a shape and carry it to its socket.", gap: "GAP", socket: "DROP HERE" },
-  ja: { demo: "デモ · タッチ / キー操作", camera: "カメラ · 指で操作", sound: "音あり", muted: "消音", tasks: ["つまむ", "運ぶ", "置く"], instruction: ["丸をつまんで、丸いくぼみへ。", "四角を、壁のすき間から運ぼう。", "最後は三角。そっと置こう。"], held: "同じ形のくぼみで、指を開こう。", blocked: "指は通れても、物は通れない。", wait: "指を開いて、手を映してください", countdown: "指を準備して", pause: "一時停止", missing: "手をカメラに映してください", loading: "カメラを準備中…", error: "カメラを使えません。再試行かデモを選べます。", retry: "カメラを再試行", tryDemo: "デモで試す", keys: "指でドラッグ · または矢印キー + Space長押し", cameraHint: "一度指を開いてから、形を挟むようにつまもう。", clear: "クリア", clean: "きれいにできた！", grabs: "回 つかんだ", misses: "回 つかみ損ねた", releases: "回 途中で離した", tracking: "回 追跡切れで解放", resultDemo: "デモの結果", resultCamera: "カメラの結果", debug: "入力デバッグ", board: "小さな世界。形をつまんで、同じ形のくぼみへ運ぼう。", gap: "すき間", socket: "ここへ" },
+  en: { demo: "DEMO · TOUCH / KEYS", camera: "CAMERA · PALM / FIST", sound: "SOUND", muted: "MUTED", tasks: ["PICK", "CARRY", "PLACE"], instruction: ["Palm over the circle, fist to grab. Open in its socket.", "Carry the square through the gap.", "A little precision. Place the triangle."], reopen: "Open your palm, then make a fresh fist to grab.", held: "Open your palm in the matching socket.", blocked: "Move your hand around the wall, through the gap.", wait: "Show an open hand", countdown: "Ready your hand", pause: "PAUSED", missing: "Bring your whole hand back into the frame 👋", loading: "Preparing camera…", error: "Camera unavailable. Retry or try the demo.", retry: "RETRY CAMERA", tryDemo: "TRY DEMO", keys: "Drag with a finger · or arrows + hold Space", cameraHint: "Palm to move · Fist to grab · Open to drop", clear: "WORLD COMPLETE", clean: "CLEAN RUN", grabs: "grabs", misses: "missed grabs", releases: "early releases", tracking: "tracking drops", resultDemo: "Demo result", resultCamera: "Camera result", debug: "Debug input", board: "Tiny world. Move your palm over a shape, close your fist to grab, then open to place.", gap: "GAP", socket: "DROP HERE" },
+  ja: { demo: "デモ · タッチ / キー操作", camera: "カメラ · 手のひら / グー", sound: "音あり", muted: "消音", tasks: ["掴む", "運ぶ", "置く"], instruction: ["丸に手を重ねてグー。くぼみで開こう。", "四角を、壁のすき間から運ぼう。", "最後は三角。そっと置こう。"], reopen: "一度手を開いて、重ねてからグーにしよう。", held: "同じ形のくぼみで、手を開こう。", blocked: "手を壁の下のすき間へ動かそう。", wait: "手のひらを開いて、枠の中へ 👋", countdown: "手を準備して", pause: "一時停止", missing: "手全体を枠の中へ戻してね 👋", loading: "カメラを準備中…", error: "カメラを使えません。再試行かデモを選べます。", retry: "カメラを再試行", tryDemo: "デモで試す", keys: "指でドラッグ · または矢印キー + Space長押し", cameraHint: "手のひらで移動 · グーで掴む · 開いて置く", clear: "クリア", clean: "きれいにできた！", grabs: "回 つかんだ", misses: "回 つかみ損ねた", releases: "回 途中で離した", tracking: "回 追跡切れで解放", resultDemo: "デモの結果", resultCamera: "カメラの結果", debug: "入力デバッグ", board: "小さな世界。手を形に重ね、グーで掴んで、開いて置こう。", gap: "すき間", socket: "ここへ" },
 };
 const clamp = (n) => Math.max(.02, Math.min(.98, n));
 function shapeMarkup(shape) {
@@ -20,16 +20,16 @@ class PinchView {
   constructor(root, locale) {
     this.root = root; this.locale = locale; this.listeners = new Set(); this.generation = 0; this.phase = "idle"; this.source = "camera"; this.active = false;
     this.audio = new PinchAudio(); this.game = this.newGame(); this.game.start(); this.game.phase = "idle";
-    this.frame = null; this.lastInput = -Infinity; this.pending = []; this.keys = new Set(); this.cursor = { x: .5, y: .84 }; this.pinching = false;
+    this.frame = null; this.lastInput = -Infinity; this.pending = []; this.keys = new Set(); this.cursor = { x: .5, y: .84 }; this.grabbing = false;
     root.innerHTML = `<div class="pw-view"><div class="pw-toolbar"><span class="pw-source"></span><button type="button" class="pw-sound"></button></div><div class="pw-heading"><div class="pw-steps" aria-label="Progress"><span>01</span><i></i><span>02</span><i></i><span>03</span></div><span class="pw-time">0.0s</span></div>
       <div class="pw-stage" tabindex="0" role="group"><video muted playsinline></video><svg class="pw-world" viewBox="0 0 1000 1000" aria-hidden="true"><defs><pattern id="pw-grid" width="50" height="50" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1.8" fill="#394d4640"/></pattern><pattern id="pw-stripe" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="4" height="12" fill="#16352c22"/></pattern></defs><rect width="1000" height="1000" fill="url(#pw-grid)"/>
       <g class="pw-barriers"></g><g class="pw-socket"></g><text class="pw-socket-label" text-anchor="middle"></text><text class="pw-gap" x="500" y="865" text-anchor="middle"></text><g class="pw-object-shadow"></g><g class="pw-object"></g><circle class="pw-grab-radius" fill="none" stroke="#19382c" stroke-dasharray="10 10" stroke-width="3"/><circle class="pw-snap" fill="none" stroke="#247a63" stroke-width="6"/>
-      <g class="pw-tweezer"><path class="pw-jaws" fill="none" stroke="#183a31" stroke-width="9" stroke-linecap="round"/><circle class="pw-thumb" r="20" fill="#fff3da" stroke="#183a31" stroke-width="7"/><circle class="pw-index" r="20" fill="#fff3da" stroke="#183a31" stroke-width="7"/><circle class="pw-midpoint" r="6" fill="#183a31"/></g></svg><div class="pw-message" role="status" aria-live="polite"></div><div class="pw-receipt" hidden></div></div>
+      <g class="pw-hand-cursor"><circle class="pw-palm-ring" r="52" fill="#fff3daaa" stroke="#183a31" stroke-width="5"/><text class="pw-palm-icon" text-anchor="middle" y="18">✋</text></g></svg><div class="pw-message" role="status" aria-live="polite"></div><div class="pw-receipt" hidden></div></div>
       <div class="pw-caption"><span class="pw-task-number">01</span><div><h2 class="pw-task"></h2><p class="pw-instruction"></p></div></div><p class="pw-hint"></p><div class="pw-recovery" hidden><button type="button" class="pw-retry"></button><button type="button" class="pw-demo"></button></div><details class="pw-debug"><summary></summary><pre></pre></details></div>`;
     this.$ = (s) => root.querySelector(s);
-    this.input = new PinchInput(this.$("video"), { onFrame: (frame) => {
+    this.input = new GripInput(this.$("video"), { onFrame: (frame) => {
       if (!this.active || this.source !== "camera") return;
-      this.frame = frame; this.pending.push(...frame.events.filter((event) => event !== "PINCH_MOVE")); this.lastInput = performance.now();
+      this.frame = frame; this.pending.push(...frame.events.filter((event) => event !== "GRIP_MOVE")); this.lastInput = performance.now();
     }, onStatus: (status) => { if (status === "ERROR" && this.active) this.fail(); } });
     this.render();
   }
@@ -48,30 +48,30 @@ class PinchView {
   }
   setLocale(locale) { this.locale = locale; this.render(); }
   activate() { this.active = true; this.phase = "idle"; this.render(); }
-  setPinch(value) {
-    if (value === this.pinching) return;
-    this.pinching = value; this.pending.push(value ? "PINCH_START" : "PINCH_END");
+  setGrip(value) {
+    if (value === this.grabbing) return;
+    this.grabbing = value; this.pending.push(value ? "GRIP_START" : "GRIP_END");
   }
   bind() {
     this.abort?.abort(); this.abort = new AbortController(); const signal = this.abort.signal, stage = this.$(".pw-stage");
     const position = (e) => { const bounds = stage.getBoundingClientRect(); this.cursor = { x: clamp((e.clientX - bounds.left) / bounds.width), y: clamp((e.clientY - bounds.top) / bounds.height) }; };
     stage.addEventListener("pointerdown", (e) => {
       if (this.source !== "demo" || this.pointerId != null || e.button > 0) return;
-      e.preventDefault(); stage.focus({ preventScroll: true }); this.pointerId = e.pointerId; stage.setPointerCapture(e.pointerId); position(e); this.setPinch(true);
+      e.preventDefault(); stage.focus({ preventScroll: true }); this.pointerId = e.pointerId; stage.setPointerCapture(e.pointerId); position(e); this.setGrip(true);
     }, { signal });
     stage.addEventListener("pointermove", (e) => { if (this.source === "demo" && (this.pointerId === e.pointerId || (this.pointerId == null && e.pointerType === "mouse"))) position(e); }, { signal });
-    for (const name of ["pointerup", "pointercancel", "lostpointercapture"]) stage.addEventListener(name, (e) => { if (e.pointerId === this.pointerId) { this.pointerId = null; this.setPinch(false); } }, { signal });
+    for (const name of ["pointerup", "pointercancel", "lostpointercapture"]) stage.addEventListener(name, (e) => { if (e.pointerId === this.pointerId) { this.pointerId = null; this.setGrip(false); } }, { signal });
     window.addEventListener("keydown", (e) => {
       if (this.source !== "demo" || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(e.code) || e.target.closest("button,a,input,textarea,summary")) return;
-      e.preventDefault(); this.keys.add(e.code); if (e.code === "Space") this.setPinch(true);
+      e.preventDefault(); this.keys.add(e.code); if (e.code === "Space") this.setGrip(true);
     }, { signal });
-    window.addEventListener("keyup", (e) => { if (this.source === "demo" && this.keys.has(e.code)) { e.preventDefault(); this.keys.delete(e.code); if (e.code === "Space") this.setPinch(false); } }, { signal });
+    window.addEventListener("keyup", (e) => { if (this.source === "demo" && this.keys.has(e.code)) { e.preventDefault(); this.keys.delete(e.code); if (e.code === "Space") this.setGrip(false); } }, { signal });
     const pause = (value) => {
       if (this.pointerId != null && stage.hasPointerCapture(this.pointerId)) stage.releasePointerCapture(this.pointerId);
       this.pointerId = null;
-      this.keys.clear(); this.setPinch(false); this.pending.length = 0;
+      this.keys.clear(); this.setGrip(false); this.pending.length = 0;
       // A release during a paused render loop must be delivered on recovery.
-      if (!value && (this.source === "demo" || (this.frame?.present && !this.frame.pinching))) this.pending.push("PINCH_END");
+      if (!value && (this.source === "demo" || (this.frame?.present && !this.frame.grabbing))) this.pending.push("GRIP_END");
       this.game.setPaused(value); this.lastTick = performance.now();
     };
     window.addEventListener("blur", () => pause(true), { signal }); window.addEventListener("focus", () => pause(false), { signal });
@@ -81,7 +81,7 @@ class PinchView {
   }
   setup(source) {
     this.releaseInputs(); this.active = true; this.source = source; this.phase = "loading"; this.game = this.newGame(); this.game.start(source);
-    this.frame = null; this.displayInput = null; this.lastInput = -Infinity; this.pending = []; this.keys.clear(); this.cursor = { x: .5, y: .84 }; this.pinching = false; this.effect = null;
+    this.frame = null; this.displayInput = null; this.lastInput = -Infinity; this.pending = []; this.keys.clear(); this.cursor = { x: .5, y: .84 }; this.grabbing = false; this.effect = null;
     this.bind(); this.audio.start(); this.render(); this.notify(); return this.generation;
   }
   async startCamera() {
@@ -96,13 +96,12 @@ class PinchView {
     if (this.source === "camera") {
       if (now - this.lastInput > 300 || !this.frame) return { present: false, events: [] };
       const video = this.$("video"), bounds = this.$(".pw-stage").getBoundingClientRect();
-      return projectPinch({ ...this.frame, events }, video.videoWidth, video.videoHeight, bounds.width, bounds.height);
+      return projectGrip({ ...this.frame, events }, video.videoWidth, video.videoHeight, bounds.width, bounds.height);
     }
     const speed = dt / 1000 * .55;
     this.cursor.x = clamp(this.cursor.x + (Number(this.keys.has("ArrowRight")) - Number(this.keys.has("ArrowLeft"))) * speed);
     this.cursor.y = clamp(this.cursor.y + (Number(this.keys.has("ArrowDown")) - Number(this.keys.has("ArrowUp"))) * speed);
-    const gap = this.pinching ? .025 : .075;
-    return { present: true, pinching: this.pinching, pinchPosition: { ...this.cursor }, thumbTip: { x: this.cursor.x - gap, y: this.cursor.y + gap * .5 }, indexTip: { x: this.cursor.x + gap, y: this.cursor.y - gap * .5 }, pinchRatio: this.pinching ? .2 : .6, events };
+    return { present: true, grabbing: this.grabbing, open: !this.grabbing, gripPosition: { ...this.cursor }, events };
   }
   tick = (now) => {
     if (!this.active) return;
@@ -118,7 +117,7 @@ class PinchView {
   fail() { this.releaseInputs(); this.phase = "error"; this.bind(); this.render(); this.notify(); }
   releaseInputs() {
     ++this.generation; cancelAnimationFrame(this.raf); this.raf = null; clearTimeout(this.finishTimer); this.finishTimer = null;
-    this.abort?.abort(); this.input?.stop(); this.audio.close(); this.pending.length = 0; this.keys.clear(); this.pinching = false; this.pointerId = null;
+    this.abort?.abort(); this.input?.stop(); this.audio.close(); this.pending.length = 0; this.keys.clear(); this.grabbing = false; this.pointerId = null;
   }
   deactivate() { this.active = false; this.releaseInputs(); this.phase = "idle"; }
   render(now = performance.now()) {
@@ -130,7 +129,7 @@ class PinchView {
     this.$(".pw-steps").setAttribute("aria-label", `${g.completed} / 3`);
     this.root.querySelectorAll(".pw-steps span").forEach((el, i) => { el.classList.toggle("is-current", g.stageIndex === i); el.classList.toggle("is-done", g.completed > i); });
     this.$(".pw-task-number").textContent = `0${g.stageIndex + 1}`; this.$(".pw-task").textContent = t.tasks[g.stageIndex];
-    this.$(".pw-instruction").textContent = g.blocked ? t.blocked : g.heldObjectId ? t.held : t.instruction[g.stageIndex];
+    this.$(".pw-instruction").textContent = g.blocked ? t.blocked : g.heldObjectId ? t.held : this.source === "camera" && g.phase === "playing" && !g.neutral ? t.reopen : t.instruction[g.stageIndex];
     this.$(".pw-hint").textContent = t[this.source === "demo" ? "keys" : "cameraHint"];
     this.$(".pw-caption").hidden = !!r; this.$(".pw-hint").hidden = !!r; this.$(".pw-debug").hidden = !!r;
     const { object, socket } = g;
@@ -143,28 +142,26 @@ class PinchView {
     const positionShape = (selector, item, offset = 0) => this.$(selector).setAttribute("transform", `translate(${item.x * 1000 + offset} ${item.y * 1000 + offset}) scale(${item.radius * 1000})`);
     positionShape(".pw-object", object); positionShape(".pw-object-shadow", object, g.heldObjectId ? 14 : 7); positionShape(".pw-socket", socket);
     this.$(".pw-object").classList.toggle("is-held", !!g.heldObjectId);
-    const eligible = input?.present && !input.pinching && Math.hypot(input.pinchPosition.x - object.x, input.pinchPosition.y - object.y) < object.radius * 1.4;
+    const eligible = input?.present && input.open && Math.hypot(input.gripPosition.x - object.x, input.gripPosition.y - object.y) < object.radius * 1.4;
     this.$(".pw-object").classList.toggle("is-eligible", !!eligible);
     this.$(".pw-socket-label").setAttribute("x", socket.x * 1000); this.$(".pw-socket-label").setAttribute("y", (socket.y + socket.radius + .065) * 1000); this.$(".pw-socket-label").textContent = t.socket;
     this.$(".pw-gap").textContent = g.barriers.length ? `↔ ${t.gap}` : "";
     const message = this.phase === "error" ? t.error : this.phase === "loading" ? t.loading : r ? "" : g.paused ? t[g.manualPause ? "pause" : "missing"] : g.phase === "wait" ? t.wait : g.phase === "countdown" ? t.countdown : "";
     if (this.$(".pw-message").textContent !== message) this.$(".pw-message").textContent = message;
-    const tweezer = this.$(".pw-tweezer"); tweezer.style.display = input?.present && !r ? "" : "none";
+    const cursor = this.$(".pw-hand-cursor"); cursor.style.display = input?.present && !r ? "" : "none";
     if (input?.present) {
-      const a = input.thumbTip ?? input.pinchPosition, b = input.indexTip ?? input.pinchPosition, m = input.pinchPosition;
-      for (const [selector, p] of [[".pw-thumb", a], [".pw-index", b], [".pw-midpoint", m]]) { this.$(selector).setAttribute("cx", p.x * 1000); this.$(selector).setAttribute("cy", p.y * 1000); }
-      this.$(".pw-jaws").setAttribute("d", `M${a.x * 1000} ${a.y * 1000}l-25 35m25-35L${m.x * 1000} ${m.y * 1000} ${b.x * 1000} ${b.y * 1000}l25-35`);
-      tweezer.classList.toggle("is-pinching", !!input.pinching);
+      cursor.setAttribute("transform", `translate(${input.gripPosition.x * 1000} ${input.gripPosition.y * 1000})`);
+      cursor.classList.toggle("is-grabbing", !!input.grabbing);
+      this.$(".pw-palm-icon").textContent = input.grabbing ? "✊" : "✋";
     }
     const debug = this.$(".pw-debug").open;
-    this.$(".pw-midpoint").style.display = debug ? "" : "none";
     const grab = this.$(".pw-grab-radius"); grab.style.display = debug ? "" : "none"; grab.setAttribute("cx", object.x * 1000); grab.setAttribute("cy", object.y * 1000); grab.setAttribute("r", object.radius * 1400);
     const age = this.effect ? (now - this.effect.at) / 400 : 2, snap = this.$(".pw-snap"); snap.style.opacity = age < 1 ? 1 - age : 0;
     if (age < 1) { snap.setAttribute("cx", this.effect.x * 1000); snap.setAttribute("cy", this.effect.y * 1000); snap.setAttribute("r", (this.effect.radius + age * .08) * 1000); }
     this.$(".pw-recovery").hidden = this.phase !== "error"; this.$(".pw-retry").textContent = t.retry; this.$(".pw-demo").textContent = t.tryDemo;
     const receipt = this.$(".pw-receipt"); receipt.hidden = !r;
-    if (r) receipt.innerHTML = `<small>${t[this.source === "demo" ? "resultDemo" : "resultCamera"]}</small><h2>${t.clear}</h2><strong>${r.seconds.toFixed(1)}s</strong>${r.clean ? `<p class="pw-clean">✦ ${t.clean}</p>` : ""}<p>${r.successfulGrabs} ${t.grabs} · ${r.failedPinches} ${t.misses}</p><p>${r.accidentalReleases} ${t.releases} · ${r.trackingDrops} ${t.tracking}</p>`;
+    if (r) receipt.innerHTML = `<small>${t[this.source === "demo" ? "resultDemo" : "resultCamera"]}</small><h2>${t.clear}</h2><strong>${r.seconds.toFixed(1)}s</strong>${r.clean ? `<p class="pw-clean">✦ ${t.clean}</p>` : ""}<p>${r.successfulGrabs} ${t.grabs} · ${r.failedGrabs} ${t.misses}</p><p>${r.accidentalReleases} ${t.releases} · ${r.trackingDrops} ${t.tracking}</p>`;
     this.$(".pw-debug summary").textContent = t.debug;
-    if (debug) this.$(".pw-debug pre").textContent = JSON.stringify({ present: input?.present, pinching: input?.pinching, ratio: input?.pinchRatio, midpoint: input?.pinchPosition, thumb: input?.thumbTip, index: input?.indexTip, held: g.heldObjectId, fps: this.frame?.fps }, null, 2);
+    if (debug) this.$(".pw-debug pre").textContent = JSON.stringify({ present: input?.present, grabbing: input?.grabbing, open: input?.open, palm: input?.gripPosition, held: g.heldObjectId, fps: this.frame?.fps }, null, 2);
   }
 }

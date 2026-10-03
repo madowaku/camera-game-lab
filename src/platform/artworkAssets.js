@@ -1,0 +1,17 @@
+export const artworkAssets = Object.freeze({
+  "solo-hand-beat": "/artwork/hand-beat-v1.webp",
+  "solo-finger-gun": "/artwork/finger-gun-v1.webp",
+  "solo-eat-dont-eat": "/artwork/eat-dont-eat-v1.webp",
+  "solo-blink-horror": "/artwork/blink-horror-v1.webp",
+  "solo-pinch-world": "/artwork/pinch-world-v1.webp",
+  "solo-ghost-trail": "/artwork/ghost-trail-v1.webp",
+  "voice-note-blaster": "/artwork/note-blaster-v1.webp",
+  "duo-tiny-bot-duel": "/artwork/tiny-bot-duel-v1.webp",
+  "guardian-spirit": "/artwork/guardian-spirit-v1.webp",
+  "outcam-watermelon-guide": "/artwork/watermelon-guide-v1.webp",
+  "outcam-false-bridge": "/artwork/false-bridge-v1.webp",
+  "outcam-frame-smuggler": "/artwork/frame-smuggler-v1.webp",
+  "solo-daitai-hero": "/artwork/daitai-hero-v1.webp",
+  "outcam-the-camera-is-it": "/artwork/the-camera-is-it-v1.webp",
+  "solo-soft-serve": "/artwork/soft-serve-v1.webp",
+});

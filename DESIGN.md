@@ -60,6 +60,20 @@ Navigation is FEED / EXPLORE with active text and underline. Explore uses labele
 
 Motion uses short 160ms control transitions and slow, small preview gesture movements. Only the current and adjacent previews animate. Reduced motion disables animation and smooth scrolling. Native scrolling always owns the swipe.
 
+Game entrances lead with a game-specific illustrated action, a short challenge,
+three steps and PLAY. Full instructions open in the shared sheet, with focus
+returning to the trigger. Camera details stay in an expandable section. On a
+wide screen the illustration and actions sit side by side; short screens scroll.
+Original SVG scenes live in `src/platform/gameArtwork.js`, and JA / EN guides
+and measured result models in `gamePresentation.js`. SOFT SERVE retains its
+own presentation and CREATOR flow.
+
+Results lead with the actual outcome, a large measured result and up to three
+supporting stats. RETRY is primary; challenge sharing and NEXT follow it.
+Practice is labeled on the result and in shared text. Missing measurements use
+an em dash, while measured zero stays zero. Game-owned photo, swap and playtest
+tools remain reachable below the main result. No invented record or clear.
+
 ## Do's and Don'ts
 - Keep a single one-line instruction in the feed and move details to INFO.
 - Preserve focus, location, language and result recovery consistently across screens.
@@ -71,3 +85,9 @@ Motion uses short 160ms control transitions and slow, small preview gesture move
 - [UI/UX Design Library](https://github.com/justinhartman/ui-ux-design-library): reference index for mobile and interaction-design reading; no assets or book text copied into the product.
 
 Behavior owners and verification are recorded in `docs/PLATFORM_V01.md`. CSS and this file change together when tokens change.
+
+## Camera input and body feedback
+
+Follow the [Camera Input Reliability Matrix and Input Gates](docs/CAMERA_INPUT_RELIABILITY_V01.md) before proposing a new EXP. Prefer screen-space position, large movement, distinct poses and large state changes. Small finger contacts and thumb-joint changes cannot be product primary inputs.
+
+Show the earliest valid response immediately: a moving cursor, translucent attached object or filling hold ring. Confirm input success visibly before full play begins. Pair tracking failures with a concrete recovery action supported by the observed state. Human first-use testing remains separate from synthetic QA.

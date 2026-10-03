@@ -8,6 +8,7 @@ async (page) => {
   await page.goto(base + '/?qa=pinch-camera#/game/solo-pinch-world');
   await page.waitForFunction(() => document.querySelector('.launch-camera')?.disabled === false);
   await page.clock.install();
+  await page.clock.pauseAt(new Date(Date.now() + 100));
   await page.evaluate(async () => {
     const source = await (await fetch('/src/input/bodyInput.js')).text();
     const vision = await import(source.match(/from "([^"]*mediapipe[^"]*)"/)[1]);
@@ -24,11 +25,8 @@ async (page) => {
       return { close: () => window.__closes++, recognizeForVideo: () => {
         if (!__hand.present) return {};
         const x = 1 - __hand.x, y = .5 + (__hand.y - .5) * 360 / 640;
-        const half = (__hand.closed ? .2 : .62) * .22 / (360 / 640) / 2;
         const points = Array.from({ length: 21 }, () => ({ x, y }));
-        points[0] = { x, y: .83 }; points[9] = { x, y: .61 };
-        points[4] = { x: x - half, y }; points[8] = { x: x + half, y };
-        return { landmarks: [points] };
+        return { landmarks: [points], gestures: [[{ categoryName: __hand.closed ? 'Closed_Fist' : 'Open_Palm', score: .95 }]] };
       } };
     };
     vision.FaceLandmarker.createFromOptions = async () => {
@@ -57,8 +55,8 @@ async (page) => {
   await page.clock.runFor(1900);
   check((await page.locator('.pw-message').textContent()) === '', 'open raw hand passes readiness and countdown');
   await set({ x: .87, y: .84, closed: true }); await set({ x: .23, y: .58 }, 300);
-  check(!(await held()), 'raw held pinch overlap cannot auto-grab');
-  await set({ closed: false }); await set({ closed: true }); check(await held(), 'raw fresh pinch grabs');
+  check(!(await held()), 'raw held fist overlap cannot auto-grab');
+  await set({ closed: false }); await set({ closed: true }); check(await held(), 'raw fresh fist grabs');
   await set({ x: .35, y: .58 }, 400);
   const before = await point(); await set({ present: false }, 160);
   check(await held(), 'brief hand loss retains the object during grace');
@@ -66,7 +64,7 @@ async (page) => {
   await set({ present: true }, 100); check(await held(), 'return within grace continues hold');
   const beforeLong = await point(); await set({ present: false }, 400);
   check(!(await held()) && JSON.stringify(await point()) === JSON.stringify(beforeLong), 'long loss gently drops with zero throw');
-  await set({ present: true, x: .35, y: .58 }, 150); check(!(await held()), 'reacquired held fingers never auto-grab');
+  await set({ present: true, x: .35, y: .58 }, 150); check(!(await held()), 'reacquired held fist never auto-grab');
   await set({ closed: false }); await set({ closed: true }); await set({ x: .77, y: .38 }, 500); await set({ closed: false });
   check((await page.locator('.pw-task-number').textContent()) === '02', 'mirrored cover projection places circle in its socket');
   await set({ x: .2, y: .48 }); await set({ closed: true }); await set({ x: .8 }, 500);
@@ -75,7 +73,7 @@ async (page) => {
   check((await page.locator('.pw-task-number').textContent()) === '03', 'raw camera gap route works');
   await set({ x: .24, y: .65 }); await set({ closed: true }); await set({ x: .75, y: .33 }, 500); await set({ closed: false }); await page.clock.runFor(500);
   await page.locator('.platform-result').waitFor({ state: 'visible' });
-  check((await page.locator('.platform-result').textContent()).includes('Camera · CLEAR'), 'raw camera round clears with source retained');
+  check((await page.locator('.arcade-result-source').textContent()).includes('CAMERA') && (await page.locator('.pw-receipt').textContent()).includes('WORLD COMPLETE'), 'raw camera round clears with source retained');
   check((await page.locator('.pw-receipt').textContent()).includes('1 tracking drops'), 'tracking drop is counted independently of deliberate releases');
   await page.waitForFunction(() => __contexts.every((c) => c.state === 'closed'));
   check(await page.evaluate(() => __tracks.every((t) => t.readyState === 'ended') && __models === __closes && __rafs.size === 0), 'RESULT releases all tracks, model, audio and animation loops');

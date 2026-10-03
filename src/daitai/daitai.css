@@ -119,3 +119,6 @@
 @media (prefers-reduced-motion: reduce) {
   .daitai *, .daitai *::before, .daitai *::after { animation: none !important; transition: none !important; }
 }
+
+.dh-mage img,.dh-enemy img { display:block; width:100%; height:100%; object-fit:contain; }
+.dh-enemy[data-reaction="attack"] img { filter:sepia(.5) saturate(2); }

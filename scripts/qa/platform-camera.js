@@ -1,6 +1,7 @@
 // Dev-server QA only: substitutes model inference and media devices. No hardware claims.
 async (page) => {
   await page.reload();
+  await page.setViewportSize({width:390,height:844});
   const checks=[];
   const check=(condition,name)=>{if(!condition)throw Error(name); checks.push(name);};
   await page.goto('http://127.0.0.1:5173/#hand-beat');
@@ -30,8 +31,11 @@ async (page) => {
   check(await page.evaluate(()=>window.__mediaRequests)===0,'deep link and preflight never request camera');
   await page.locator('.launch-camera').click();
   await page.waitForFunction(()=>window.__mediaRequests===1);
-  await page.waitForFunction(()=>document.querySelector('#play-button')?.disabled && document.querySelector('#camera-status')?.textContent.toLowerCase().includes('ready'));
+  await page.waitForFunction(()=>document.querySelector('#play-button')?.disabled && document.querySelector('#camera-status')?.dataset.state==='ready');
   await page.clock.install();
+  await page.clock.runFor(250);
+  check(await page.locator('#target-icon .solo-illustration').isVisible(),'HAND BEAT has a drawn gesture in play');
+  await page.screenshot({path:'output/playwright/quality-hand-beat-playing.png'});
   await page.clock.runFor(18000);
   await page.locator('.platform-result').waitFor({state:'visible'});
   check(await page.evaluate(()=>window.__tracks.every(t=>t.readyState==='ended')),'solo camera tracks end on RESULT');
@@ -49,6 +53,9 @@ async (page) => {
     await page.evaluate(()=>{window.__qaStarted=false;const started=event=>{if(event.detail.name==='game_start'){window.__qaStarted=true;window.removeEventListener('camera-lab:platform',started);}};window.addEventListener('camera-lab:platform',started);});
     await page.locator('.launch-camera').click();
     await page.waitForFunction(()=>window.__qaStarted);
+    if(hash==='#finger-gun')check(await page.locator('.target--finger .target__icon').isHidden(),'FINGER GUN instructions leave the firing field clear');
+    else check(await page.locator('#eat-icon .solo-illustration').isVisible(),'EAT / DONT EAT has a drawn item in play');
+    await page.screenshot({path:'output/playwright/quality-'+hash.slice(1)+'-playing.png'});
     await page.clock.runFor(18000);
     await page.locator('.platform-result').waitFor({state:'visible'});
     check(await page.evaluate(()=>window.__tracks.every(t=>t.readyState==='ended')),hash+' automatically starts and releases camera on RESULT');

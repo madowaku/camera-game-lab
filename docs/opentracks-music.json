@@ -1,0 +1,83 @@
+[
+  {
+    "id": "1982",
+    "title": "8-bit Stage1",
+    "creator": "もっぴーさうんど",
+    "sourceUrl": "https://opentracks.com/bgm/detail/1982",
+    "downloadPage": "https://opentracks.com/bgm/detail/1982/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/55#terms-of-use",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-03",
+    "creatorCondition": "Follows the site audio-source license; no additional terms listed.",
+    "use": "Background music inside this game; commercial BGM use allowed. Not an audio download or music player.",
+    "sourceSha256": "518328f23c098a1a966270a62ac887e554726007ab10ebef95cc09f4dddbad32",
+    "asset": "src/assets/music/stage-one.mp3",
+    "assetSha256": "7c225f5848f0bc949e47083db414913502d22535eba08186be37582f47a70972",
+    "edit": {
+      "start": 0,
+      "duration": 63.7,
+      "codec": "stereo MP3",
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 0.3
+    },
+    "delivery": "Lazy JS module with Vite ?inline audio import. No standalone music asset in public/ or dist/."
+  },
+  {
+    "id": "16072",
+    "title": "みるくぷりん",
+    "creator": "キュス",
+    "sourceUrl": "https://opentracks.com/bgm/detail/16072",
+    "downloadPage": "https://opentracks.com/bgm/detail/16072/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/433#terms-of-use",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-03",
+    "creatorCondition": "Follows the site audio-source license; no additional terms listed.",
+    "use": "Background music inside this game; commercial BGM use allowed. Not an audio download or music player.",
+    "sourceSha256": "8a57bc80820c9e23f82b82edb687e8a567f93bdc275faf3783e72f030fc04147",
+    "asset": "src/assets/music/milk-pudding.mp3",
+    "assetSha256": "2d68c1ebb9f5a63c33985fe05e5604aafcc516e4193c1785f0bb487164b94f36",
+    "edit": {
+      "start": 0,
+      "duration": 48,
+      "codec": "stereo MP3",
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 0.6
+    },
+    "delivery": "Lazy JS module with Vite ?inline audio import. No standalone music asset in public/ or dist/."
+  },
+  {
+    "id": "9957",
+    "title": "不穏ROOM",
+    "creator": "MAKOOTO",
+    "sourceUrl": "https://opentracks.com/bgm/detail/9957",
+    "downloadPage": "https://opentracks.com/bgm/detail/9957/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/258#terms-of-use",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-03",
+    "creatorCondition": "Follows the site audio-source license; no additional terms listed.",
+    "use": "Background music inside this game; commercial BGM use allowed. Not an audio download or music player.",
+    "sourceSha256": "62a796833cd00598424f689148b65860cd09731de732136b198bc1c6af377098",
+    "asset": "src/assets/music/uneasy-room.mp3",
+    "assetSha256": "9d1e65b395652ddfbc0ef64c9ad8e02bef1f46e900ac2208f640c159de04e39f",
+    "edit": {
+      "start": 0,
+      "duration": 85,
+      "codec": "stereo MP3",
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 0.4
+    },
+    "delivery": "Lazy JS module with Vite ?inline audio import. No standalone music asset in public/ or dist/."
+  }
+]

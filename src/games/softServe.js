@@ -1,5 +1,5 @@
 export const SOFT_SERVE_RULES = Object.freeze({
-  readyMs: 900, recoveryMs: 450, rate: .64, swirlHeight: .034,
+  readyMs: 450, recoveryMs: 450, rate: .64, swirlHeight: .034,
   maxServeMs: 20000, maxRoundMs: 39000, meltPerSecond: 2.45,
   exitDistance: .235, exitMs: 550, biteSize: 1, contactMs: 130,
 });
@@ -20,6 +20,7 @@ export class SoftServeGame {
       qualitySum: 0, qualityWeight: 0, lastSegment: -1, result: null, effect: null, completedShape: null });
   }
   get multiplier() { return heightMultiplier(Math.floor(this.maxAmount + .001)); }
+  get attachmentProgress() { return clamp(this.readyMs / this.rules.readyMs); }
   get beauty() { return this.qualityWeight ? this.qualitySum / this.qualityWeight : 0; }
   get beautyLabel() { return this.beauty > .88 ? "PERFECT" : this.beauty > .72 ? "BEAUTIFUL" : this.beauty > .5 ? "NICE" : this.beauty > .3 ? "OK" : "MESSY"; }
   get tip() {
@@ -56,8 +57,12 @@ export class SoftServeGame {
     const blend = 1 - Math.exp(-dt / 65);
     this.cone = { x: previous.x + (next.x - previous.x) * blend, y: previous.y + (next.y - previous.y) * blend };
     if (this.phase === "ready") {
-      this.readyMs = Math.abs(this.cone.x - .5) < .14 ? this.readyMs + dt : 0;
-      if (this.readyMs >= this.rules.readyMs) this.phase = "serve";
+      const underNozzle = Math.abs(input.hand.x - .5) < .14 && input.hand.y >= .38 && input.hand.y <= .84;
+      this.readyMs = underNozzle ? this.readyMs + dt : 0;
+      if (this.readyMs >= this.rules.readyMs) {
+        this.phase = "serve";
+        this.effect = { type: "attached", at: this.elapsedMs };
+      }
       return;
     }
     const seconds = dt / 1000;

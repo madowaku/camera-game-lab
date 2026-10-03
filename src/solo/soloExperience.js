@@ -5,6 +5,8 @@ import { HandBeat } from "../games/handBeat.js";
 import { FingerGunGame } from "../games/fingerGun.js";
 import { EatDontEatGame } from "../games/eatDontEat.js";
 import { translate } from "../i18n.js";
+import { illustrationMarkup, paintIllustration } from "./illustrations.js";
+import "./soloPolish.css";
 
 export function createSoloExperience(app, locale = "ja") {
 let active = false, generation = 0, onState = () => {};
@@ -105,7 +107,7 @@ app.innerHTML = `
           <span>✋ <span id="gesture-open"></span></span>
           <span>✊ <span id="gesture-fist"></span></span>
           <span>✌️ <span id="gesture-peace"></span></span>
-          <span>🤏 <span id="gesture-pinch"></span></span>
+          <span>👍 <span id="gesture-thumb-up"></span></span>
         </div>
         <p id="hand-beat-instructions"></p>
       </div>
@@ -166,16 +168,6 @@ const message = $("#message");
 const musicCreditPrefix = $("#music-credit-prefix");
 const musicCreditSuffix = $("#music-credit-suffix");
 
-const fingerGunMusic = new Audio();
-fingerGunMusic.volume = 0.22;
-let fingerGunMusicReady;
-
-const GESTURE_ICONS = {
-  OPEN: "✋",
-  FIST: "✊",
-  PEACE: "✌️",
-  PINCH: "🤏"
-};
 
 const state = {
   locale,
@@ -270,6 +262,7 @@ const handInput = new HandInput(video, {
 });
 
 const fingerGunInput = new FingerGunInput(video, {
+  getTarget: () => state.mode === "fingerGun" && state.sessionActive && !document.hidden && document.hasFocus() ? state.finger.target : null,
   onAim(aim) {
     state.finger.aim = aim;
     if (state.mode === "fingerGun") renderFingerAim();
@@ -362,7 +355,7 @@ const fingerGunGame = new FingerGunGame({
   },
 
   onFinish(result) {
-    stopFingerGunMusic();
+
     state.sessionActive = false;
     state.finger.target = null;
     state.finger.result = result;
@@ -450,6 +443,7 @@ function renderUi() {
   eatHowto.hidden = state.mode !== "eatDontEat";
   stage.classList.toggle("stage--finger-gun", state.mode === "fingerGun");
   stage.classList.toggle("stage--eat", state.mode === "eatDontEat");
+  stage.classList.toggle("stage--playing", state.sessionActive);
   $("#scoreboard").classList.toggle("scoreboard--timed", state.mode !== "handBeat");
   timeStat.hidden = state.mode === "handBeat";
 
@@ -472,7 +466,7 @@ function renderUi() {
   $("#gesture-open").textContent = t("gestureOPEN");
   $("#gesture-fist").textContent = t("gestureFIST");
   $("#gesture-peace").textContent = t("gesturePEACE");
-  $("#gesture-pinch").textContent = t("gesturePINCH");
+  $("#gesture-thumb-up").textContent = t("gestureTHUMB_UP");
   $("#hand-beat-instructions").textContent = t("handBeatInstructions");
   $("#finger-gun-instructions").textContent = t("fingerGunInstructions");
   $("#eat-instructions").textContent = t("eatDontEatInstructions");
@@ -538,27 +532,27 @@ function renderReadout() {
   }
 
   const aim = state.finger.aim;
-  detected.textContent = !aim?.visible ? t("noHand") : aim.armed ? t("armed") : t("aiming");
-  detected.classList.toggle("detected--armed", Boolean(aim?.visible && aim?.armed));
+  detected.textContent = !aim?.visible ? t("noHand") : aim.lockProgress > 0 ? `LOCK ${Math.round(aim.lockProgress * 100)}%` : t("aiming");
+  detected.classList.toggle("detected--armed", Boolean(aim?.visible && aim?.lockProgress > 0));
 }
 
 function renderHandBeat() {
   if (state.hand.result) {
-    targetIcon.textContent = state.hand.result.accuracy >= 80 ? "🔥" : "🖐️";
+    paintIllustration(targetIcon, "OPEN");
     targetLabel.textContent = `${state.hand.result.accuracy}% ${t("accuracy")}`;
   } else if (state.hand.target) {
-    targetIcon.textContent = GESTURE_ICONS[state.hand.target] ?? "✋";
+    paintIllustration(targetIcon, state.hand.target);
     targetLabel.textContent = t(`gesture${state.hand.target}`);
   } else {
-    targetIcon.textContent = "📷";
+    paintIllustration(targetIcon, "camera");
     targetLabel.textContent = t(state.cameraReady ? "handBeatPrompt" : "cameraPrompt");
   }
 
-  upcoming.replaceChildren(...state.hand.upcoming.map(({ icon, gesture }) => {
+  upcoming.replaceChildren(...state.hand.upcoming.map(({ gesture }) => {
     const item = document.createElement("span");
     item.className = "upcoming__item";
     const iconElement = document.createElement("span");
-    iconElement.textContent = icon;
+    iconElement.innerHTML = illustrationMarkup(gesture);
     const labelElement = document.createElement("span");
     labelElement.textContent = t(`gesture${gesture}`);
     item.append(iconElement, labelElement);
@@ -601,14 +595,14 @@ function renderFingerFeedback() {
 
 function renderEatItem() {
   if (state.eat.result) {
-    eatIcon.textContent = state.eat.result.accuracy >= 50 ? "😋" : "😵";
+    paintIllustration(eatIcon, "mouth");
     eatLabel.textContent = `${state.eat.result.accuracy}% ${t("accuracy")}`;
   } else if (state.eat.item) {
-    eatIcon.textContent = state.eat.item.icon;
+    paintIllustration(eatIcon, state.eat.item.name);
     const name = state.eat.item.name[0].toUpperCase() + state.eat.item.name.slice(1);
     eatLabel.textContent = t(`eatItem${name}`);
   } else {
-    eatIcon.textContent = state.cameraReady ? "👄" : "📷";
+    paintIllustration(eatIcon, state.cameraReady ? "mouth" : "camera");
     eatLabel.textContent = t(state.cameraReady ? "eatDontEatPrompt" : "cameraPrompt");
   }
 
@@ -666,7 +660,8 @@ function renderFingerAim() {
     fingerAim.style.left = `${Math.max(0, Math.min(aim.x, 1)) * 100}%`;
     fingerAim.style.top = `${Math.max(0, Math.min(aim.y, 1)) * 100}%`;
   }
-  fingerAim.classList.toggle("finger-aim--armed", Boolean(aim?.armed));
+  fingerAim.classList.toggle("finger-aim--armed", Boolean(aim?.lockProgress > 0));
+  fingerAim.style.setProperty("--lock-angle", `${(aim?.lockProgress ?? 0) * 360}deg`);
   renderReadout();
 }
 
@@ -684,30 +679,6 @@ function renderFingerTarget() {
   fingerTarget.style.top = `${Math.max(0, Math.min(target.y, 1)) * 100}%`;
   fingerTarget.style.width = `${width}px`;
   fingerTarget.style.height = `${height}px`;
-}
-
-function startFingerGunMusic() {
-  if (state.mode !== "fingerGun") return;
-
-  const play = (music) => {
-    if (!music || state.mode !== "fingerGun" || !state.sessionActive) return;
-    music.currentTime = 0;
-    void music.play().catch(() => {
-      // Audio is optional; the game remains playable if browser audio is unavailable.
-    });
-  };
-
-  if (fingerGunMusic.src) {
-    play(fingerGunMusic);
-  } else {
-    fingerGunMusicReady ??= import("../assets/music/fingerGunTheme.js").then(({ default: url }) => { fingerGunMusic.src = url; return fingerGunMusic; }).catch(() => null);
-    void fingerGunMusicReady.then(play);
-  }
-}
-
-function stopFingerGunMusic() {
-  fingerGunMusic.pause();
-  fingerGunMusic.currentTime = 0;
 }
 
 async function startCamera() {
@@ -810,7 +781,7 @@ async function startGame() {
   const request = generation;
 
   state.sessionActive = true;
-  startFingerGunMusic();
+
   state.message = {
     key: {
       handBeat: "handBeatPlaying",
@@ -845,7 +816,7 @@ async function startGame() {
   } catch (error) {
     if (!active || request !== generation) return;
     console.error(error);
-    stopFingerGunMusic();
+
     state.sessionActive = false;
     state.message = { key: "cameraStartError" };
     renderUi();
@@ -856,7 +827,7 @@ function releaseInputs() {
   ++generation;
   handInput.stop(); fingerGunInput.stop(); faceInput.stop();
   state.cameraReady = false; state.cameraLoading = false; state.cameraStatus = "OFF";
-  stopFingerGunMusic();
+
   if (handGame.audio) { void handGame.audio.close().catch(() => {}); handGame.audio = null; }
 }
 function deactivate() {

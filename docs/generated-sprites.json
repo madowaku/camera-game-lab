@@ -1,0 +1,54 @@
+[
+  {
+    "key": "hand-sprites",
+    "source": "C:\\Users\\hiro\\.codex\\generated_images\\01a101de-0a69-74c2-a044-498f8febc71f\\exec-b182b27f-eeb7-4a69-945a-45a76443c4a9.png",
+    "prompt": "Create a production game sprite atlas on a fully TRANSPARENT background. Exact 2 columns by 2 rows of four SEPARATE clay hand icons, equally sized, each fully inside its quadrant with generous clear margins. Front view, peach clay skin with subtle crafted texture, sage cuff, warm soft lighting. TOP LEFT: OPEN PALM, all five fingers spread. TOP RIGHT: CLOSED FIST, all fingers curled, thumb folded across fist. BOTTOM LEFT: VICTORY / PEACE, only index and middle fingers extended in V, others curled. BOTTOM RIGHT: THUMBS UP, only thumb upright, four fingers curled. One hand per cell, anatomically clear and immediately distinct, no arms extending outside cells, no text, no letters, no grid, no background, no shadows outside hand.",
+    "generator": "imagegen",
+    "date": "2026-10-03",
+    "transparent": true,
+    "file": "public/artwork/sprites/hand-sprites-v1.webp",
+    "processing": "WebP quality 90, alpha preserved; hero scaled to 512px, atlas retains original dimensions.",
+    "sha256": "948e627fcbb9179bdd9f0f84e6588e460c479fd85008d05ddda82bdefe2acbfb",
+    "bytes": 183186,
+    "rawCopy": "output/imagegen/originals/hand-sprites.png"
+  },
+  {
+    "key": "food-sprites",
+    "source": "C:\\Users\\hiro\\.codex\\generated_images\\01a101de-0a69-74c2-a044-498f8febc71f\\exec-1491250f-5b32-4a37-b697-da0bab10c419.png",
+    "prompt": "Create a game sprite atlas, fully TRANSPARENT background, exact 4 COLUMNS and 3 ROWS of 12 separate adorable handmade clay objects. Each centered in its own equally sized rectangular cell with at least 15 percent transparent margin, no overlap. Uniform soft light, subtle clay/fabric textures, strong thumbnail silhouettes, frontal three-quarter view. ROW 1 left to right: red apple with leaf; triangular pepperoni pizza slice; green broccoli; strawberry layer cake slice. ROW 2 left to right: salmon sushi on rice; red watermelon wedge with green rind; purple striped sock; mint soap bar with two tiny bubbles. ROW 3 left to right: chunky teal AA battery with amber positive cap; small cactus in terracotta pot; blue sneaker shoe; coral handled scissors. No text or markings, no plate or table, no grid lines or background, no cast shadows beyond the isolated objects.",
+    "generator": "imagegen",
+    "date": "2026-10-03",
+    "transparent": true,
+    "file": "public/artwork/sprites/food-sprites-v1.webp",
+    "processing": "WebP quality 90, alpha preserved; hero scaled to 512px, atlas retains original dimensions.",
+    "sha256": "7ab45503424fa55596d718328e37c973f82eaab00431c58ad5e2a2bbea779543",
+    "bytes": 342682,
+    "rawCopy": "output/imagegen/originals/food-sprites.png"
+  },
+  {
+    "key": "bot-sprites",
+    "source": "C:\\Users\\hiro\\.codex\\generated_images\\01a101de-0a69-74c2-a044-498f8febc71f\\exec-68d3a83e-ce90-4f16-9df4-03d68cecd1cf.png",
+    "prompt": "Production game sprite atlas on a fully TRANSPARENT background. Exactly TWO original toy robots, one in LEFT HALF and one in RIGHT HALF, fully isolated and evenly sized with generous clear margins, feet aligned on same baseline. Front-facing three-quarter stance, chunky ceramic/clay bodies, original character design, turquoise robot on left, coral robot on right. Small dark visor with two luminous round eyes, short arms at sides, stout feet, little fabric scarf, no guns, no lettering. Both look friendly and determined. Soft warm lighting, broad clean silhouettes at 60 pixels. No floor, no scenery, no grid, no shadow outside character.",
+    "generator": "imagegen",
+    "date": "2026-10-03",
+    "transparent": true,
+    "file": "public/artwork/sprites/bot-sprites-v1.webp",
+    "processing": "WebP quality 90, alpha preserved; hero scaled to 512px, atlas retains original dimensions.",
+    "sha256": "24cb5df0b7e5f1f2174d41fc03c9e22d88667788957eabf49272e6fd79e1b6af",
+    "bytes": 333802,
+    "rawCopy": "output/imagegen/originals/bot-sprites.png"
+  },
+  {
+    "key": "hero-sprite",
+    "source": "C:\\Users\\hiro\\.codex\\generated_images\\01a101de-0a69-74c2-a044-498f8febc71f\\exec-ab49054c-937c-41ab-a8a5-e3b429f57ca0.png",
+    "prompt": "Single original small chibi fantasy HERO production sprite, fully TRANSPARENT background. Full body front-facing three-quarter view with a big readable round face, slightly unsure but brave smile, floppy sage wizard hat, short amber fabric cape, cream tunic, brown boots, tiny wooden sword held downward at side. Tactile handmade clay/paper/fabric, soft warm lighting, broad clean silhouette at 64 pixels, original character, generous transparent margin on all sides. No scenery, no text, no platform, no cast shadow outside character.",
+    "generator": "imagegen",
+    "date": "2026-10-03",
+    "transparent": true,
+    "file": "public/artwork/sprites/hero-sprite-v1.webp",
+    "processing": "WebP quality 90, alpha preserved; hero scaled to 512px, atlas retains original dimensions.",
+    "sha256": "dcb328f73da67af27b1aaea3a15a7ac6d69be35145c07ad941e1a943ec6ed6aa",
+    "bytes": 46324,
+    "rawCopy": "output/imagegen/originals/hero-sprite.png"
+  }
+]

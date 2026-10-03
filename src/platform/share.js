@@ -6,7 +6,8 @@ export function resultPayload(game, data = {}, locale = "en", base) {
   let { score, summary, summaryJa, summaryEn, image } = data;
   const title = titleOf(game, locale);
   summary ??= (locale === "ja" ? summaryJa : summaryEn) ?? "";
-  return { title: `CAMERA GAME LAB / ${title}`, text: data.outcome && game.resultShare ? game.resultShare(data, locale) : [title, score != null ? `${score} ${locale === "ja" ? "点" : "pts"}` : "", summary].filter(Boolean).join(" · "), url: gameUrl(game, base), ...(image ? { files: [image] } : {}) };
+  const practice = data.source === "demo" && !/練習|デモ|practice|demo/i.test(summary) ? (locale === "ja" ? "練習" : "Practice") : "";
+  return { title: `CAMERA GAME LAB / ${title}`, text: data.outcome && game.resultShare ? game.resultShare(data, locale) : [title, practice, score != null && data.scored !== false ? `${score} ${locale === "ja" ? "点" : "pts"}` : "", summary].filter(Boolean).join(" · "), url: gameUrl(game, base), ...(image ? { files: [image] } : {}) };
 }
 // Future image adapters return File (e.g. an asynchronously prepared 720×1280
 // canvas PNG). Prepare it before the click to preserve Web Share user activation.

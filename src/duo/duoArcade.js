@@ -12,6 +12,8 @@ export class DuoArcade {
     this.root = root;
     this.locale = locale;
     this.active = false;
+    this.botArt = new Image(); this.botArt.src = "/artwork/sprites/bot-sprites-v1.webp";
+    this.botArt.onload = () => this.draw();
     this.source = "camera";
     this.status = "OFF";
     this.phase = "idle";
@@ -411,6 +413,6 @@ export class DuoArcade {
     const width = Math.round(rect.width * ratio), height = Math.round(rect.height * ratio);
     if (this.canvas.width !== width || this.canvas.height !== height) { this.canvas.width = width; this.canvas.height = height; }
     this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    this.game.render(this.ctx, rect.width, rect.height, { locale: this.locale });
+    this.game.render(this.ctx, rect.width, rect.height, { locale: this.locale, botArt: this.botArt });
   }
 }

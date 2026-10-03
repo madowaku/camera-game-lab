@@ -1,0 +1,26 @@
+export const messages = {
+  ja: {
+    tagline: "飛んでくる音符をパクッ。食べた音が、そのまま曲になる。", play: "PLAY · カメラであそぶ", demo: "カメラなしで練習", howto: "あそびかた",
+    practice: "カメラなしの練習", camera: "顔でえらぶ · 口でパクッ", tutorial: "パクッとしてみよう", close: "口を閉じて、もうひとくち", choose: "どれを食べよう？",
+    pause: "一時停止", resume: "つづける", paused: "ひとやすみ", background: "戻ったらつづけよう", soundOn: "音 ON", soundOff: "音 OFF",
+    loading: "音符の準備中…", requesting: "カメラの許可を待っています", missing: "口までカメラに映してみよう", multiple: "ひとりずつ、顔をカメラへ", unknown: "口を閉じて、パクッ",
+    error: "カメラを開けませんでした。許可を確認して、もう一度。", retryCamera: "カメラを再試行", bite: "パクッ！", demoHint: "ドラッグ・矢印キーで移動。タップ・Spaceでパクッ。",
+    board: "顔で音符を選び、口を開けて食べる演奏スペース", notes: "食べた音符", unique: "出会った音", result: "あなたの音が、曲になった。", empty: "次は、ひとくちから。",
+    melody: "YOUR MELODY", melodyEmpty: "次のラウンドで、あなたのメロディをつくろう。", playMelody: "▶ PLAY", stopMelody: "■ STOP", again: "RETRY", next: "NEXT", share: "SHARE",
+    faceChoice: "顔の映し方を選んで、スタート", original: "そのまま", effect: "音のヘッドホン", hide: "顔を隠す", creatorNotice: "7秒のリプレイは端末のメモリだけに保存。退出すると消えます。", replay: "あなたのハイライト", replayButton: "↻ REPLAY",
+    layers: ["キック", "+ ベース", "+ ハイハット", "+ コード", "+ きらめき"],
+    howtoSteps: [["顔を動かして選ぶ", "口の近くで光る音符が、食べられる合図。"], ["口を開けて、パクッ", "ひとくちごとに口を閉じよう。好きな音を選んでOK。"], ["30秒で、あなただけの曲", "取り逃しても大丈夫。結果のPLAYで、食べた順番に聴けるよ。"]],
+  },
+  en: {
+    tagline: "Catch a note. Take a bite. Make a little music.", play: "PLAY · Use camera", demo: "Camera-free practice", howto: "How to play",
+    practice: "Camera-free practice", camera: "Move your face · Open wide", tutorial: "OPEN YOUR MOUTH", close: "Close, then take another bite", choose: "Which note next?",
+    pause: "Pause", resume: "Resume", paused: "Take a breath", background: "Come back to keep playing", soundOn: "Sound ON", soundOff: "Sound OFF",
+    loading: "Getting your notes ready…", requesting: "Waiting for camera permission", missing: "Bring your face and mouth into view", multiple: "One face at a time", unknown: "Close your mouth, then open wide",
+    error: "Camera could not open. Check permission and try again.", retryCamera: "Retry camera", bite: "PAK!", demoHint: "Drag or use arrows to move. Tap or Space to bite.",
+    board: "Move to choose a note and open your mouth to eat it", notes: "NOTES EATEN", unique: "SOUNDS FOUND", result: "That little tune? You made it.", empty: "Next time, start with a little bite.",
+    melody: "YOUR MELODY", melodyEmpty: "Make your first melody in the next round.", playMelody: "▶ PLAY", stopMelody: "■ STOP", again: "RETRY", next: "NEXT", share: "SHARE",
+    faceChoice: "Choose your face mode to start", original: "Just you", effect: "Musical headphones", hide: "Mask your face", creatorNotice: "A 7-second replay stays in device memory and disappears when you leave.", replay: "Your highlight", replayButton: "↻ REPLAY",
+    layers: ["Kick", "+ Bass", "+ Hi-hat", "+ Chords", "+ Sparkle"],
+    howtoSteps: [["Move your face to choose", "A glowing note near your mouth is ready to eat."], ["Open wide. Take a bite", "Close your mouth between bites. Choose any note you like."], ["30 seconds. Your own little tune", "Letting notes pass is fine. PLAY on the result hears them in your order."]],
+  },
+};

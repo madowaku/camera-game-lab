@@ -1,4 +1,5 @@
 import { BodyInput } from "./bodyInput.js";
+import { AimLock } from "./aimLock.js";
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
 const distance = (a, b) =>
@@ -15,19 +16,9 @@ function fingerIsExtended(points, base) {
     distance(points[0], tip) > distance(points[0], pip) * 1.08;
 }
 
-function fingerIsCurled(points, base) {
-  const length = distance(points[base], points[base + 1]) +
-    distance(points[base + 1], points[base + 2]) +
-    distance(points[base + 2], points[base + 3]);
-  return length > 0.0001 && (
-    distance(points[base], points[base + 3]) / length < 0.78 ||
-    distance(points[0], points[base + 3]) < distance(points[0], points[base + 1]) * 0.95
-  );
-}
-
 function getPose(result, video) {
   const landmarks = result?.landmarks?.[0];
-  if (landmarks?.length !== 21) return null;
+  if (landmarks?.length !== 21 || !landmarks.every(p => p && Number.isFinite(p.x) && Number.isFinite(p.y))) return null;
 
   // World coordinates remove camera aspect-ratio distortion from finger curls.
   // Fall back to aspect-corrected landmarks when world points are unavailable.
@@ -39,16 +30,12 @@ function getPose(result, video) {
     z: (point.z ?? 0) * aspect
   }));
   const indexExtended = fingerIsExtended(points, 5);
-  const middleCurled = fingerIsCurled(points, 9);
-  const outerCurled = fingerIsCurled(points, 13) || fingerIsCurled(points, 17);
   const palmSize = distance(points[0], points[9]);
-  if (!indexExtended || !middleCurled || !outerCurled || palmSize < 0.0001) {
+  if (!indexExtended || palmSize < 0.0001) {
     return null;
   }
 
-  // Thumb up and thumb folded use separate thresholds (hysteresis).
-  const thumbSpread = distance(points[4], points[5]) / palmSize;
-  return { landmarks, thumbSpread };
+  return { landmarks };
 }
 
 function projectAim(landmarks, video) {
@@ -73,16 +60,14 @@ function projectAim(landmarks, video) {
 }
 
 export class FingerGunInput extends BodyInput {
-  constructor(video, { onStatus, onAim, onShot } = {}) {
+  constructor(video, { onStatus, onAim, onShot, getTarget } = {}) {
     super(video, { onStatus });
     this.onAim = onAim ?? (() => {});
     this.onShot = onShot ?? (() => {});
-    this.currentAim = { x: 0.5, y: 0.5, visible: false, armed: false };
-    this.armed = false;
-    this.openFrames = 0;
-    this.closedFrames = 0;
+    this.getTarget = getTarget ?? (() => null);
+    this.lock = new AimLock();
+    this.currentAim = { x: 0.5, y: 0.5, visible: false, lockProgress: 0 };
     this.lastFrameAt = null;
-    this.lastShotAt = -Infinity;
   }
 
   processResult(result, timestamp) {
@@ -103,35 +88,25 @@ export class FingerGunInput extends BodyInput {
     this.currentAim.y += (aim.y - this.currentAim.y) * blend;
     this.currentAim.visible = true;
 
-    this.openFrames = pose.thumbSpread >= 0.7 ? this.openFrames + 1 : 0;
-    this.closedFrames = pose.thumbSpread <= 0.5 ? this.closedFrames + 1 : 0;
-    if (this.openFrames >= 2) this.armed = true;
-
-    let fire = false;
-    if (this.armed && this.closedFrames >= 2) {
-      this.armed = false;
-      fire = timestamp - this.lastShotAt >= 250;
-      if (fire) this.lastShotAt = timestamp;
-    }
-
-    this.currentAim.armed = this.armed;
+    const target = this.getTarget();
+    // Both raw and smoothed aim must overlap: a fast sweep cannot charge a lock.
+    const rawInside = target && Math.hypot(aim.x - target.x, aim.y - target.y) <= target.radius;
+    const { progress, fire } = this.lock.update({ ...this.currentAim, visible: !!rawInside }, target, timestamp);
+    this.currentAim.lockProgress = progress;
     this.onAim({ ...this.currentAim });
     if (fire) this.onShot({ x: this.currentAim.x, y: this.currentAim.y });
   }
 
   resetTracking() {
-    this.armed = false;
-    this.openFrames = 0;
-    this.closedFrames = 0;
+    this.lock.reset();
     this.currentAim.visible = false;
-    this.currentAim.armed = false;
+    this.currentAim.lockProgress = 0;
   }
 
   stop() {
     super.stop();
     this.resetTracking();
     this.lastFrameAt = null;
-    this.lastShotAt = -Infinity;
     this.onAim({ ...this.currentAim });
   }
 }

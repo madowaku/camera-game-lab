@@ -3,16 +3,19 @@ const startSelectors = { solo: "#play-button", duo: ".duo-start-button", waterme
 const demoSelectors = { duo: ".duo-fallback-button", watermelon: ".outcam-demo-button", daitai: ".dh-tap-button", guardian: ".gs-demo", blaster: ".nb-demo" };
 
 export function snapshotOf(instance, module) {
-  if (typeof instance.snapshot === "function") return instance.snapshot();
+  const paused = !!(instance.game?.paused || instance.paused || instance.manualPause || instance.inputLost || instance.audioInterrupted || instance.unavailable);
+  if (typeof instance.snapshot === "function") return { ...instance.snapshot(), paused };
   const phase = (module === "guardian" ? instance.game.phase : module === "daitai" ? instance.screen : instance.phase)?.toLowerCase();
   let result = null;
   if (phase === "result") {
-    if (module === "duo") result = { score: instance.result?.hits?.reduce((a, b) => a + b, 0) ?? 0, winner: instance.result?.winner, reason: instance.result?.reason };
+    if (module === "duo") result = { ...instance.result, score: instance.result?.hits?.reduce((a, b) => a + b, 0) ?? 0 };
     else if (module === "watermelon") result = { score: instance.score, hits: instance.hits };
     else if (module === "daitai") result = instance.game.result();
     else result = instance.game.result;
   }
-  return { phase, result, source: instance.source ?? instance.mode ?? instance.control };
+  const rawSource = instance.source ?? instance.mode ?? instance.control;
+  const source = ["TAP", "fallback", "keyboard", "demo"].includes(rawSource) ? "demo" : rawSource === "FACE" ? "camera" : rawSource;
+  return { phase, result, source, paused };
 }
 
 export function releaseResources(instance) {
@@ -100,6 +103,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
   }
   return {
     prepare, begin, stop,
+    snapshot() { return current?.enabled ? snapshotOf(current.instance, current.game.module) : null; },
     setLocale(locale) { current?.instance.setLocale(locale); },
     releaseResult() { if (current) { current.autoStart = false; releaseResources(current.instance); closeAudio(current.instance); } },
     retry(source) {

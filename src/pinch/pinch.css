@@ -24,8 +24,9 @@
 .pw-object-shadow .pw-pattern { display:none; }
 .pw-object.is-held { fill:#ffc29a; stroke-width:.085; }
 .pw-object.is-eligible { fill:#ffc29a; stroke-width:.08; }
-.pw-tweezer { opacity:.9; }
-.pw-tweezer.is-pinching :is(.pw-thumb,.pw-index) { fill:#d6ecaf; }
+.pw-hand-cursor { opacity:.9; pointer-events:none; }
+.pw-hand-cursor.is-grabbing .pw-palm-ring { fill:#d6ecafcc; stroke-width:8; }
+.pw-world .pw-palm-icon { font:50px 'Segoe UI Emoji',sans-serif; }
 .pw-message { position:absolute; left:8%; right:8%; top:34%; text-align:center; color:var(--pw-ink); font-size:17px; font-weight:700; line-height:1.7; pointer-events:none; }
 .pw-message:not(:empty) { padding:20px 12px; border:1px solid #667863; background:#f2efdff5; border-radius:3px; }
 .pw-caption { display:flex; gap:18px; margin-top:22px; align-items:flex-start; }

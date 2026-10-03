@@ -28,7 +28,7 @@ test("SOFT SERVE has a canonical route, legacy alias, hand/mouth inputs and came
 test("ready needs a visible hand held under the nozzle; no permission or face is implied", () => {
   const g = new SoftServeGame(); advance(g, 2000, null); assert.equal(g.phase, "ready");
   advance(g, 1500, { hand: { x: .8, y: .7 } }); assert.equal(g.phase, "ready");
-  advance(g, 1200); assert.equal(g.phase, "serve"); assert.ok(g.amount < .3);
+  advance(g, g.rules.readyMs); assert.equal(g.phase, "serve"); assert.equal(g.amount, 0);
 });
 test("gentle shrinking swirls build a taller, more stable cone than a stationary hand", () => {
   const moving = served("demo", 9), still = new SoftServeGame(); advance(still, 1000); advance(still, moving.serveMs);
@@ -91,7 +91,7 @@ test("melting and rapid movement can end a round during serve or eat", () => {
 });
 test("serve cap offers eating; missing the cream gives an understandable empty result", () => {
   const g = served("demo", 9); advance(g, 15000); assert.ok(["eat", "result"].includes(g.phase));
-  const empty = new SoftServeGame(); advance(empty, 1000); advance(empty, 21000, { hand: { x: .71, y: .72 } });
+  const empty = new SoftServeGame(); advance(empty, empty.rules.readyMs); advance(empty, 21000, { hand: { x: .71, y: .72 } });
   assert.equal(empty.result.outcome, "empty");
 });
 test("height rewards rise without requiring the player to reach a fixed target", () => {

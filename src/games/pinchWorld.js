@@ -42,7 +42,7 @@ export class PinchWorldGame {
   constructor({ onEffect = () => {} } = {}) { this.onEffect = onEffect; this.phase = "idle"; }
   start(source = "camera") {
     Object.assign(this, { phase: "wait", source, elapsedMs: 0, readyMs: 0, countdownMs: 0, lostMs: 0, paused: false, manualPause: false,
-      successfulGrabs: 0, failedPinches: 0, accidentalReleases: 0, trackingDrops: 0, completed: 0, heldObjectId: null, neutral: false, wasPinching: false, blocked: false, result: null });
+      successfulGrabs: 0, failedGrabs: 0, accidentalReleases: 0, trackingDrops: 0, completed: 0, heldObjectId: null, neutral: false, wasGrabbing: false, blocked: false, result: null });
     this.loadStage(0);
   }
   loadStage(index) {
@@ -54,47 +54,47 @@ export class PinchWorldGame {
   step(deltaMs, input) {
     if (!["wait", "countdown", "playing"].includes(this.phase) || !Number.isFinite(deltaMs) || deltaMs <= 0) return;
     if (this.manualPause) { this.paused = true; return; }
-    const present = input?.present && validPosition(input.pinchPosition);
+    const present = input?.present && validPosition(input.gripPosition);
     if (!present) {
       this.paused = true; this.lostMs += deltaMs; this.readyMs = 0;
       if (this.phase === "countdown") { this.phase = "wait"; this.countdownMs = 0; }
       if (this.lostMs >= 300) {
         if (this.heldObjectId) this.release(true);
-        this.neutral = false; this.wasPinching = true;
+        this.neutral = false; this.wasGrabbing = true;
       }
       return;
     }
     this.paused = false; this.lostMs = 0;
-    if (!input.pinching) this.neutral = true;
+    if (input.open) this.neutral = true;
     if (this.phase === "wait") {
-      this.readyMs = input.pinching ? 0 : this.readyMs + deltaMs;
+      this.readyMs = input.open ? this.readyMs + deltaMs : 0;
       if (this.readyMs >= 400) this.phase = "countdown";
-      this.wasPinching = !!input.pinching; return;
+      this.wasGrabbing = !!input.grabbing; return;
     }
     if (this.phase === "countdown") {
       this.countdownMs += deltaMs;
-      if (this.countdownMs >= 800) { this.phase = "playing"; this.neutral = !input.pinching; }
-      this.wasPinching = !!input.pinching; return;
+      if (this.countdownMs >= 800) { this.phase = "playing"; this.neutral = !!input.open; }
+      this.wasGrabbing = !!input.grabbing; return;
     }
     this.elapsedMs += deltaMs;
     const events = input.events ?? [];
-    if (!this.heldObjectId && input.pinching && !this.wasPinching && this.neutral && events.includes("PINCH_START")) {
+    if (!this.heldObjectId && input.grabbing && !this.wasGrabbing && this.neutral && events.includes("GRIP_START")) {
       this.neutral = false;
-      if (distance(input.pinchPosition, this.object) <= this.object.radius * 1.4) {
+      if (distance(input.gripPosition, this.object) <= this.object.radius * 1.4) {
         this.heldObjectId = this.object.id; this.successfulGrabs++; this.onEffect("grab");
-      } else { this.failedPinches++; this.onEffect("miss"); }
+      } else { this.failedGrabs++; this.onEffect("miss"); }
     }
-    if (this.heldObjectId && input.pinching) {
+    if (this.heldObjectId && input.grabbing) {
       const blend = 1 - Math.exp(-18 * deltaMs / 1000);
-      const target = { x: this.object.x + (input.pinchPosition.x - this.object.x) * blend, y: this.object.y + (input.pinchPosition.y - this.object.y) * blend };
+      const target = { x: this.object.x + (input.gripPosition.x - this.object.x) * blend, y: this.object.y + (input.gripPosition.y - this.object.y) * blend };
       const legal = moveInWorld(this.object, target, this.object.radius, this.barriers);
       this.object.x = legal.x; this.object.y = legal.y;
       if (legal.blocked && !this.blocked) this.onEffect("blocked");
       this.blocked = legal.blocked;
     }
     // Missing tracking is handled above, never as a normal release / socket win.
-    if (this.heldObjectId && !input.pinching && events.includes("PINCH_END")) this.release(false);
-    this.wasPinching = !!input.pinching;
+    if (this.heldObjectId && !input.grabbing && events.includes("GRIP_END")) this.release(false);
+    this.wasGrabbing = !!input.grabbing;
   }
   release(trackingLoss) {
     this.heldObjectId = null; this.blocked = false;
@@ -103,8 +103,8 @@ export class PinchWorldGame {
       this.completed++; this.onEffect("place");
       if (this.completed === PINCH_STAGES.length) {
         this.phase = "result"; this.object.x = this.socket.x; this.object.y = this.socket.y;
-        this.result = { score: this.completed, seconds: this.elapsedMs / 1000, successfulGrabs: this.successfulGrabs, failedPinches: this.failedPinches,
-          accidentalReleases: this.accidentalReleases, trackingDrops: this.trackingDrops, clean: this.successfulGrabs === 3 && this.failedPinches === 0 && this.accidentalReleases === 0 && this.trackingDrops === 0, source: this.source };
+        this.result = { score: this.completed, seconds: this.elapsedMs / 1000, successfulGrabs: this.successfulGrabs, failedGrabs: this.failedGrabs,
+          accidentalReleases: this.accidentalReleases, trackingDrops: this.trackingDrops, clean: this.successfulGrabs === 3 && this.failedGrabs === 0 && this.accidentalReleases === 0 && this.trackingDrops === 0, source: this.source };
       } else this.loadStage(this.completed);
     } else { this.accidentalReleases++; this.onEffect("release"); }
   }

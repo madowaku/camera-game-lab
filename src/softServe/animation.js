@@ -2,6 +2,7 @@
 export class SoftServeAnimation {
   constructor({ finishMs=750 } = {}) { this.finishMs=finishMs;this.time = 0; this.bite = null; this.finishAt = null; this.delivered = false; }
   consume(effect, mouth) {
+    if (effect?.type === "attached" && effect !== this.lastEffect) this.attachedAt = this.time;
     if (effect?.type === "lick" && effect !== this.lastEffect) {
       this.bite = { ...effect, mouth: mouth ? { ...mouth } : { ...effect.tip }, startedAt: this.time };
     }
@@ -16,5 +17,6 @@ export class SoftServeAnimation {
     return false;
   }
   get biteAge() { return this.bite ? this.time - this.bite.startedAt : Infinity; }
+  get attachmentAge() { return this.attachedAt === undefined ? Infinity : this.time - this.attachedAt; }
   get finishAge() { return this.finishAt === null ? 0 : this.time - this.finishAt; }
 }

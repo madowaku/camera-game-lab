@@ -6,3 +6,6 @@ output/playwright/
 *.log
 .env
 .env.*
+
+output/imagegen/
+output/music-sources/
