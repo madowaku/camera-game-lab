@@ -214,6 +214,12 @@ carry a 20–40 second round. Mouse / drag / arrow keys and click / tap / Space
 provide labeled camera-free practice. JA / EN, sound, pause, result breakdown,
 RETRY and shared results are supported.
 
+The launcher offers PLAY and CREATOR. CREATOR starts after choosing ORIGINAL,
+EFFECT or HIDE, composes a 9:16 view, and turns perfect swirls, failures and the
+final bite into a seven-second highlight replay. The shared `src/creator/`
+modules accept game-specific highlight events. Video export and direct SNS
+sharing are reserved for v0.2. See [Creator Mode and verification](docs/SOFT_SERVE_CREATOR_MODE.md).
+
 Hand and mouth tracking use one front-camera stream with MediaPipe. The initial
 models require a connection; camera frames stay on-device. See
 [implementation, verification and the five-round playtest sheet](docs/SOFT_SERVE_PROGRESS.md)

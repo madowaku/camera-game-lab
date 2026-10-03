@@ -87,9 +87,10 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     return entry;
   }
   const requestActive = (entry) => current === entry && !entry.host.hidden;
-  function begin(source = "camera") {
+  function begin(source = "camera", options = {}) {
     if (!current) return;
     const entry = current;
+    entry.options = options; entry.instance.configure?.(options);
     entry.lastPhase = null; entry.host.hidden = false; entry.autoStart = true; entry.enabled = true;
     entry.instance.activate(entry.game.mode);
     if (source === "demo" && entry.instance.startDemo) entry.instance.startDemo();
@@ -103,7 +104,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     releaseResult() { if (current) { current.autoStart = false; releaseResources(current.instance); closeAudio(current.instance); } },
     retry(source) {
       if (!current) return;
-      ++generation; current.autoStart = false; current.enabled = false; current.instance.deactivate(); releaseResources(current.instance); closeAudio(current.instance); begin(source);
+      ++generation; current.autoStart = false; current.enabled = false; current.instance.deactivate(); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
     },
   };
 }

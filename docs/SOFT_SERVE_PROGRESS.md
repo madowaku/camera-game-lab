@@ -1,81 +1,84 @@
-# EXP-044 SOFT SERVE — playable v0.1
+# EXP-044 SOFT SERVE — visual / CREATOR v0.1
 
 仕様: [EXP-044 Specification v0.1](specs/EXP-044_SOFT_SERVE_SPEC_v0.1.md)
+追加: [CREATOR MODE v0.1の実装・検証](SOFT_SERVE_CREATOR_MODE.md)
 
-`#/game/solo-soft-serve` / `#soft-serve`。Feed / Explore へ登録し、独立した
-lazy module として起動。インカメラの片手でコーンを動かし、左右へ巻く。
-好きな高さで横へ離すとノズルが止まり、口を開けて先端に近づくとひと口減る。
-一度離す、または口を閉じてから再び接触すると次のひと口になる。
+`#/game/solo-soft-serve` / `#soft-serve`。Feed / Exploreへ登録した独立lazy module。
+2026-10-03に、ユーザー提供のvisual implementation packと、続いて明示されたCREATOR MODE依頼を実装。
+この追加依頼により、通常PLAYの映像非保存と、CREATORの端末内一時リプレイを分けた。
 
-## 初見の導線
+## 初見の導線と画面
 
-- 起動前: ソフトクリームの図と「左右に巻く → 好きな高さまで → 横へ離して食べる」。
-  360×800、390×844では開始ボタンまで一画面内。長い画面や短い画面でもスクロール可能。
-- READY: 片手を映し、ノズル下で0.9秒保持すると自動開始。
-- SERVE: 左右の点線を目安に巻く。高いほどガイドが狭くなる。
-  3巻き以降は「もう一巻き、いける？」と任意の終了方法を提示。
-- EAT: 先端の接触円と実際の口の位置を表示。持続接触では連続して食べない。
-- RESULT: CLEAN / SPLAT / MELTED、得点内訳、最大高さ、食べた割合。
-  共通の RETRY / NEXT GAME / SHARE RESULT。カメラと練習の出自を維持。
+- クリーム色、コーラル、ココア、ピスタチオの専用テーマと立体SOFT SERVEロゴ。
+- 「ソフトクリーム、何段いける？」「手で巻いて、口で食べる。」「コーンは画面の中！」。
+  「巻く → 離す → 食べる」、PLAY / CREATOR、無料チャレンジ、遊び方、カメラなしの練習。
+- 片手をノズル下で0.9秒保持すると開始。手の中心で動かす。pinchは使わない。
+- SERVEは中央のガイドで左右に巻く。3段以降は「もう一巻き、いける？」。
+  横へ離すとEAT。追跡不足、口閉じ、先端までの距離、再接触待ちを区別する。
+- EATは接触時の実際の量を減らす。0–80msの縮み、80–220msの引き込み、220–500msの消失・反応。
+- 最後の一口は通常PLAYで750ms、CREATORで1.8秒の表示を経て、結果／リプレイへ1回だけ進む。
+  音ON/OFFで遷移時刻は変わらず、manual pauseとbackgroundで表示の時計も止まる。
+- 通常の結果は専用パネル1つ。「ごちそうさま！」「{実測}段 完食！」と、自分が作った形。
+  倒壊・溶解・空の結果は別の文面。スコアは開く補助情報。
+- 「もう一回つくる」「友達に挑戦状」「ほかのゲームへ」。カメラ／練習を引き継ぐ。
+  共有は実結果に合う文と環境のcanonical URL。ネイティブ共有・コピー・手動コピー・キャンセルを維持。
 
 ## 実装
 
-- `src/games/softServe.js`: DOM非依存の形成・安定・溶解・接触・得点ルール。
-  1巻きあたり約14節を記録し、各段の幅と中心を描画へ反映。
-  真下で停止すると細い塔になり、左右に穏やかに巻くと安定した形になる。
-- `src/input/softServeInput.js`: 既存 BodyInput のカメラ所有権、開始キャンセル、GPU→CPU
-  fallback と teardown を再利用。Hand Landmarker / Face Landmarker を同じ映像へ適用。
-  二つの同期推論を最大20Hzに制限。手の中心は wrist / index_mcp / middle_mcp。
-  口の開きは内側唇の距離÷口幅、映像比率補正と開閉ヒステリシスを使用。
-- 位置投影は既存 `projectMouth`。鏡像かつ `object-fit:cover` の映像へ一致。
-  コーンは画面端で切れない範囲へ制限。手の回転や深度は使わない。
-- `src/softServe/`: Canvas 2.5D玩具表現、JA / EN、音のON / OFF、一時停止、練習操作。
-  音はWeb Audioで生成し、ゲーム開始時のユーザー操作から有効化。外部音声素材なし。
-- スコア: 食べた割合に応じた基本量×最大高さ倍率、成功時だけBEAUTY / CLEAN / PERFECT。
-  3 / 5 / 7 / 9 / 10巻きで ×1 / 1.5 / 2 / 3 / 5。
-- 調整用定数は `SOFT_SERVE_RULES`。巻くフェーズは最大20秒、ラウンドは最大39秒の
-  active time。任意に早く終了可能。追跡喪失、手動pause、非表示・focus喪失中は時間停止。
-  再追跡は0.45秒保持し、復帰時の位置移動で倒壊ペナルティを発生させない。
-- カメラは明示操作まで開始しない。マイク不要。終了・離脱・遅い許可応答でtrackと両モデルを
-  解放する。保存は `camera-game-lab-soft-serve-rounds` に最新50件の数値のみ。画像保存なし。
-- 練習: マウス／ドラッグ／矢印キーで移動、横へ離すかボタンでEATへ。
-  EAT中はクリック／タップ／Space／ひと口ボタン。ドラッグは食べるクリックと区別。
+- `src/games/softServe.js`: 既存の形成・安定・溶解・接触・得点ルール。
+  約14節／段の手の軌跡を記録。静止は細い塔、左右移動は広い巻きになる。
+  SERVE→EATで形を深くコピーし、失敗時は作成途中の形をコピー。食べきっても結果に残す。
+  一口イベントに消費量、元の形、接触前の先端とコーン位置を渡す。
+- `src/input/softServeInput.js`: BodyInputのカメラ所有権・開始キャンセル・GPU→CPU fallbackを再利用。
+  同じstreamへ手と顔の推論、最大20Hz。Creator用に顔領域と目・口の位置を付加する。
+  口の比率、ヒステリシス、二人の顔の拒否、手の中心計算は維持。
+- `src/softServe/renderer.js`: 実際の各段の広がり・中心・傾きを持つクリーム、
+  ワッフルの陰影と格子、中央ノズル、口接触円、一口の一時形状。Canvas DPR上限2。
+- `src/softServe/animation.js`: ゲーム時計とは独立した表示の時計、1回の終了通知。
+- `src/softServe/presentation.js`: 専用の入口、遊び方、単一結果、Creatorリプレイ。
+- 共通shellはoptional presentation / configure / mountResult / discardResult hookだけ。
+  `launcher.js`はoptionsをretryへ保持。他EXPの入口・結果・入力は同じ。
+- `src/creator/`: 共通のCameraLayout、FaceMode、HighlightEvent、Replay、Export / Shareの接続点。
+  詳細は[CREATORの資料](SOFT_SERVE_CREATOR_MODE.md)。SOFT SERVE固有の顔・得点表示はprofile側。
+- 得点、倍率、巻く最大20秒、round最大39秒は既存定数。
+  追跡喪失・manual pause・非表示・focus喪失はゲーム時間停止。再追跡は0.45秒。
+- カメラ開始は明示操作から。マイク不要。終了・離脱・遅い許可でstream / 両モデルを解放。
+  通常の履歴は最新50件の数値。Creatorフレームは端末メモリ内だけで、retry / exit / pagehideで破棄。
+- サウンドはWeb Audioで生成。外部音声なし。JA / ENとreduced motionに対応。
 
-API参照: [MediaPipe Hand Landmarker Web](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/web_js)、
-[Face Landmarker Web](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js)。
-追加の依存パッケージやプラグイン接続は不要。frontend-design / hiro-frontend-qa / playwright skillsを使用。
+## 参照画像との意図的な差分
+
+- 参照の人物写真は固定表示せず、実カメラを使う。QA画像の顔は合成図形。
+- ノズルを右に移さず、既存の中央判定と同じ場所に置く。
+- 7段を目標に固定しない。3段など安全な低い高さでも完食できる。
+- 結果のコーンは固定の理想形ではなく、実際に巻いた形。
+- 通常PLAYは映像を保存しない。後から追加されたCREATORは明示選択時だけ一時リプレイを作る。
+- SAVE／SNS動画直接共有はv0.2。v0.1は7秒Canvasリプレイとテキストの挑戦状。
+- ロゴは新規生成し、動く食べ物はCanvas描画。[素材の由来](../src/softServe/assets/README.md)。
 
 ## 検証
 
-- `npm test`: 201 / 201。SOFT SERVE追加14件は巻きと停止の差、左右への終了判定、追跡回復、
-  開いた口と接触の両条件、持続接触抑制、得点、倒壊、溶解、デモの入力境界と投影を検証。
-- `npm run build`: Vite / PWAビルド成功。ゲームはlazy chunk、モデルとカメラはプレビューで起動しない。
-- `scripts/qa/soft-serve.js`: Chromeブラウザー27項目。390×844 / 360×800 / 1440×900、
-  360×500のスクロール、JA / EN、Canvas画素、マウスの巻き、タッチ、keyboard、EAT、
-  CLEAN、結果、RETRY、focus回復、カメラ未起動。
-  Vite devとproduction preview (`127.0.0.1:4173`) の両方で成功。
-- `scripts/qa/soft-serve-camera.js`: 合成landmark21項目。
-  同一stream、二モデル、GPU部分失敗のcleanup、手・顔の喪失と復帰、二人の顔の拒否、
-  口接触、食べきり、result / retry / exit cleanup、遅い許可の解放、permission拒否から練習へ。
-  browser-owned MediaStreamTrackを使うが、映像デコードと推論は合成。実カメラ品質の証明ではない。
-- スクリーンショット: `output/playwright/soft-serve-*.png`（gitignore対象）。
+`npm test`: 213 / 213。`npm run build`: Vite / PWA成功。
+devとproduction previewで通常のマウス・タッチ・キーによるPLAYを検証。
+Creatorの3顔モード・3撮れ高・リプレイ・再挑戦は合成状態と、ビルド版の実マウス操作の両方で検証。
+カメラのstream・両モデル・許可拒否・遅い許可・終了はbrowser-owned track + 合成landmarkで検証。
+各スクリプトの件数・測定値は[CREATOR資料](SOFT_SERVE_CREATOR_MODE.md#ローカル検証)を参照。
 
-```powershell
-npx --yes @playwright/cli -s=soft-serve open http://127.0.0.1:5173/#/game/solo-soft-serve
-npx --yes @playwright/cli -s=soft-serve run-code --filename=scripts/qa/soft-serve.js
-npx --yes @playwright/cli -s=soft-serve run-code --filename=scripts/qa/soft-serve-camera.js
-```
+390×844、360×800、720×1280、360×500、1440×900を確認。
+短い画面はスクロールで主操作へ到達できる。デスクトップも縦の遊び場を保つ。
+画像は `output/playwright/soft-serve-*.png` / `creator-*.png`（gitignore）。
+生成画像を実装の検証画像として扱っていない。
 
-## 実機・人による検証（未実施）
+使用skills: frontend-design、hiro-frontend-qa、playwright、imagegen。
+追加の依存パッケージやプラグインのインストールは不要だった。
 
-スマホを固定し、顔と片手が映る位置で5回程度プレイ。
-Android Chrome / iOS Safariのfront camera、モデル初回load、低照度、入力遅延、口の個人差、
-実際のsafe-area、Web Audioを確認する。実推論の処理速度と熱負荷は未計測。
+## 実機・人の検証（未実施）
 
-各回で以下を記録する。3つ以上の発生で有望という仕様のEXP条件を、人の観察から判定する。
-成功する合成入力やCLEAN数だけからGO判定しない。
+Android Chrome / iOS Safariで各5ラウンドを行い、実顔・片手への追従、初回モデルload、
+低照度、入力遅延、口の個人差、HIDEの遮蔽範囲、safe-area、音、発熱を確認する。
+実カメラ推論速度と「失敗も投稿したい」「自然に欲張りたい」という感触はまだ確認していない。
 
-| 回 | 何巻きで終了 | 自分からもう一巻き | 説明なしで巻く | 倒れてもう一回 | 自然に顔を動かす | 動きが見ていて面白い | メモ |
+| 回 | 段数 | もう一巻き | 説明なしで巻く | 倒れて再挑戦 | 自然に食べる | 投稿したい | 顔モード・メモ |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | | | | | | | |
 | 2 | | | | | | | |
@@ -83,5 +86,4 @@ Android Chrome / iOS Safariのfront camera、モデル初回load、低照度、�
 | 4 | | | | | | | |
 | 5 | | | | | | | |
 
-最重要: 3巻きで安全に終えられるとわかった上で、自分から欲張るか。
-本番へのデプロイはこの変更では実施していない。
+上記はローカル検証の記録。公開版の動作確認はデプロイ時に別途行う。

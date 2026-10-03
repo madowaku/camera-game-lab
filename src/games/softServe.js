@@ -17,7 +17,7 @@ export class SoftServeGame {
       elapsedMs: 0, serveMs: 0, readyMs: 0, awayMs: 0, recoveryMs: 0,
       paused: false, manualPause: false, missing: false, wasMissing: false,
       contactMs: 0, separationMs: 0, biteArmed: true, bites: 0, losses: 0,
-      qualitySum: 0, qualityWeight: 0, lastSegment: -1, result: null, effect: null });
+      qualitySum: 0, qualityWeight: 0, lastSegment: -1, result: null, effect: null, completedShape: null });
   }
   get multiplier() { return heightMultiplier(Math.floor(this.maxAmount + .001)); }
   get beauty() { return this.qualityWeight ? this.qualitySum / this.qualityWeight : 0; }
@@ -29,6 +29,10 @@ export class SoftServeGame {
       y: this.cone.y - this.amount * this.rules.swirlHeight - .024 };
   }
   setPaused(paused) { this.manualPause = paused; }
+  captureShape() {
+    return { amount: this.amount, lean: this.lean, melt: this.melt, swirlHeight: this.rules.swirlHeight,
+      segments: this.segments.filter(s => s.level <= this.amount).map(s => ({ ...s })) };
+  }
   step(ms, input) {
     if (this.phase === "result") return;
     const dt = Math.min(100, Math.max(0, ms));
@@ -101,6 +105,7 @@ export class SoftServeGame {
   }
   completeServe() {
     if (this.phase !== "serve" || this.amount < .35 || this.paused) return false;
+    this.completedShape = this.captureShape();
     this.phase = "eat"; this.biteArmed = true; this.contactMs = 0; this.separationMs = 0;
     this.effect = { type: "serve", at: this.elapsedMs }; return true;
   }
@@ -118,14 +123,16 @@ export class SoftServeGame {
   }
   bite() {
     if (this.phase !== "eat" || this.paused) return false;
-    const size = Math.min(this.amount, this.rules.biteSize);
+    const size = Math.min(this.amount, this.rules.biteSize), tip = { ...this.tip }, before = this.captureShape();
     this.eaten += size; this.amount = Math.max(0, this.amount - size); this.bites++;
-    this.effect = { type: "lick", at: this.elapsedMs };
+    this.effect = { type: "lick", at: this.elapsedMs, id: this.bites, size, tip, cone: { ...this.cone }, before, afterAmount: this.amount };
     if (this.amount <= .001) this.finish("clean");
     return true;
   }
   finish(outcome) {
+    if (this.result) return;
     const failedPhase = this.phase;
+    this.completedShape ??= this.captureShape();
     this.phase = "result";
     const clean = outcome === "clean", consumed = this.maxAmount ? this.eaten / this.maxAmount : 0;
     const base = Math.round(this.maxAmount * 100 * this.multiplier * consumed);

@@ -91,9 +91,14 @@ export const experiments = Object.freeze([
     launchReasonEn: "Your hand is the cone. Go taller for a bigger bonus. Eat it all before it melts or falls!",
     launchStepsJa: [["左右に巻く", "手を小さく、ゆっくり"], ["好きな高さまで", "もう一巻き？ 今やめてもOK"], ["横へ離して食べる", "口を近づけて、離して、ペロッ"]],
     launchStepsEn: [["Swirl side to side", "Small, gentle hand movements"], ["How high will you go?", "One more swirl? Your call"], ["Move sideways. Eat!", "Open wide, approach, pull away"]],
-    privacyJa: "インカメラで片手と口の位置を使います。映像は端末内で処理し、このアプリでは録画・送信しません。初回はMediaPipeのモデルをダウンロードします。",
-    privacyEn: "Uses your front camera to track one hand and your mouth. Video is processed on-device, never recorded or uploaded by this app. MediaPipe models download on first use.",
+    privacyJa: "片手と口をインカメラで追跡します。PLAYは録画せず、CREATORはリプレイ用に端末メモリだけへ一時保存。退出時に破棄し、外部へ送信しません。初回はモデルをダウンロードします。",
+    privacyEn: "Front camera tracks your hand and mouth. PLAY does not record. CREATOR keeps a temporary replay in device memory, discards it on exit and never uploads it. Models download on first use.",
     aliases: ["#soft-serve"], module: "softServe", demo: true, motif: "softServe",
+    loadPresentation: () => import("../softServe/presentation.js"),
+    resultShare: (r, locale) => {
+      const practice = r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "";
+      return practice + (locale === "ja" ? `${r.maxSwirls}段${r.outcome === "clean" ? "完食" : "つくった"}！君は何段いける？` : `${r.maxSwirls} swirls ${r.outcome === "clean" ? "eaten" : "made"}! How high can you go?`);
+    },
     load: () => import("../softServe/view.js").then(m => m.createView) }),
 ]);
 

@@ -81,6 +81,15 @@ export function mountPlatform(app) {
     if (!session?.result) return;
     const game = session.game;
     result.hidden = false; cacheRoot.classList.add("platform-has-result");
+    if (session.presentation) {
+      session.resultCleanup?.();
+      cacheRoot.hidden = true;
+      result.innerHTML = session.presentation.resultMarkup(game, session.result, locale);
+      session.presentation.paint(result, session.result);
+      session.resultCleanup = session.presentation.mountResult?.(result, session.result, locale);
+      result.querySelector("button")?.focus({ preventScroll: true });
+      window.scrollTo(0, 0); return;
+    }
     const resultTitle = session.result[locale === "ja" ? "titleJa" : "titleEn"] ?? t("completed");
     const scoreText = session.result.scored === false ? "" : ` · ${session.result.score ?? 0} ${locale === "ja" ? "点" : "pts"}`;
     result.innerHTML = `<p class="platform-kicker">${t("nextHint")}</p><h2>${esc(resultTitle)}</h2><p>${esc(resultSummary(session.result))}${scoreText}</p><div class="result-actions"><button type="button" data-result-action="retry">↻ ${t("retry")}</button><button type="button" data-result-action="next">${t("next")} ↑</button><button type="button" data-result-action="share">↗ ${t("shareResult")}</button></div>`;
@@ -111,7 +120,9 @@ export function mountPlatform(app) {
   function replayRound() {
     if (!session) return;
     events.emit("retry", { id: session.game.id });
-    session.started = false; session.result = null; result.hidden = true; cacheRoot.classList.remove("platform-has-result");
+    session.resultCleanup?.(); session.resultCleanup = null;
+    session.presentation?.discardResult?.(session.result);
+    session.started = false; session.result = null; result.hidden = true; cacheRoot.hidden = false; cacheRoot.classList.remove("platform-has-result");
     launcher.retry(session.source);
     cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
   }
@@ -119,7 +130,8 @@ export function mountPlatform(app) {
     const action = event.target.closest("[data-result-action]")?.dataset.resultAction;
     if (!action || !session) return;
     const game = session.game;
-    if (action === "next") {
+    if (action === "browse") navigate(feedRoute(game.id));
+    else if (action === "next") {
       const next = nextExperiment(order, game.id); events.emit("next_game", { id: game.id, nextId: next.id });
       feedId = next.id; navigate(feedRoute(next.id));
     } else if (action === "share") void share(game, { ...session.result, summary: resultSummary(session.result) });
@@ -128,6 +140,11 @@ export function mountPlatform(app) {
     }
   });
   function launchCopy(game) {
+    if (session?.game.id === game.id && session.presentation) {
+      panel.classList.remove("has-guide");
+      panel.innerHTML = session.presentation.launchMarkup(game, locale);
+      session.presentation.paint(panel); return;
+    }
     const steps = game[locale === "ja" ? "launchStepsJa" : "launchStepsEn"];
     panel.classList.toggle("has-guide", !!steps);
     const guide = steps ? `<div class="launch-quick-guide"><div class="launch-illustration">${previewMarkup(game)}</div><ol class="launch-steps">${steps.map(([title, detail], i) => `<li><span aria-hidden="true">${["↔", "↑", "◯"][i]}</span><div><strong>${i + 1}. ${esc(title)}</strong><small>${esc(detail)}</small></div></li>`).join("")}</ol></div>` : "";
@@ -160,11 +177,14 @@ export function mountPlatform(app) {
     const generation = ++routeGeneration;
     if (feed) { feedId = feed.id; feed.destroy(); feed = null; }
     if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, started: session.started });
-    session = null; launcher.stop(); closeSheet(); viewAbort.abort(); viewAbort = new AbortController();
+    session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); session = null; launcher.stop(); closeSheet(); viewAbort.abort(); viewAbort = new AbortController();
     $(".onboarding-slot").replaceChildren();
     route = resolveRoute(location.hash);
     view.hidden = route.view === "game"; gamePage.hidden = route.view !== "game"; result.hidden = true;
     app.classList.toggle("platform--feed", route.view === "feed");
+    const customTheme = route.view === "game" && route.experiment?.module === "softServe";
+    app.classList.toggle("platform--soft-serve", customTheme);
+    document.body.classList.toggle("soft-serve-page", customTheme);
     panel.hidden = false; cacheRoot.hidden = true; cacheRoot.classList.remove("platform-has-result");
     updateChrome(); window.scrollTo(0, 0);
     document.title = `${route.experiment ? titleOf(route.experiment, locale) : route.view === "explore" ? "EXPLORE" : "LAB FEED"} · CAMERA GAME LAB`;
@@ -185,8 +205,10 @@ export function mountPlatform(app) {
       launchCopy(game);
       session = { game, begun: false, started: false, result: null, source: "camera" };
       try {
-        const ready = await launcher.prepare(game, locale);
+        const [ready, presentation] = await Promise.all([launcher.prepare(game, locale), game.loadPresentation?.()]);
         if (!ready || generation !== routeGeneration) return;
+        session.presentation = presentation;
+        if (presentation) launchCopy(game);
         panel.querySelectorAll("button").forEach((button) => { button.disabled = false; });
         panel.querySelector(".launch-status").textContent = t("ready");
       } catch (error) {
@@ -197,12 +219,22 @@ export function mountPlatform(app) {
       }
     } else view.innerHTML = `<section class="explore-page"><h1>${t("notFound")}</h1><a class="sheet-play" href="#/">${t("back")}</a></section>`;
   }
+  function beginRound(source) {
+    if (!session || session.begun) return;
+    session.begun = true; session.source = source;
+    panel.hidden = true; cacheRoot.hidden = false;
+    launcher.begin(session.source, session.presentation?.readOptions?.(panel) ?? {});
+  }
   panel.addEventListener("click", (event) => {
+    const presentationAction = session?.presentation?.handleLaunchClick?.(panel, event);
+    if (presentationAction === "start-camera") { beginRound("camera"); return; }
+    if (presentationAction) return;
+    if (event.target.closest(".launch-howto") && session?.presentation) {
+      showSheet(session.presentation.howtoMarkup(session.game, locale)); return;
+    }
     const button = event.target.closest(".launch-camera, .launch-demo");
     if (!button || button.disabled || !session || session.begun) return;
-    session.begun = true; session.source = button.classList.contains("launch-demo") ? "demo" : "camera";
-    panel.hidden = true; cacheRoot.hidden = false;
-    launcher.begin(session.source);
+    beginRound(button.classList.contains("launch-demo") ? "demo" : "camera");
   });
   $(".game-info").addEventListener("click", () => route.experiment && info(route.experiment));
   $(".platform-locale").addEventListener("click", () => {
@@ -216,7 +248,10 @@ export function mountPlatform(app) {
     } else void renderRoute(route.view === "feed");
   });
   window.addEventListener("hashchange", () => void renderRoute());
-  window.addEventListener("pagehide", () => { launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
+  window.addEventListener("resize", () => {
+    if (session?.presentation) session.presentation.paint(session.result ? result : panel, session.result);
+  });
+  window.addEventListener("pagehide", () => { session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
   window.addEventListener("pageshow", (event) => { if (event.persisted) void renderRoute(); });
   void renderRoute();
 }

@@ -1,91 +1,75 @@
 import { clamp } from "../games/softServe.js";
-const ellipse = (c, x, y, rx, ry) => { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); };
-export function drawSoftServe(canvas, game, { demo = true, mouth = null, open = false, reducedMotion = false, locale = "ja" } = {}) {
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  if (!w || !h) return;
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
-  const c = canvas.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-  if (demo) {
-    c.fillStyle = "#deede3"; c.fillRect(0, 0, w, h);
-    c.fillStyle = "#b4d8c5";
-    for (let x = -h; x < w + h; x += 55) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 26, 0); c.lineTo(x + h * .3 + 26, h); c.lineTo(x + h * .3, h); c.closePath(); c.fill(); }
-    c.fillStyle = "#f5f2de"; c.fillRect(0, h * .87, w, h * .13);
-    c.fillStyle = "#c7b798"; c.fillRect(0, h * .87, w, 3);
-  } else { c.fillStyle = "#102f2522"; c.fillRect(0, 0, w, h); }
-  const x = (game.result ? .5 : game.cone.x) * w, y = (game.result ? .57 : game.cone.y) * h, size = game.result ? Math.min(w * .13, h * .2) : Math.min(w * .13, h * .17);
-  const serving = game.phase === "serve", ready = game.phase === "ready", eating = game.phase === "eat";
-  if (serving || ready) {
-    const radius = Math.max(.025, .105 - game.amount * .007) * w;
-    c.strokeStyle = "#2e635a99"; c.lineWidth = 2; c.setLineDash([5, 6]);
-    c.beginPath(); c.moveTo(w * .5 - radius, h * .27); c.lineTo(w * .5 - radius, h * .81); c.moveTo(w * .5 + radius, h * .27); c.lineTo(w * .5 + radius, h * .81); c.stroke(); c.setLineDash([]);
-    if (ready || game.amount < 2.2) {
-      c.fillStyle = "#25483d"; c.font = `bold ${Math.max(13, w * .038)}px 'Yu Gothic', sans-serif`; c.textAlign = "center";
-      c.fillText(locale === "ja" ? ready ? "手をここへ" : "← ゆっくり、左右へ →" : ready ? "MOVE HERE" : "← SWIRL SIDE TO SIDE →", w * .5, h * .34);
+const ellipse = (c,x,y,rx,ry) => { c.beginPath(); c.ellipse(x,y,rx,ry,0,0,Math.PI*2); c.fill(); };
+function surface(canvas) {
+  const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(2,window.devicePixelRatio||1);
+  if(!w||!h)return null;
+  if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
+  const c=canvas.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);return {c,w,h};
+}
+export function heroShape(amount=6) {
+  return {amount,lean:-.035,melt:0,swirlHeight:.034,segments:Array.from({length:Math.ceil(amount*14)},(_,i)=>({level:(i+1)/14,x:Math.sin(i*.54)*Math.max(.028,.087-i/14*.007)}))};
+}
+// Every band is fitted to the recorded hand path, including its offset and spread.
+export function drawFood(c,shape,{w,h,x,y,cone=true,fromLevel=0}) {
+  const size=Math.min(w*.13,h*.17),sh=shape.swirlHeight*h;
+  if(cone){
+    c.fillStyle="#583a2d15";ellipse(c,x,y+size*1.87,size*.95,size*.13);
+    c.save();c.beginPath();c.moveTo(x-size,y);c.quadraticCurveTo(x,y-size*.26,x+size,y);c.lineTo(x+size*.08,y+size*1.76);c.quadraticCurveTo(x,y+size*1.9,x-size*.08,y+size*1.76);c.closePath();
+    const gold=c.createLinearGradient(x-size,y,x+size,y);[[0,"#9c5d2d"],[.18,"#c78e4a"],[.48,"#f3d091"],[.72,"#dbab64"],[1,"#a76a32"]].forEach(([p,v])=>gold.addColorStop(p,v));c.fillStyle=gold;c.fill();c.clip();
+    for(let i=-8;i<9;i++)for(const direction of [-1,1]){
+      c.beginPath();c.moveTo(x+i*size*.26,y-size*.1);c.lineTo(x+(i*.26+direction*1.7)*size,y+size*2);
+      c.strokeStyle="#95602d80";c.lineWidth=size*.042;c.stroke();c.save();c.translate(-size*.026,-size*.026);c.strokeStyle="#ffe2a88c";c.lineWidth=size*.024;c.stroke();c.restore();
     }
-    if (game.amount >= 2.5) {
-      c.fillStyle = "#264e42b8"; c.beginPath(); c.roundRect(w * .025, h * .51, w * .19, 44, 12); c.fill();
-      c.beginPath(); c.roundRect(w * .785, h * .51, w * .19, 44, 12); c.fill();
-      c.fillStyle = "#fff8de"; c.font = `bold ${Math.max(12, w * .034)}px 'Yu Gothic', sans-serif`;
-      c.fillText(locale === "ja" ? "← 食べる" : "← EAT", w * .12, h * .51 + 27);
-      c.fillText(locale === "ja" ? "食べる →" : "EAT →", w * .88, h * .51 + 27);
-    }
+    c.restore();c.fillStyle="#eac284";ellipse(c,x,y,size*1.015,size*.2);c.fillStyle="#a16c3b";ellipse(c,x,y,size*.91,size*.105);
   }
-  // Enamel toy machine, with a visible vanilla ribbon from the nozzle.
-  if (!eating && game.phase !== "result") {
-    c.fillStyle = "#243c34"; c.beginPath(); c.roundRect(w * .36, -8, w * .28, h * .13, [0, 0, 20, 20]); c.fill();
-    c.fillStyle = "#ea9c7a"; c.beginPath(); c.roundRect(w * .395, -8, w * .21, h * .095, [0, 0, 11, 11]); c.fill();
-    c.fillStyle = "#faf1d4"; c.beginPath(); c.roundRect(w * .466, h * .11, w * .068, h * .047, 5); c.fill();
-    c.fillStyle = "#27483c"; c.font = `bold ${w * .024}px 'Trebuchet MS', sans-serif`; c.textAlign = "center"; c.fillText("VANILLA", w * .5, h * .06);
-    if (serving && !game.paused) {
-      const end = game.catching ? Math.max(h * .18, game.tip.y * h) : h * .9;
-      const wave = reducedMotion ? 0 : Math.sin(game.elapsedMs / 100) * w * .008;
-      c.lineCap = "round"; c.strokeStyle = "#ccb996"; c.lineWidth = w * .033;
-      c.beginPath(); c.moveTo(w * .5, h * .15); c.bezierCurveTo(w * .5 + wave, end * .4, w * .5 - wave, end * .7, w * .5, end); c.stroke();
-      c.strokeStyle = "#fff6dc"; c.lineWidth = w * .021; c.stroke();
-    }
+  for(let level=Math.floor(fromLevel);level<shape.amount;level++){
+    if(level+1<=fromLevel)continue;
+    const fraction=Math.min(1,shape.amount-level),band=shape.segments.filter(s=>s.level>=level&&s.level<level+fraction);
+    const min=band.length?Math.min(...band.map(s=>s.x)):-.025,max=band.length?Math.max(...band.map(s=>s.x)):.025;
+    const middle=band.length?band.reduce((n,s)=>n+s.x,0)/band.length:0;
+    const width=clamp((max-min)*.8+.033,.035,.16)*w,cx=x+middle*w+shape.lean*level*.034*w,cy=y-(level+fraction*.65)*sh;
+    const ry=Math.max(w*.027,sh*1.04),g=c.createLinearGradient(cx-width,cy-ry,cx+width,cy+ry);
+    [[0,"#dbc8a9"],[.24,"#fff7e8"],[.48,"#fffef7"],[.72,"#f7ecd5"],[1,"#cdb996"]].forEach(([p,v])=>g.addColorStop(p,v));
+    c.fillStyle=g;c.beginPath();c.moveTo(cx-width,cy);c.bezierCurveTo(cx-width*1.1,cy-ry,cx+width*.6,cy-ry*1.3,cx+width,cy-ry*.15);c.bezierCurveTo(cx+width*1.12,cy+ry*.7,cx-width*.65,cy+ry,cx-width,cy);c.fill();
+    c.lineCap="round";c.strokeStyle="#fffef5c9";c.lineWidth=w*.007;c.beginPath();c.moveTo(cx-width*.75,cy-ry*.22);c.bezierCurveTo(cx-width*.4,cy-ry*.78,cx+width*.35,cy-ry*.8,cx+width*.68,cy-ry*.32);c.stroke();
+    c.strokeStyle="#b9a38433";c.lineWidth=w*.004;c.beginPath();c.moveTo(cx-width*.6,cy+ry*.4);c.quadraticCurveTo(cx,cy+ry*.82,cx+width*.68,cy+ry*.17);c.stroke();
   }
-  c.fillStyle = "#3f674630"; ellipse(c, x, y + size * 1.8, size, size * .15);
-  // A waffle cone with clipped diagonal embossing, rim and a tiny face.
-  c.save(); c.beginPath(); c.moveTo(x - size, y); c.quadraticCurveTo(x, y - size * .25, x + size, y); c.lineTo(x + size * .12, y + size * 1.65); c.quadraticCurveTo(x, y + size * 1.86, x - size * .12, y + size * 1.65); c.closePath();
-  const coneGradient = c.createLinearGradient(x - size, y, x + size, y); coneGradient.addColorStop(0, "#bc783b"); coneGradient.addColorStop(.45, "#efc77a"); coneGradient.addColorStop(1, "#c88b47"); c.fillStyle = coneGradient; c.fill(); c.clip();
-  c.strokeStyle = "#a66b3680"; c.lineWidth = 1.8;
-  for (let i = -5; i <= 5; i++) { c.beginPath(); c.moveTo(x - size + i * size * .4, y); c.lineTo(x + size + i * size * .4, y + size * 2); c.stroke(); c.beginPath(); c.moveTo(x + size + i * size * .4, y); c.lineTo(x - size + i * size * .4, y + size * 2); c.stroke(); }
-  c.restore(); c.fillStyle = "#f4d38e"; ellipse(c, x, y, size * 1.02, size * .22);
-  c.fillStyle = "#815533"; ellipse(c, x - size * .2, y + size * .53, size * .045, size * .075); ellipse(c, x + size * .2, y + size * .53, size * .045, size * .075);
-  c.strokeStyle = "#815533"; c.lineWidth = 2; c.beginPath(); c.arc(x, y + size * .72, size * .11, .15, Math.PI - .15); c.stroke();
-  // Each recorded band carries its actual spread and center. Still hands make a thin tower.
-  if (game.result?.outcome !== "splat") {
-    for (let level = 0; level < game.amount; level++) {
-      const fraction = Math.min(1, game.amount - level), band = game.segments.filter(s => s.level >= level && s.level < level + 1);
-      const min = band.length ? Math.min(...band.map(s => s.x)) : -.035, max = band.length ? Math.max(...band.map(s => s.x)) : .035;
-      const width = clamp((max - min) * .58 + .025, .027, .14) * w;
-      const middle = band.length ? band.reduce((n, s) => n + s.x, 0) / band.length : 0;
-      const cx = x + middle * w + game.lean * level * .034 * w;
-      const cy = y - (level + fraction * .75) * game.rules.swirlHeight * h;
-      const ry = Math.max(w * .025, game.rules.swirlHeight * h * .58);
-      const gradient = c.createLinearGradient(cx - width, cy - ry, cx + width, cy + ry); gradient.addColorStop(0, "#d7c6a4"); gradient.addColorStop(.32, "#fff8e2"); gradient.addColorStop(.68, "#fff8e2"); gradient.addColorStop(1, "#decba6");
-      c.fillStyle = gradient; ellipse(c, cx, cy, width, ry);
-      c.strokeStyle = "#fdfaf0"; c.lineWidth = w * .009; c.beginPath(); c.ellipse(cx, cy - ry * .15, width * .84, ry * .65, 0, Math.PI, Math.PI * 1.95); c.stroke();
-    }
-    if (game.amount > .2) {
-      const tip = game.tip; c.fillStyle = "#fff8e2"; c.beginPath(); c.moveTo(tip.x * w - w * .023, tip.y * h + h * .024); c.quadraticCurveTo(tip.x * w + w * .023, tip.y * h + h * .024, tip.x * w + w * .01, tip.y * h - h * .014); c.quadraticCurveTo(tip.x * w - w * .01, tip.y * h - h * .002, tip.x * w - w * .023, tip.y * h + h * .024); c.fill();
-    }
-  } else {
-    c.fillStyle = "#fff0d2"; for (let i = 0; i < 7; i++) ellipse(c, x + (i - 3) * size * .45, y + size * 1.65 + Math.sin(i * 8) * 12, size * .6, size * .22);
+  if(shape.amount>.2){
+    const last=shape.segments.filter(s=>s.level<=shape.amount).slice(-12),offset=last.length?last.reduce((n,s)=>n+s.x,0)/last.length:0;
+    const tx=x+offset*w+shape.lean*shape.amount*.034*w,ty=y-shape.amount*sh-.024*h;
+    const g=c.createLinearGradient(tx-w*.022,ty,tx+w*.025,ty);g.addColorStop(0,"#ddcbae");g.addColorStop(.4,"#fffdf3");g.addColorStop(1,"#f1e4cc");c.fillStyle=g;
+    c.beginPath();c.moveTo(tx-w*.026,ty+h*.027);c.bezierCurveTo(tx-w*.03,ty+h*.01,tx+w*.011,ty+h*.005,tx+w*.004,ty-h*.018);c.bezierCurveTo(tx+w*.038,ty,tx+w*.03,ty+h*.021,tx-w*.026,ty+h*.027);c.fill();
   }
-  if (game.melt > 25 && game.amount > 0) {
-    c.fillStyle = "#fff4d5";
-    for (let i = 0; i < 3; i++) { const dropY = (game.elapsedMs / 1700 + i * .33) % 1; ellipse(c, x + (i - 1) * size * .62, y + dropY * size * 1.3, w * .012, w * .021); }
+}
+export function drawPortrait(canvas,shape) {
+  const s=surface(canvas);if(!s)return;const {c,w,h}=s;
+  const vh=Math.min(h/(.034*shape.amount+.26),w*2.4),vw=Math.min(w*1.4,vh*.72);
+  drawFood(c,shape,{w:vw,h:vh,x:w*.5,y:h*.86-Math.min(vw*.13,vh*.17)*1.85});
+}
+export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reducedMotion=false,locale="ja",animation=null}={}) {
+  const s=surface(canvas);if(!s)return;const {c,w,h}=s,x=game.cone.x*w,y=game.cone.y*h;
+  const serving=game.phase==="serve",ready=game.phase==="ready",eating=game.phase==="eat";
+  if(demo){
+    const bg=c.createLinearGradient(0,0,0,h);bg.addColorStop(0,"#eee1cd");bg.addColorStop(.6,"#fff8eb");bg.addColorStop(1,"#e8d0b0");c.fillStyle=bg;c.fillRect(0,0,w,h);
+    c.fillStyle="#fffaf04d";for(let i=0;i<5;i++){c.beginPath();c.roundRect(i*w*.27-w*.15,h*.14,w*.18,h*.55,80);c.fill();}c.fillStyle="#d8b99a55";c.fillRect(0,h*.89,w,h*.11);
   }
-  if (eating) {
-    const tip = game.tip, radius = w * .075;
-    c.strokeStyle = "#e47f5f"; c.lineWidth = 2.5; c.setLineDash([4, 4]); c.beginPath(); c.arc(tip.x * w, tip.y * h, radius, 0, Math.PI * 2); c.stroke(); c.setLineDash([]);
-    if (mouth) {
-      c.strokeStyle = open ? "#fff8df" : "#e47f5f"; c.lineWidth = 3; c.beginPath(); c.ellipse(mouth.x * w, mouth.y * h, w * .034, open ? w * .027 : w * .008, 0, 0, Math.PI * 2); c.stroke();
-    }
+  if(serving||ready){
+    const radius=Math.max(.025,.105-game.amount*.007)*w;
+    c.strokeStyle="#fffaf0c9";c.lineWidth=1.5;c.setLineDash([3,8]);c.beginPath();c.moveTo(w*.5-radius,h*.23);c.lineTo(w*.5-radius,h*.79);c.moveTo(w*.5+radius,h*.23);c.lineTo(w*.5+radius,h*.79);c.stroke();c.setLineDash([]);
+    const steel=c.createLinearGradient(w*.36,0,w*.64,0);[[0,"#ae9386"],[.25,"#fff9ef"],[.7,"#e9d7c8"],[1,"#8d7366"]].forEach(([p,v])=>steel.addColorStop(p,v));c.fillStyle=steel;c.beginPath();c.roundRect(w*.405,-12,w*.19,h*.13,[0,0,16,16]);c.fill();c.fillStyle="#e9cabe";c.beginPath();c.roundRect(w*.454,h*.085,w*.092,h*.055,6);c.fill();c.fillStyle="#8b6c5e";ellipse(c,w*.5,h*.14,w*.039,h*.012);
+    if(serving&&!game.paused){const end=game.catching?Math.max(h*.17,game.tip.y*h):h*.92,wave=reducedMotion?0:Math.sin(game.elapsedMs/120)*w*.004;c.lineCap="round";c.strokeStyle="#d2bfa2";c.lineWidth=w*.03;c.beginPath();c.moveTo(w*.5,h*.14);c.bezierCurveTo(w*.5+wave,end*.4,w*.5-wave,end*.7,w*.5,end);c.stroke();c.strokeStyle="#fff9e9";c.lineWidth=w*.021;c.stroke();}
   }
-  if (game.effect?.type === "lick" && game.elapsedMs - game.effect.at < 650) {
-    c.font = `bold ${w * .055}px 'Yu Gothic', sans-serif`; c.fillStyle = "#b95d45"; c.textAlign = "center"; c.fillText(locale === "ja" ? "ペロッ！" : "LICK!", x, game.tip.y * h - h * .07);
+  drawFood(c,game.captureShape(),{w,h,x,y});
+  if(game.melt>25&&game.amount>0){c.fillStyle="#fff5df";for(let i=0;i<3;i++){const dy=(game.elapsedMs/1700+i*.33)%1;ellipse(c,x+(i-1)*w*.068,y+dy*w*.14,w*.009,w*.018);}}
+  if(eating){const tip=game.tip;c.strokeStyle="#fff9ed";c.lineWidth=2;c.setLineDash([3,6]);c.beginPath();c.arc(tip.x*w,tip.y*h,w*.072,0,Math.PI*2);c.stroke();c.setLineDash([]);if(mouth){c.strokeStyle=open?"#fff8eb":"#f57682";c.lineWidth=2.5;c.beginPath();c.ellipse(mouth.x*w,mouth.y*h,w*.032,open?w*.025:w*.006,0,0,Math.PI*2);c.stroke();}}
+  const age=animation?.biteAge??Infinity,bite=animation?.bite;
+  if(bite&&age<500){
+    const pull=clamp((age-80)/140),fade=age<220?1:1-clamp((age-220)/220),tx=bite.tip.x*w,ty=bite.tip.y*h;
+    c.save();c.globalAlpha=fade;c.translate(tx+(bite.mouth.x*w-tx)*pull,ty+(bite.mouth.y*h-ty)*pull);const scale=reducedMotion?1:1-pull*.7;c.scale(scale,age<80&&!reducedMotion ? .82 : scale);c.translate(-tx,-ty);drawFood(c,bite.before,{w,h,x:(bite.cone?.x??game.cone.x)*w,y:(bite.cone?.y??game.cone.y)*h,cone:false,fromLevel:bite.afterAmount});c.restore();
+    if(age>100){c.save();c.globalAlpha=fade;c.fillStyle="#fffaf0";c.beginPath();c.roundRect(tx-w*.12,ty-h*.1,w*.24,h*.07,20);c.fill();c.fillStyle="#ad4350";c.font="800 "+Math.max(15,w*.05)+"px 'Yu Gothic',sans-serif";c.textAlign="center";c.fillText(locale==="ja"?"ぱくっ！":"YUM!",tx,ty-h*.052);c.restore();}
+  }
+  if(animation?.finishAt!==null&&animation?.outcome==="clean"){
+    const age=animation.finishAge;c.save();c.globalAlpha=clamp(age/180);c.fillStyle="#fffaf0";c.beginPath();c.roundRect(w*.18,h*.33,w*.64,h*.16,32);c.fill();c.fillStyle="#a9404d";c.textAlign="center";c.font="800 "+w*.075+"px 'Yu Gothic',sans-serif";c.fillText(locale==="ja"?"ごちそうさま！":"ALL GONE!",w*.5,h*.425);
+    if(!reducedMotion){c.fillStyle="#f57682";for(let i=0;i<8;i++){const a=i*Math.PI/4,r=w*(.18+clamp(age/750)*.15);ellipse(c,w*.5+Math.cos(a)*r,h*.4+Math.sin(a)*r,w*.008,w*.012);}}c.restore();
   }
 }

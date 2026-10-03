@@ -1,6 +1,6 @@
 import { HandLandmarker, FaceLandmarker } from "@mediapipe/tasks-vision";
 import { BodyInput } from "./bodyInput.js";
-import { handCenter, mouthSignal } from "../softServe/signals.js";
+import { handCenter, mouthSignal, faceFrame } from "../softServe/signals.js";
 const HAND_MODEL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 const FACE_MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
@@ -30,7 +30,7 @@ export class SoftServeInput extends BodyInput {
     if (!result) return;
     const mouth = mouthSignal(result.face, (this.video.videoWidth || 1) / (this.video.videoHeight || 1));
     this.open = !!mouth && (mouth.ratio > .22 || (this.open && mouth.ratio > .13));
-    this.onFrame({ hand: handCenter(result.hands), mouth, open: this.open }, timestamp);
+    this.onFrame({ hand: handCenter(result.hands), mouth, open: this.open, face: faceFrame(result.face) }, timestamp);
   }
   stop() { super.stop(); this.open = false; this.lastInference = -Infinity; }
 }

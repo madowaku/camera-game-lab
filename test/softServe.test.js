@@ -4,6 +4,8 @@ import { SoftServeGame, heightMultiplier } from "../src/games/softServe.js";
 import { handCenter, mouthSignal } from "../src/softServe/signals.js";
 import { projectMouth } from "../src/input/mouthPosition.js";
 import { resolveRoute } from "../src/platform/navigation.js";
+import { SoftServeAnimation } from "../src/softServe/animation.js";
+import { resultPayload } from "../src/platform/share.js";
 
 const center = { hand: { x: .5, y: .72 } };
 function advance(g, ms, input = center) { for (let t = 0; t < ms; t += 20) g.step(Math.min(20, ms - t), typeof input === "function" ? input(t) : input); }
@@ -108,4 +110,38 @@ test("landmark extraction tolerates invalid data and corrects mouth aspect ratio
 test("hand and mouth projection matches the mirrored object-fit cover camera image", () => {
   assert.deepEqual(projectMouth({ x: .25, y: .5 }, 720, 1280, 360, 640), { x: .75, y: .5 });
   assert.equal(projectMouth({ x: .05, y: .5 }, 1280, 720, 360, 640), null);
+});
+
+test("made shape is copied before eating and survives mutations and a clean empty cone", () => {
+  const g=served("demo",7);g.completeServe();const made=structuredClone(g.completedShape);
+  g.segments[0].x=42;g.lean=.2;
+  while(g.phase!=="result")g.bite();
+  assert.equal(g.amount,0);assert.deepEqual(g.completedShape,made);
+  assert.ok(made.amount>=7&&made.segments.length>90);
+});
+test("serve failure captures its shape once; repeated finish cannot replace the result",()=>{
+  const g=served("demo",3);g.finish("splat");const result=g.result,shape=structuredClone(g.completedShape);
+  g.segments.length=0;g.finish("clean");assert.equal(g.result,result);assert.deepEqual(g.completedShape,shape);
+  assert.equal(g.result.cleanBonus,0);
+});
+test("bite events preserve the consumed size, pre-bite tip and food geometry",()=>{
+  const g=served("demo",1.5);g.completeServe();const tip={...g.tip},amount=g.amount;
+  g.bite();assert.equal(g.effect.size,1);assert.deepEqual(g.effect.tip,tip);assert.equal(g.effect.before.amount,amount);assert.equal(g.effect.afterAmount,g.amount);
+  g.bite();assert.ok(g.effect.size<1);assert.equal(g.effect.afterAmount,0);assert.equal(g.effect.id,2);
+});
+test("presentation pauses independently and delivers clean or failure completion exactly once after 750ms",()=>{
+  for(const outcome of ["clean","splat","melted","empty"]){
+    const a=new SoftServeAnimation();a.consume({type:"lick",size:.4,tip:{x:.5,y:.4}}, {x:.4,y:.3});a.finish(outcome);
+    assert.equal(a.advance(400),false);assert.equal(a.advance(400,true),false);assert.equal(a.finishAge,400);
+    assert.equal(a.advance(3000),false);assert.equal(a.advance(349),false);assert.equal(a.advance(1),true);assert.equal(a.advance(100),false);
+    const retry=new SoftServeAnimation();assert.equal(retry.advance(100),false);assert.equal(retry.bite,null);assert.equal(retry.finishAt,null);
+  }
+});
+test("challenge text uses actual outcome, practice provenance and canonical environment URL",()=>{
+  const game=resolveRoute("#soft-serve").experiment;
+  for(const outcome of ["clean","splat","melted","empty"]){
+    const p=resultPayload(game,{outcome,maxSwirls:3,source:"demo"},"ja","https://local.example/test#old");
+    assert.ok(p.text.includes("練習"));assert.ok(p.text.includes(outcome==="clean"?"3段完食":"3段つくった"));
+    assert.equal(p.url,"https://local.example/test#/game/solo-soft-serve");
+  }
 });

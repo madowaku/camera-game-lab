@@ -3,10 +3,11 @@ async (page) => {
   const check = (ok, name) => { if (!ok) throw Error(name); checks.push(name); };
   page.on('pageerror', e => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('camera-game-lab-locale', 'ja'));
-  await page.clock.install();
-  for (const size of [{ width: 390, height: 844 }, { width: 360, height: 800 }, { width: 1440, height: 900 }]) {
+  await page.clock.install({ time: new Date('2026-10-03T00:00:00Z') });
+  const run = Date.now();
+  for (const size of [{ width: 390, height: 844 }, { width: 360, height: 800 }, { width: 720, height: 1280 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
-    await page.goto(base + '/?qa=soft-serve#/game/solo-soft-serve');
+    await page.goto(base + `/?qa=soft-serve&run=${run}&width=${size.width}#/game/solo-soft-serve`);
     await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
     check(await page.locator('.launch-steps li').count() === 3, `three visual instructions at ${size.width}`);
     check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no horizontal overflow at ${size.width}`);
@@ -26,7 +27,7 @@ async (page) => {
   }
   check(parseInt(await page.locator('.ss-height').textContent()) >= 5, 'mouse winding stacks five visible swirls');
   check((await page.locator('.ss-callout').textContent()).includes('もう一巻き'), 'height tempts voluntary extra winding');
-  check(await page.locator('canvas').evaluate(c => {
+  check(await page.locator('.ss-stage canvas:not(.creator-scene)').evaluate(c => {
     const pixels = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
     let cream = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] > 240 && pixels[i + 1] > 225 && pixels[i + 2] < 230) cream++;
     return cream > 1000;
@@ -41,8 +42,9 @@ async (page) => {
   await page.locator('.ss-stage').focus(); await page.keyboard.down('Space'); await page.clock.runFor(300); await page.keyboard.up('Space');
   let bites = 1;
   while (await page.locator('.ss-bite').isVisible() && bites < 15) { await page.locator('.ss-bite').click(); await page.clock.runFor(180); bites++; }
-  await page.clock.runFor(300); await page.locator('.platform-result').waitFor();
-  check((await page.locator('.ss-receipt').textContent()).includes('CLEAN!'), 'repeated bites finish CLEAN');
+  await page.clock.runFor(850); await page.locator('.platform-result').waitFor();
+  check((await page.locator('.platform-result').textContent()).includes('完食！'), 'repeated bites finish CLEAN');
+  check(await page.locator('.ss-receipt').count() === 0 && !(await page.locator('.game-cache').isVisible()), 'one dedicated result replaces the playable view');
   check((await page.locator('.platform-result').textContent()).includes('練習'), 'practice provenance reaches shared result');
   check(await page.evaluate(() => { const r = JSON.parse(localStorage.getItem('camera-game-lab-soft-serve-rounds')).at(-1); return r.outcome === 'clean' && r.eatenPercent === 100 && r.source === 'demo' && r.bites >= 5; }), 'local receipt records complete eating without imagery');
   await page.screenshot({ path: 'output/playwright/soft-serve-clean-390.png' });
@@ -65,7 +67,7 @@ async (page) => {
   check(page.url().includes('/feed/solo-soft-serve'), 'back returns to the experiment preview');
   await page.goto(base + '/#/game/solo-soft-serve'); await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
   await page.getByRole('button', { name: 'Switch to English' }).click();
-  check((await page.locator('.launch-steps').textContent()).includes('Swirl side to side'), 'English launch instructions');
+  check((await page.locator('.launch-steps').textContent()).includes('SWIRL'), 'English launch instructions');
   await page.locator('.launch-demo').click(); await page.clock.runFor(1500);
   check((await page.locator('.ss-callout').textContent()).includes('side to side'), 'English play instructions');
   await page.setViewportSize({ width: 1440, height: 900 }); await page.clock.runFor(100);

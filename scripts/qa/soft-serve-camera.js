@@ -9,12 +9,12 @@ async (page) => {
   await page.goto(base + '/');
   await page.goto(base + '/?qa=soft-camera#/game/solo-soft-serve');
   await page.waitForFunction(() => document.querySelector('.launch-camera')?.disabled === false);
-  await page.clock.install();
+  await page.clock.install({ time: new Date('2026-10-03T00:00:00Z') });
   await page.evaluate(async () => {
     const source = await (await fetch('/src/input/bodyInput.js')).text();
     const vision = await import(source.match(/from "([^"]*mediapipe[^"]*)"/)[1]);
-    const { SoftServeInput } = await import('/src/input/softServeInput.js');
     const viewSource = await (await fetch('/src/softServe/view.js')).text();
+    const { SoftServeInput } = await import(viewSource.match(/from "([^"]*\/input\/softServeInput\.js[^"]*)"/)[1]);
     const { SoftServeGame } = await import(viewSource.match(/from "([^"]*\/games\/softServe\.js[^"]*)"/)[1]);
     const start = SoftServeInput.prototype.start, step = SoftServeGame.prototype.step;
     SoftServeGame.prototype.step = function (...args) { window.__game = this; return step.apply(this, args); };
@@ -92,7 +92,8 @@ async (page) => {
     await page.evaluate(() => { __signal.open = false; }); await page.clock.runFor(250);
     await approach(); await page.clock.runFor(250);
   }
-  await page.clock.runFor(300); await page.locator('.platform-result').waitFor();
+  check(await page.evaluate(() => __tracks.every(t => t.readyState === 'ended')), 'last bite immediately stops camera tracks before presentation completes');
+  await page.clock.runFor(850); await page.locator('.platform-result').waitFor();
   check(await page.evaluate(() => __game.result.outcome === 'clean' && __game.result.source === 'camera' && __game.result.eatenPercent === 100), 'repeated mouth approaches produce camera CLEAN');
   check(await page.evaluate(() => __tracks.every(t => t.readyState === 'ended') && __handCloses === 2 && __faceCloses === 1 && __rafs.size === 0), 'result releases the single stream, both models and animation loops');
   await page.locator('[data-result-action="retry"]').click(); await page.waitForFunction(() => __mediaRequests === 2); await page.clock.runFor(200);
@@ -110,7 +111,30 @@ async (page) => {
   check(await page.locator('.ss-retry').isVisible(), 'permission denial gives an explicit retry');
   await page.locator('.ss-demo').click(); await page.clock.runFor(1200);
   check((await page.locator('.ss-source').textContent()).includes('練習'), 'denial recovers to labeled camera-free practice');
-  await page.locator('.game-back').click(); await page.clock.runFor(100); await page.evaluate(() => clearInterval(__paint));
+  await page.locator('.game-back').click(); await page.clock.runFor(100);
+  await page.evaluate(() => { __deny=false;__signal={hand:true,faceCount:1,hx:.5,hy:.72,mx:.5,my:.45,open:false};location.hash='#/game/solo-soft-serve'; });
+  await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
+  await page.locator('[data-creator-mode="creator"]').click();
+  await page.locator('[data-face-mode="HIDE"]').click();
+  await page.waitForFunction(() => document.querySelector('.ss-stage video')?.srcObject);
+  await page.clock.runFor(1800);
+  check(await page.locator('.ss-view').evaluate(e=>e.classList.contains('is-creator')), 'face choice starts a real owned camera path in CREATOR');
+  await page.evaluate(()=>{__signal.faceCount=0;});await page.clock.runFor(300);
+  check(await page.locator('.creator-scene').evaluate(c=>{const p=c.getContext('2d').getImageData(15,220,1,1).data;return p[0]>240&&p[1]>230;}), 'HIDE loses a face into cream-colored fallback');
+  await page.evaluate(()=>{__signal.faceCount=1;});await page.clock.runFor(1700);
+  await page.evaluate(()=>{__signal.hx=.1;});await page.clock.runFor(1000);
+  for(let i=0;i<12&&await page.evaluate(()=>__game.phase!=='result');i++){
+    await page.evaluate(()=>{__signal.open=false;});await page.clock.runFor(250);
+    await approach();await page.clock.runFor(250);
+  }
+  check(await page.evaluate(()=>__game.result?.outcome==='clean'&&__tracks.every(t=>t.readyState==='ended')), 'CREATOR last bite immediately stops camera ownership');
+  await page.clock.runFor(2000);await page.locator('.creator-replay').waitFor();
+  check((await page.locator('.creator-replay-title').textContent()).includes('HIDE'), 'camera CREATOR reaches its selected-face replay');
+  await page.locator('[data-result-action="retry"]').click();await page.waitForFunction(()=>document.querySelector('.ss-stage video')?.srcObject);await page.clock.runFor(100);
+  check(await page.locator('.ss-view').evaluate(e=>e.classList.contains('is-creator'))&&await page.evaluate(()=>__tracks.filter(t=>t.readyState==='live').length===1), 'camera CREATOR retry owns one stream and retains its mode');
+  await page.locator('.game-back').click();await page.clock.runFor(100);
+  check(await page.evaluate(()=>__tracks.every(t=>t.readyState==='ended')&&__rafs.size===0), 'CREATOR departure cancels replay and camera loops');
+  await page.evaluate(() => clearInterval(__paint));
   check(errors.length === 0, 'no uncaught camera-path errors');
   return { checks, errors, synthetic: true, physicalDevice: false, humanPlaytest: false, creamBeforeEating: eaten };
 }
