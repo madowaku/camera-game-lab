@@ -33,6 +33,18 @@ export function createMatch(height = 9 / 16) {
     ball: { x: .5, y: height / 2, vx: -CONFIG.speed, vy: .035 },
     serve: 0, serveDirection: -1, locked: null, hits: 0, rally: 0, bestRally: 0 };
 }
+// Rotation changes the visible arena, not the score, clock or ball speed.
+export function resizeMatch(match, height) {
+  if (!Number.isFinite(height) || height <= CONFIG.radius * 2 || height === match.height) return false;
+  match.ball.y = clamp(match.ball.y / match.height * height, CONFIG.radius, height - CONFIG.radius);
+  match.height = height;
+  return true;
+}
+export function usableNet(net, height) {
+  return Boolean(net?.active && net.distance > .015 &&
+    [net.thumb, net.index].every(p => Number.isFinite(p.x) && Number.isFinite(p.y) &&
+      p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= height));
+}
 export function stepMatch(match, nets, seconds) {
   if (match.phase !== 'playing') return [];
   const events = [];
@@ -73,13 +85,15 @@ export function stepMatch(match, nets, seconds) {
       events.push({ type: 'point', player: winner });
     }
   }
-  if (match.remaining <= 0) { match.phase = 'result'; events.push({ type: 'end' }); }
+  if (match.remaining <= 1e-8) { match.remaining = 0; match.phase = 'result'; events.push({ type: 'end' }); }
   return events;
 }
 // Match both detections to previous positions globally, independent of result order.
 // A lone hand fills only its nearest retained slot, never both players.
 export function assignHands(previous, hands, now) {
-  const live = previous.map(n => n && now - n.seenAt <= CONFIG.holdMs + CONFIG.fadeMs ? n : null);
+  // Retain identity through a pause. Expired nets cannot collide, but their last
+  // positions still distinguish the players when their hands return.
+  const live = previous;
   if (!hands.length) return [null, null];
   const cost = (hand, player) => live[player] ? Math.hypot(hand.center.x - live[player].center.x, hand.center.y - live[player].center.y) : Math.abs(hand.center.x - (player ? .8 : .2));
   if (hands.length === 1) { const slot = cost(hands[0], 0) <= cost(hands[0], 1) ? 0 : 1; return slot ? [null, hands[0]] : [hands[0], null]; }
@@ -95,7 +109,7 @@ export function updateNets(previous, hands, now) {
       return { ...old, active: age <= CONFIG.holdMs, opacity: clamp(1 - (age - CONFIG.holdMs) / CONFIG.fadeMs, 0, 1) };
     }
     const smooth = (a, b) => ({ x: a.x + (b.x - a.x) * .55, y: a.y + (b.y - a.y) * .55 });
-    const net = old?.active ? geometry(smooth(old.thumb, hand.thumb), smooth(old.index, hand.index)) : hand;
+    const net = old?.active && now - old.seenAt <= CONFIG.holdMs ? geometry(smooth(old.thumb, hand.thumb), smooth(old.index, hand.index)) : hand;
     return { ...net, active: true, opacity: 1, seenAt: now };
   });
 }

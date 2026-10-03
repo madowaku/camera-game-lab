@@ -11,12 +11,13 @@ Retain the dark lab shell, shared `.button`, `.button--primary`, `.language-swit
 
 ## TENSION DUEL layout and behavior
 - Route: `#tension-duel`; name disambiguates the previously used EXP-021 IDs.
-- Intro: one C illustration, one action sentence, camera start as primary and a clearly labeled camera-free alternative.
+- Intro: a generated two-hand illustration with localized HTML instructions, camera start as primary and a clearly labeled camera-free alternative. The decorative WebP asset is precached with the app.
 - Ready: live fingertip nets, separate P1/P2 presence indicators, three brief tips over three seconds after both hands are ready. Tips can be skipped.
-- Play: only scores, remaining time and small player readiness indicators. No large instructions over a live ball. Brief loss preserves the net for 250ms; longer loss freezes both ball and timer until both hands return.
+- Play: scores, remaining time, current rally and small player readiness indicators. A center line, goal edges, short ball trail and brief point cue explain direction and scoring. Brief loss preserves the net for 250ms; longer loss freezes both ball and timer until both hands return. Returning hands retain their last player assignment; the first returning frame consumes no paused time.
+- Pause: a button or Escape preserves the ball, score and clock; Resume returns to the current round. Switching language never resumes a paused game.
 - Result: winner, score, return count, best rally, retry and back. Retry reuses the running camera.
 - Camera error: permission/connection recovery text, retry and camera-free alternative. Initialization is bounded to 25 seconds.
-- Landscape is preferred; portrait preserves all actions and offers a short rotation hint. Controls wrap rather than overflow.
+- Landscape is preferred; portrait uses a 4:3 arena and offers a short rotation hint. Rotation remaps the ball into the new world height and awaits fresh camera endpoints. Controls wrap rather than overflow. Camera/practice provenance is visible during play and in results.
 - Drag controls have native range and keyboard alternatives. All actions use buttons. Focus is visible; reduced motion removes optional movement effects.
 
 ## Canonical owners

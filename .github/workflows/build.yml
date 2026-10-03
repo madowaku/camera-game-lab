@@ -28,3 +28,6 @@ jobs:
 
       - name: Test duo input and game rules
         run: npm test
+
+      - name: Verify Tension Duel interaction states
+        run: npm run test:tension-ui

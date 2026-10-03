@@ -39,14 +39,15 @@ for(let round=0;round<5;round++){
     }
     now+=1000/60;duel.tick(now);
   }
-  assert.equal(duel.phase,'result');assert.ok(duel.match.hits>=3);results.push({score:duel.match.score,hits:duel.match.hits,bestRally:duel.match.bestRally});
+  assert.equal(duel.phase,'result',JSON.stringify({remaining:duel.match.remaining,nets:duel.nets}));assert.ok(duel.match.hits>=3);results.push({score:duel.match.score,hits:duel.match.hits,bestRally:duel.match.bestRally});
 }
 check('five UI-driven simulated rounds finish and retry resets match',()=>{assert.equal(results.length,5);assert.equal($('.td-start').textContent,'もう一度・15秒');});
 check('canvas draws net curves, endpoint nodes and hit effects',()=>{assert.ok(commands.some(c=>c[0]==='quadraticCurveTo'));assert.ok(commands.some(c=>c[0]==='arc'));});
 duel.ready();duel.tick(now+=20);$('.td-skip').click();duel.tick(now+=20);
 duel.fake.forEach(f=>f.y=.04);duel.tick(now+=2000);
+for(let frame=0;frame<120;frame++) duel.tick(now+=1000/60);
 check('a missed ball updates the visible opponent score',()=>{assert.equal(duel.match.score[1],1);assert.equal($('.td-score strong').textContent,'0 : 1');});
-duel.tick(now+=15000);
+for(let frame=0;frame<1000;frame++) duel.tick(now+=1000/60);
 check('EN changes all experiment actions and range names',()=>{duel.setLocale('en');assert.equal($('.td-start').textContent,'Play again · 15s');assert.equal($('.td-demo').textContent,'Play with camera');assert.equal(root.querySelector('input').getAttribute('aria-label'),'P1 Height');});
 // Camera failure with the actual UI state handlers, no device/model claims.
 let starts=0;duel.input.start=async()=>{starts++;throw new Error('camera denied');};duel.input.stop=()=>{};
@@ -65,15 +66,30 @@ check('two injected hands begin the camera round',()=>assert.equal(duel.phase,'p
 const remaining=duel.match.remaining;duel.tick(realNow+600);
 check('tracking loss pauses the camera round and fades nets',()=>{assert.equal(duel.match.remaining,remaining);assert.match($('.td-hint').textContent,/both C shapes/);assert.ok(duel.nets.every(n=>!n.active));});
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+650);duel.tick(realNow+650);
+check('first reacquisition frame never charges paused time',()=>assert.equal(duel.match.remaining,remaining));
+duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+670);duel.tick(realNow+670);
 check('tracking reacquisition resumes the existing round',()=>assert.ok(duel.match.remaining<remaining));
 duel.phase='result';const startsBeforeRetry=starts;await duel.start();
 check('camera retry reuses the running input without requesting it again',()=>{assert.equal(duel.phase,'ready');assert.equal(starts,startsBeforeRetry);});
-duel.countdown=.01;duel.tick(realNow+670);
+duel.countdown=.01;duel.tick(realNow+690);duel.tick(realNow+710);
 Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new window.Event('visibilitychange'));const hiddenTime=duel.match.remaining;duel.tick(realNow+800);
 check('hidden document freezes round',()=>assert.equal(duel.match.remaining,hiddenTime));
 Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new window.Event('visibilitychange'));
 for(const [width,height] of [[360,202.5],[800,450],[1280,720]]){viewport={width,height};duel.draw(realNow+800);assert.equal(duel.canvas.width,width);}
 check('canvas dimensions follow narrow and landscape arena sizes',()=>assert.equal(duel.canvas.width,1280));
+duel.startDemo();duel.tick(now+=20);$('.td-skip').click();duel.tick(now+=20);duel.tick(now+=20);
+$('.td-pause').click();const pausedTime=duel.match.remaining,pausedBall={...duel.match.ball};
+duel.tick(now+=5000);
+check('pause button freezes ball and clock and offers resume',()=>{assert.equal(duel.phase,'paused');assert.equal(duel.match.remaining,pausedTime);assert.deepEqual(duel.match.ball,pausedBall);assert.equal($('.td-start').textContent,'Resume');});
+$('.td-start').click();duel.tick(now+=2000);duel.tick(now+=20);
+check('resume preserves score and does not consume paused time',()=>{assert.equal(duel.phase,'playing');assert.ok(Math.abs(duel.match.remaining-(pausedTime-.02))<1e-8);assert.deepEqual(duel.match.score,[0,0]);});
+window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+check('Escape pauses without leaving the game',()=>assert.equal(duel.phase,'paused'));
+viewport={width:390,height:292.5};duel.tick(now+=20);
+check('portrait rotation updates world height while preserving the paused clock',()=>{assert.equal(duel.match.height,.75);assert.ok(duel.match.ball.y>=rules.CONFIG.radius && duel.match.ball.y<=.75-rules.CONFIG.radius);});
+check('practice provenance remains on the HUD and result',()=>{assert.equal($('.td-mode').textContent,'Camera-free practice');duel.phase='result';duel.render();assert.equal($('.td-card-label').textContent,'Practice result');});
+duel.mode='camera';duel.ready();duel.nets=rules.updateNets([null,null],[n(.7),n(.85)],now);duel.tick(now+=20);
+check('two hands on the same side cannot bypass player setup',()=>{assert.equal(duel.countdown,3);assert.equal(duel.phase,'ready');});
 $('.td-exit').click();
 check('exit cancels active game and hides the route',()=>{assert.equal(duel.active,false);assert.equal(root.hidden,true);});
 console.log(JSON.stringify({checks,simulatedRounds:results,scope:'DOM + stub canvas, synthetic hands; not real browser or camera'},null,2));

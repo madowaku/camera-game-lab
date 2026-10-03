@@ -11,6 +11,9 @@ Two people, one front camera, landscape phone, one hand per person. Open `#tensi
 - A short tracking gap under 250ms does not flicker; a longer gap fades the affected net and pauses the match.
 - Reappearance resumes the same score/time; brief movement across center does not exchange players.
 - Camera interruption shows recovery text. Back stops all video tracks. Retry does not request permission again.
+- Pause freezes ball, score and clock. Resume and switching JA/EN preserve the round.
+- Rotate between portrait and landscape during a round: the ball stays inside the new arena, camera nets reattach to fingertips and no points are awarded during recovery.
+- Two hands on the same side do not start the countdown. A fingertip outside the preview shows the readiness hint instead of starting play.
 - Android performance and thermal behavior remain usable across five rounds.
 
 ## Observation sheet

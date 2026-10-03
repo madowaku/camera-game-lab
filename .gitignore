@@ -1,6 +1,7 @@
 node_modules/
 dist/
 output/playwright/
+output/imagegen/
 .DS_Store
 *.log
 .env

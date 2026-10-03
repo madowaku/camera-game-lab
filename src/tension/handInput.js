@@ -13,6 +13,8 @@ export class DuelInput extends BodyInput {
     const { width, height } = this.stage.getBoundingClientRect();
     if (!width || !height) return;
     const convert = p => project(p, this.video.videoWidth || 1280, this.video.videoHeight || 720, width, height);
-    this.onResult((result.landmarks ?? []).filter(l => l.length > 8).map(l => geometry(convert(l[4]), convert(l[8]))), timestamp);
+    this.onResult((result.landmarks ?? []).filter(l => l.length > 8 &&
+      [l[4], l[8]].every(p => p && Number.isFinite(p.x) && Number.isFinite(p.y)))
+      .map(l => geometry(convert(l[4]), convert(l[8]))), timestamp);
   }
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project } from '../src/tension/rules.js';
+import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project, resizeMatch, usableNet } from '../src/tension/rules.js';
 const net = (x, y=.28, distance=.105, angle=0) => ({ ...geometry({ x:x-Math.sin(angle)*distance/2, y:y-Math.cos(angle)*distance/2 }, { x:x+Math.sin(angle)*distance/2, y:y+Math.cos(angle)*distance/2 }), active:true });
 test('tension boundaries include exact thresholds without pixel dependence', () => {
   assert.deepEqual([0,.069,.07,.129,.13,.179,.18,.3].map(tension),[0,0,1,1,2,2,3,3]);
@@ -78,4 +78,37 @@ test('five simulated rallies complete with finite speed and valid scores', () =>
     }
     assert.equal(m.phase,'result'); assert.ok(m.hits>=6); assert.ok(m.score.every(Number.isInteger));
   }
+});
+
+test('rotation preserves relative ball position, speed, points and remaining time', () => {
+  const match = createMatch();
+  match.ball.y = match.height * .7;
+  match.score = [2, 1]; match.remaining = 8.5;
+  const velocity = { vx: match.ball.vx, vy: match.ball.vy };
+  assert.equal(resizeMatch(match, .75), true);
+  assert.ok(Math.abs(match.ball.y / match.height - .7) < 1e-10);
+  assert.deepEqual({ vx: match.ball.vx, vy: match.ball.vy }, velocity);
+  assert.deepEqual(match.score, [2, 1]); assert.equal(match.remaining, 8.5);
+  assert.equal(resizeMatch(match, NaN), false);
+  assert.equal(resizeMatch(match, 0), false);
+  assert.equal(resizeMatch(match, .75), false);
+});
+
+test('cropped, missing and invalid fingertips cannot start or advance a round', () => {
+  assert.equal(usableNet(net(.2), 9 / 16), true);
+  assert.equal(usableNet(net(.2, -.05), 9 / 16), false);
+  assert.equal(usableNet(net(1.1), 9 / 16), false);
+  assert.equal(usableNet(net(.2, .7), 9 / 16), false);
+  assert.equal(usableNet(net(.2, .28, .001), 9 / 16), false);
+  assert.equal(usableNet(net(NaN), 9 / 16), false);
+  assert.equal(usableNet(null, 9 / 16), false);
+});
+
+test('a player returning after a long pause keeps the last assigned slot', () => {
+  const previous = [{ ...net(.6), seenAt: 0 }, { ...net(.85), seenAt: 0 }];
+  const returning = net(.61), other = net(.84);
+  assert.deepEqual(assignHands(previous, [returning], 5000), [returning, null]);
+  assert.deepEqual(assignHands(previous, [other, returning], 5000), [returning, other]);
+  const updated = updateNets(previous, [other, returning], 5000);
+  assert.equal(updated[0].center.x, returning.center.x);
 });

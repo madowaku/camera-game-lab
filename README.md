@@ -137,8 +137,8 @@ Camera frames are intended to be processed on-device in the browser and are not 
 
 The reusable asset is the **body-input layer**, not any single game.
 
-## TENSION DUEL v0.1
+## TENSION DUEL v0.2
 
-Open `#tension-duel` after starting the app. Make a C with each player's thumb and index finger, then return the ball with the elastic net. A round lasts 15 active-play seconds. Longer tracking loss pauses both ball and clock; retry reuses the camera. JA/EN, a camera-free tryout, drag/keyboard/range controls and short readiness tips are included.
+Open `#tension-duel` after starting the app. Make a C with each player's thumb and index finger, then return the ball with the elastic net. A round lasts 15 active-play seconds. Show one hand on each side to start. Longer tracking loss pauses both ball and clock; retry reuses the camera. Pause / Resume (or Escape), rotation-safe play, JA/EN, explicitly labeled camera-free practice, drag/keyboard/range controls and illustrated onboarding are included. Rally counts, ball trails and point cues make the duel easier to follow.
 
-Run `npm test`, `npm run test:tension-ui`, and `npm run build` to verify rules, synthetic UI state transitions and the production bundle. Browser rendering, physical camera recognition and the two-person playtest remain unverified; see [implementation report](docs/TENSION_DUEL_PROGRESS.md) and [human checklist](docs/TENSION_DUEL_PLAYTEST.md).
+Run `npm test`, `npm run test:tension-ui`, and `npm run build` to verify rules, synthetic UI state transitions and the production bundle. Desktop and mobile browser rendering, a complete practice round, replay and pause/resume have been checked. Physical camera recognition and the two-person playtest remain pending; see [implementation report](docs/TENSION_DUEL_PROGRESS.md), [artwork and generation prompt](docs/TENSION_DUEL_ARTWORK.md) and [human checklist](docs/TENSION_DUEL_PLAYTEST.md).

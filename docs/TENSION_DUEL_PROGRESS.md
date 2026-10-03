@@ -1,33 +1,78 @@
-# TENSION DUEL v0.1 implementation report
+# TENSION DUEL v0.2 implementation report
 
-## Implemented
-- Isolated `#tension-duel` route integrated into the existing mode selector and JA/EN switch.
-- Two-hand front-camera input extends BodyInput and its existing lifecycle. Mirrored cover projection uses one isotropic coordinate scale.
-- Intro C illustration, first-round three-step countdown, live player presence, automatic start when both hands are usable, short tracking hold and longer-loss pause, result/retry/back.
-- Four centralized tension states, forgiving segment collision with substeps, same-net lock until separation, tilt/contact steering, bounded outgoing speed, elastic network rendering, hit rings and synthesized sounds.
-- 15-second active-play rounds; scores, automatic serve toward conceding player after 0.8 seconds, return count and best rally on results.
-- Camera-free controls: drag either lane, keyboard and six accessible native ranges. Focus and responsive layouts; landscape/fullscreen support; error recovery with bounded camera initialization.
-- No saved video or persistent gameplay records. No PIN/HARE/CATCH or AI opponent.
+Updated 2026-10-03. Continues `feat/tension-duel` at `d870e2d` in the isolated
+local branch `codex/tension-duel-polish`. The main checkout's in-progress work is
+preserved.
 
-## Verified
-- `npm test`: 56/56 (existing 43 + new 13 pure rules tests).
-- `npm run test:tension-ui`: 19 DOM-state checks and five UI-driven synthetic rounds, nine returns in each. Uses jsdom, stub canvas and injected hands, not a real browser/model.
-- `npm run build`: successful Vite + PWA production build.
-- JavaScript syntax and `git diff --check`: pass.
-- Feature-scoped strict UI static audit: zero findings. Full-project static audit flags three pre-existing DUO touch-pad buttons as actionless; inspection confirms their pointerdown listeners exist in `src/duo/duoArcade.js:100`. Report retained; no unrelated DUO changes made.
+## Changes
 
-## Not verified
-- Actual browser rendering, screenshots, touch layout and real browser console: unavailable. Cloud browser refused both loopback and supervised preview with `ERR_BLOCKED_BY_CLIENT`. Local Chromium installation received an invalid download archive.
-- Actual MediaPipe two-hand recognition, fingertip attachment, hand crossings, Android inference FPS, camera permissions on hardware and sound feel.
-- Two-human first-play five-round gate. See `TENSION_DUEL_PLAYTEST.md`.
-- GitHub push and deployment. Automatic approval review rejected the push because remote trust/ownership and authorization to transmit source were not established for this request. Nothing was published.
+- Generated two-hand intro artwork using the built-in image_gen tool. Runtime
+  WebP: 1536 × 864, 103,780 bytes. It is decorative; all instructions and scores
+  remain localized HTML. The PWA precaches the artwork. Full prompt:
+  [TENSION_DUEL_ARTWORK.md](TENSION_DUEL_ARTWORK.md).
+- Clearer countdown, center court line, player-colored goal edges, ball trail,
+  current rally and brief point cue. Camera/practice provenance appears during
+  play and in results.
+- Pause button / Escape and Resume preserve ball, score and active-play time.
+- Portrait uses a 4:3 arena; landscape remains 16:9. Rotation maps the ball to the
+  new height, preserves score/time/speed, and waits for freshly projected camera
+  fingertips.
+- Two valid hands must start on opposite sides. Cropped/invalid fingertips do
+  not advance the game; demo nets stay within the arena.
+- Reacquisition retains player assignment through longer pauses, skips stale
+  smoothing and never advances the ball on the first returning frame. Long
+  frame stalls are bounded to 100ms of active play.
+- Retry/navigation clean up the game correctly; fresh entry starts in camera
+  mode. Camera interruption clears the startup timeout. Pointer cancellation
+  clears held input.
+- Added meaningful rotation, cropped-input and long-loss regression tests;
+  extended the existing UI verifier and wired it into CI.
 
-## ID note
-The repository already uses EXP-021 for WATERMELON GUIDE and FACE RACER planning. The requested EXP-021 label is preserved with a TENSION qualifier; routing and filenames are unique. Existing IDs are not renumbered.
+## Software verification
 
-## Start locally
+- `npm test`: 59/59 pass.
+- `npm run test:tension-ui`: 26 checks pass, including five synthetic rounds
+  with nine returns each, restart, camera failure recovery, tracking pause,
+  first-frame reacquisition, manual pause/resume, Escape, rotation, same-side
+  setup and practice provenance.
+- `npm run build`: Vite production build and PWA generation pass.
+- Production service worker includes the artwork in its precache.
+- `git diff --check`: pass.
+
+## Browser verification
+
+Checked the actual app in Codex's in-app browser at 1440 × 900, 390 × 844,
+844 × 390 and 320 × 568, including Japanese and English:
+
+- Artwork loads; primary actions are reachable; no horizontal overflow.
+- A complete 15-second camera-free round reaches a result with points and
+  returns. Retry resets the score and starts another round.
+- Pause/Resume and Escape preserve the current round.
+- Rotating a paused round preserves the 15-second clock.
+- Language switch translates controls and practice/result provenance.
+- Back returns to HAND BEAT; reopening TENSION DUEL starts at its intro.
+- Production preview also renders the artwork and a complete practice round.
+- No browser console errors or warnings observed in these flows.
+
+Local screenshot evidence lives in `output/playwright/` (git-ignored):
+`tension-mobile-intro.png`, `tension-landscape-play.png` and
+`tension-desktop-intro.png`.
+
+## Remaining human verification
+
+Actual MediaPipe fingertip attachment, hand crossings, camera interruption on
+hardware, Android inference performance, sound feel and the two-person
+five-round gate remain unverified. Synthetic tests and camera-free browser
+rounds do not establish camera reliability or a human GO verdict. Use
+[TENSION_DUEL_PLAYTEST.md](TENSION_DUEL_PLAYTEST.md) before adding new mechanics.
+PIN/HARE/CATCH and AI opponents remain outside this iteration.
+
+## Local preview
+
 ```sh
 npm ci
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 5186
 ```
-Open the displayed local URL with `#tension-duel`. Camera requires localhost or HTTPS. Start with “Try without camera” to verify the loop, then use the camera and the human checklist.
+
+Open `http://127.0.0.1:5186/#tension-duel`. The current production preview runs
+at `http://127.0.0.1:5187/#tension-duel`. Camera needs localhost or HTTPS.

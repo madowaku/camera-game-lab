@@ -14,7 +14,13 @@ export const copy = {
     position: '高さ', angle: '傾き', opening: '指の開き', states: ['ゆるい', 'ふつう', '強い', '開きすぎ'],
     hits: '返球', rally: '連続返球', skip: '説明をスキップ', point: 'ポイント！', serve: 'サーブ',
     cameraFailed: 'カメラが停止しました。もう一度起動するか、カメラなしで試してね。',
-    arena: '指のネット対戦フィールド', mode: 'カメラなしのお試し', resume: '続きを遊ぶ'
+    arena: '指のネット対戦フィールド', mode: 'カメラなしの練習', resume: '続きを遊ぶ',
+    cameraMode: 'カメラ対戦', pause: '一時停止', paused: 'ちょっと、ひと休み。',
+    pausedDetail: '得点と残り時間はそのまま。準備ができたら再開しよう。',
+    rallyLive: 'ラリー', matchLength: '15秒', playerCount: '2人・1台',
+    resultDemo: '練習の結果', resultCamera: 'カメラ対戦の結果',
+    returnTip: '傾けて狙う · 開いて強く返す', serveTo: 'サーブ → P',
+    countdown: '開始まで', readyDetail: '左右に1つずつCを映すと、対戦が始まります。'
   },
   en: {
     start: 'Play with camera', retry: 'Play again · 15s', back: 'Back to experiments', demo: 'Try without camera', camera: 'Play with camera',
@@ -30,6 +36,12 @@ export const copy = {
     keys: 'Keyboard: P1 W/S to move, Q/A to tilt, E/D to stretch. P2 ↑/↓, O/L, I/K.',
     position: 'Height', angle: 'Tilt', opening: 'Finger spacing', states: ['Slack', 'Normal', 'Tension', 'Over tension'],
     hits: 'Returns', rally: 'Best rally', skip: 'Skip tips', point: 'Point!', serve: 'Serve',
-    cameraFailed: 'Camera stopped. Restart it or try without camera.', arena: 'Finger net duel field', mode: 'Camera-free tryout', resume: 'Resume'
+    cameraFailed: 'Camera stopped. Restart it or try without camera.', arena: 'Finger net duel field', mode: 'Camera-free practice', resume: 'Resume',
+    cameraMode: 'Camera duel', pause: 'Pause', paused: 'Take a breather.',
+    pausedDetail: 'Your score and time are safe. Resume when you are ready.',
+    rallyLive: 'Rally', matchLength: '15 seconds', playerCount: '2 players · 1 camera',
+    resultDemo: 'Practice result', resultCamera: 'Camera duel result',
+    returnTip: 'Tilt to aim · Stretch for power', serveTo: 'Serve → P',
+    countdown: 'Starting in', readyDetail: 'Show one C on each side to start the duel.'
   }
 };
