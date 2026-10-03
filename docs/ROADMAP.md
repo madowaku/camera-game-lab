@@ -241,3 +241,14 @@ Specs:
 
 - [DUO_RELATION_LAB_SPEC_v0.1.md](specs/DUO_RELATION_LAB_SPEC_v0.1.md)
 - [DUO_RELATION_LAB_IMPLEMENTATION_TASK_v0.1.md](specs/DUO_RELATION_LAB_IMPLEMENTATION_TASK_v0.1.md)
+
+## EXP-035 — FRAME SMUGGLER
+
+One camera operator and one smuggler alternate KEEP / HIDE / BACK for 30 seconds.
+The MVP includes front/rear camera selection, a palm-attached gem, four inspections,
+explicit tracking-loss handling, role swapping, JA/EN and local playtest records.
+
+Question: does deliberately moving cargo into and out of the camera frame make
+both players participate and talk naturally? The physical five-round gate remains
+pending; focus on camera-operator involvement, conversation and replay after swapping.
+See [spec](specs/EXP-035_FRAME_SMUGGLER_SPEC_v0.1.md) and [playtest](FRAME_SMUGGLER_PLAYTEST.md).

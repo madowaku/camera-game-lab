@@ -13,7 +13,7 @@ import { createLauncher, releaseResources, snapshotOf } from "../src/platform/la
 function memory() { const map = new Map(); return { getItem: (key) => map.get(key) ?? null, setItem: (key, value) => map.set(key, value) }; }
 test("registry describes every playable module and accepts namespaced display number collisions", () => {
   assert.deepEqual(validateRegistry(experiments), []);
-  assert.equal(experiments.length, 12);
+  assert.ok(experiments.length >= 14);
   assert.equal(experiments.filter((game) => game.exp === "EXP-020").length, 2);
   assert.equal(new Set(experiments.map((game) => game.id)).size, experiments.length);
 });

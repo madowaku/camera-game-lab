@@ -135,6 +135,23 @@ body { background:var(--pl-bg); color:var(--pl-text); }
 .launch-panel h1 { font:500 clamp(40px,11vw,64px)/1.05 var(--pl-display); letter-spacing:-.01em; margin:16px 0 25px; }
 .launch-reason { font-size:17px; line-height:1.7; }
 .launch-local { font-size:13px; line-height:1.7; color:var(--pl-muted); }
+.launch-panel.has-guide { padding-top:12px; padding-bottom:24px; }
+.launch-panel.has-guide .launch-number { margin-top:14px; }
+.launch-panel.has-guide h1 { margin:12px 0 18px; }
+.launch-panel.has-guide .launch-reason { font-size:14px; }
+.launch-panel.has-guide .launch-local { font-size:11px; }
+.launch-panel.has-guide .launch-controls { margin-top:18px; gap:8px; }
+.launch-panel.has-guide .launch-controls button { min-height:50px; }
+.launch-panel.has-guide .launch-status { margin-top:12px; min-height:20px; }
+.launch-quick-guide { display:flex; align-items:center; gap:14px; margin:0 0 18px; }
+.launch-illustration { flex:0 0 33%; height:180px; position:relative; color:var(--accent); display:grid; place-items:center; border-radius:20px; background:#284b4030; overflow:hidden; }
+.launch-illustration .preview-drawing { height:140px; width:140px; max-width:none; }
+.launch-illustration .preview-orbit,.launch-illustration .preview-coordinate,.launch-illustration .preview-input { display:none; }
+.launch-steps { list-style:none; padding:0; margin:0; display:grid; gap:15px; min-width:0; }
+.launch-steps li { display:flex; align-items:center; gap:8px; }
+.launch-steps li > span { display:grid; place-items:center; flex:none; width:28px; height:28px; background:var(--accent); color:var(--pl-bg); border-radius:8px; font:18px var(--pl-mono); }
+.launch-steps strong { display:block; font-size:13px; line-height:1.5; }
+.launch-steps small { display:block; font-size:10px; color:var(--pl-muted); margin-top:3px; line-height:1.5; }
 .launch-controls { display:flex; flex-direction:column; gap:12px; margin-top:30px; }
 .launch-controls button,.launch-panel > button { min-height:58px; border:1px solid var(--pl-border); border-radius:8px; background:var(--pl-surface); color:var(--pl-text); padding:12px 16px; font-size:13px; font-weight:700; }
 .launch-controls .launch-camera { background:var(--accent); border-color:var(--accent); color:var(--pl-bg); }

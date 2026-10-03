@@ -22,7 +22,7 @@ export function releaseResources(instance) {
 
 // One cached controller per module avoids accumulating its existing global event
 // listeners. Dormant controllers have no stream, model, timer or AudioContext.
-export function createLauncher(cacheRoot, { onState, onExit, onPhotoError }) {
+export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onReplay }) {
   const cache = new Map();
   let generation = 0, current = null;
   function closeAudio(instance) {
@@ -48,7 +48,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError }) {
       const host = document.createElement("section"); host.hidden = true; host.className = "platform-game-module";
       cacheRoot.append(host);
       let instance;
-      try { instance = factory(host, locale, { onExit }); }
+      try { instance = factory(host, locale, { onExit, onReplay: () => { if (current === entry && entry.enabled) onReplay?.(entry.game); } }); }
       catch (error) { host.remove(); throw error; }
       entry = { instance, host, enabled: false, autoStart: false, lastPhase: null, game };
       cache.set(game.module, entry);

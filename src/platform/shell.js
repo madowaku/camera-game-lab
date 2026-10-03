@@ -13,6 +13,7 @@ import { resultPayload, sharePayload } from "./share.js";
 import { mountFeed } from "./feed.js";
 import { mountExplore } from "./explore.js";
 import { createLauncher } from "./launcher.js";
+import { previewMarkup } from "./preview.js";
 
 export function mountPlatform(app) {
   const invalid = validateRegistry(experiments);
@@ -89,6 +90,7 @@ export function mountPlatform(app) {
   }
   const launcher = createLauncher(cacheRoot, {
     onExit: () => navigate(feedRoute(feedId)),
+    onReplay: (game) => { if (session?.game.id === game.id && session.result) replayRound(); },
     onPhotoError: () => toast(t("failed")),
     onState(snapshot, game) {
       if (!session || session.game.id !== game.id || !session.begun) return;
@@ -106,6 +108,13 @@ export function mountPlatform(app) {
       }
     },
   });
+  function replayRound() {
+    if (!session) return;
+    events.emit("retry", { id: session.game.id });
+    session.started = false; session.result = null; result.hidden = true; cacheRoot.classList.remove("platform-has-result");
+    launcher.retry(session.source);
+    cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
+  }
   result.addEventListener("click", (event) => {
     const action = event.target.closest("[data-result-action]")?.dataset.resultAction;
     if (!action || !session) return;
@@ -115,14 +124,14 @@ export function mountPlatform(app) {
       feedId = next.id; navigate(feedRoute(next.id));
     } else if (action === "share") void share(game, { ...session.result, summary: resultSummary(session.result) });
     else {
-      events.emit("retry", { id: game.id });
-      session.started = false; session.result = null; result.hidden = true; cacheRoot.classList.remove("platform-has-result");
-      launcher.retry(session.source);
-      cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
+      replayRound();
     }
   });
   function launchCopy(game) {
-    panel.innerHTML = `<p class="platform-kicker">${t("before")}</p><span class="launch-number">${game.exp} / ${game.category}</span><h1>${esc(titleOf(game, locale))}</h1><p class="launch-reason">${esc(game[locale === "ja" ? "launchReasonJa" : "launchReasonEn"] ?? (game.requiresMicrophone ? t("voiceReason") : t("reason", { input: game.input.map((input) => inputLabel(input, locale)).join("・") })))}</p><p class="launch-local">${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("local"))}</p>${game.orientation === "landscape" ? `<div class="orientation-guide"><span aria-hidden="true">▯ ↻ ▭</span><p>${t("rotate")}</p><small>${t("rotateDetail")}</small></div>` : ""}<div class="launch-controls"><button type="button" class="launch-camera" disabled>${t(game.requiresMicrophone ? "microphone" : "camera")}</button>${game.demo ? `<button type="button" class="launch-demo" disabled>${t("demo")}</button>` : ""}</div><p class="launch-status" role="status">${t("loading")}</p>`;
+    const steps = game[locale === "ja" ? "launchStepsJa" : "launchStepsEn"];
+    panel.classList.toggle("has-guide", !!steps);
+    const guide = steps ? `<div class="launch-quick-guide"><div class="launch-illustration">${previewMarkup(game)}</div><ol class="launch-steps">${steps.map(([title, detail], i) => `<li><span aria-hidden="true">${["↔", "↑", "◯"][i]}</span><div><strong>${i + 1}. ${esc(title)}</strong><small>${esc(detail)}</small></div></li>`).join("")}</ol></div>` : "";
+    panel.innerHTML = `<p class="platform-kicker">${t("before")}</p><span class="launch-number">${game.exp} / ${game.category}</span><h1>${esc(titleOf(game, locale))}</h1>${guide}<p class="launch-reason">${esc(game[locale === "ja" ? "launchReasonJa" : "launchReasonEn"] ?? (game.requiresMicrophone ? t("voiceReason") : t("reason", { input: game.input.map((input) => inputLabel(input, locale)).join("・") })))}</p><p class="launch-local">${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("local"))}</p>${game.orientation === "landscape" ? `<div class="orientation-guide"><span aria-hidden="true">▯ ↻ ▭</span><p>${t("rotate")}</p><small>${t("rotateDetail")}</small></div>` : ""}<div class="launch-controls"><button type="button" class="launch-camera" disabled>${t(game.requiresMicrophone ? "microphone" : "camera")}</button>${game.demo ? `<button type="button" class="launch-demo" disabled>${t("demo")}</button>` : ""}</div><p class="launch-status" role="status">${t("loading")}</p>`;
     panel.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
   }
   function updateChrome() {

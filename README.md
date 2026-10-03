@@ -53,6 +53,20 @@ works without camera permission. See [implementation and QA](docs/GHOST_TRAIL_PR
 and the [five-round human playtest sheet](docs/GHOST_TRAIL_PLAYTEST.md).
 Physical camera acceptance and the human playtest are still pending.
 
+## EXP-035: FRAME SMUGGLER
+
+Open `/#smuggler` for a 30-second, two-person camera game. One person films;
+the other shows one hand carrying a virtual gem. KEEP it in frame, HIDE it
+outside during four inspections, then bring it BACK. Select the front or rear
+camera before starting. Edge departures count as hiding; unexplained tracking
+loss does not. Results include score, inspections cleared, best hide time,
+caught count and SWAP ROLES.
+
+Camera-free touch/keyboard practice is labeled separately. Camera results offer
+six human observations, local round records and JSON export. The real two-person
+five-round gate is still pending. See the [specification](docs/specs/EXP-035_FRAME_SMUGGLER_SPEC_v0.1.md)
+and [playtest checklist and verification](docs/FRAME_SMUGGLER_PLAYTEST.md).
+
 ## First playable: HAND BEAT v0.1
 
 A ~15 second rhythm prototype using four hand inputs:
@@ -130,6 +144,25 @@ This first OUTCAM prototype intentionally uses screen-space targets rather than 
 
 `EXP-021` here is namespaced under OUTCAM LAB; DUO ARCADE keeps its existing EXP-021 FACE RACER designation.
 
+## EXP-025: FALSE BRIDGE
+
+Open `/#/game/outcam-false-bridge` (or `/#false-bridge`) to complete five little
+worlds with everyday shapes seen through the rear camera. Set an empty background,
+hold still for one second, align a shape, then tap LOCK. The clipped camera image
+stays in the world while the character crosses or climbs; the last stage retains
+a bridge while you add a pillar. No object recognition or model download.
+
+Coverage, nearby spill and line angle provide forgiving GOOD / GREAT / PERFECT
+feedback. Darkness, background movement or weak evidence offer LOOK GOOD? with
+accept / retry. Demo mode uses draggable material, angle/size sliders and keys,
+without requesting a camera. JA / EN, result sharing, RETRY and NEXT are supported.
+
+Images stay in memory and are discarded on departure. Local completion receipts
+contain measurements and camera/demo/self-judgment provenance, never images.
+See [implementation and verification](docs/FALSE_BRIDGE_PROGRESS.md) and the
+[five-session human playtest gate](docs/FALSE_BRIDGE_PLAYTEST.md). Physical mobile
+camera quality and the fun of the interaction are still unverified.
+
 ## EXP-020: GUARDIAN SPIRIT
 
 Open `/#guardian` to summon WARDEN behind your mirrored front-camera image.
@@ -170,6 +203,22 @@ keys provide a camera-free demo. Each stage lasts 15–30 seconds, with CLEAR,
 failed-stage RETRY and JA / EN. Camera and orientation require HTTPS or localhost.
 See [implementation and five-session playtest gate](docs/CAMERA_IS_IT_PROGRESS.md).
 Physical Android/iOS sensor checks and human playtests remain pending.
+
+## EXP-044: SOFT SERVE
+
+Swirl vanilla soft serve with one hand, choose your own height, then move the
+cone sideways and eat it with your mouth before it melts or falls. Open
+`#/game/solo-soft-serve` or `#soft-serve`. Three illustrated steps introduce
+the action; shrinking guides, height rewards and repeated mouth approaches
+carry a 20–40 second round. Mouse / drag / arrow keys and click / tap / Space
+provide labeled camera-free practice. JA / EN, sound, pause, result breakdown,
+RETRY and shared results are supported.
+
+Hand and mouth tracking use one front-camera stream with MediaPipe. The initial
+models require a connection; camera frames stay on-device. See
+[implementation, verification and the five-round playtest sheet](docs/SOFT_SERVE_PROGRESS.md)
+and [specification](docs/specs/EXP-044_SOFT_SERVE_SPEC_v0.1.md).
+Physical-device tracking and human game feel remain unverified.
 
 ## Stack
 
