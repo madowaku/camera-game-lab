@@ -1,7 +1,8 @@
 # EXP-016 NOTE EATER v0.2
 
 Implemented locally on 2026-10-03 from the [provided specification](specs/EXP-016_NOTE_EATER_SPEC_v0.2.md).
-Open `http://127.0.0.1:5173/#/game/solo-note-eater` or the `#note-eater` alias.
+Open the built preview at `http://127.0.0.1:4173/#/game/solo-note-eater`
+or the dev view at `http://127.0.0.1:5173/#/game/solo-note-eater` (`#note-eater` also works).
 It also appears in Feed and Explore. No deployment was performed.
 
 ## Playable implementation
@@ -57,9 +58,11 @@ or uploaded. Creator frames are memory-only.
   360×500 and 1440×900, including actual public practice controls, pixel
   evidence, full round, exact melody ordering through Web Audio, pause,
   sound, locale, receipts, retry and discovery.
-- `scripts/qa/note-eater-camera.js`: actual browser-owned camera tracks with
+- `scripts/qa/note-eater-camera.js`: 35 assertions; actual browser-owned camera tracks with
   synthetic landmarks exercise the real input/controller lifecycle, recovery,
   ambiguous faces, permission failure, retry and all Creator face modes.
+- `scripts/qa/note-eater-production.js`: 10 assertions through the built bundle,
+  including CDP touch drag/bite, round completion, melody, retry and desktop layout.
 - Screenshots are in `output/playwright/note-eater-*.png` (ignored QA output).
 
 The [Face Landmarker web guide](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js)
