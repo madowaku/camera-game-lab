@@ -4,6 +4,9 @@ Implemented locally on 2026-10-03 from the [provided specification](specs/EXP-01
 Expanded on 2026-10-04 following Hiro's request for richer sound, more notes
 and bigger celebrations. This direction increases the original note density;
 the supplied v0.2 specification is retained as the original brief.
+After public play feedback, density was reduced from 8–12 to 5–7 notes on
+2026-10-04, with the opening choices spread across the stage. Rich audio and
+celebration effects are retained.
 Open the built preview at `http://127.0.0.1:4173/#/game/solo-note-eater`
 or the dev view at `http://127.0.0.1:5173/#/game/solo-note-eater` (`#note-eater` also works).
 It also appears in Feed and Explore. Publishing uses the existing
@@ -20,8 +23,8 @@ through `npm run deploy`.
   counts as CLOSED. Returning closed re-arms automatically.
 - A single forgiving first note, a bite with immediate sound, 3/2/1, then
   exactly 30 active seconds. The tutorial note is excluded from round metrics.
-- Eight visible opening choices, growing to twelve as max GROOVE crosses
-  20/40/60/80. Each wave includes all five colored shapes mapped to C/D/E/G/A;
+- Five spaced opening choices, growing to six/seven as max GROOVE crosses
+  40/80. Each wave includes all five colored shapes mapped to C/D/E/G/A;
   one opening choice starts within reach. Density stays at the attained level
   when groove decays, and eaten/passed notes are replenished immediately.
   Radius is mouth width ×2.25 with practical bounds; wider magnet assistance
@@ -77,7 +80,7 @@ or uploaded. Creator frames are memory-only.
   360×500 and 1440×900, including actual public practice controls, pixel
   evidence, full round, exact melody ordering through Web Audio, pause,
   sound, locale, receipts, retry and discovery. High-groove scenes are checked
-  at mobile and desktop sizes; twelve-note density and party styling are verified.
+  at mobile and desktop sizes; the seven-note limit and party styling are verified.
 - `scripts/qa/note-eater-camera.js`: 35 assertions; actual browser-owned camera tracks with
   synthetic landmarks exercise the real input/controller lifecycle, recovery,
   ambiguous faces, permission failure, retry and all Creator face modes.

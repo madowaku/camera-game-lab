@@ -66,7 +66,7 @@ async (page) => {
     await page.evaluate(() => { const g = __partyView.game; const n = g.notes[0]; n.x = g.mouth.x; n.y = g.mouth.y; n.vx = n.vy = 0; });
     await page.locator('.ne-bite').click(); await page.clock.runFor(190);
   }
-  check(await page.evaluate(() => __partyView.game.eaten === 9 && __partyView.game.notes.length === 12), 'reduced motion still supports full-density bites');
+  check(await page.evaluate(() => __partyView.game.eaten === 9 && __partyView.game.notes.length === 7), 'reduced motion still supports the seven-note limit');
   check(await page.evaluate(() => __partyView.effects.length > 0 && __partyView.effects.length <= 8), 'celebration history stays bounded during rapid bites');
   check(await page.locator('.ne-canvas').evaluate(c => c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some((v, i) => i % 4 === 3 && v > 0)), 'reduced-motion celebration paints a nonblank scene');
   await page.screenshot({ path: 'output/playwright/note-eater-party-reduced-390.png' });

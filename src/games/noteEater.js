@@ -8,8 +8,8 @@ export const NOTE_TYPES = Object.freeze([
 export const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 export const grooveStage = groove => Math.min(4, Math.floor(clamp(groove, 0, 100) / 20));
 export const NOTE_EATER_BPM = 110;
-export const NOTE_EATER_BASE_NOTES = 8;
-export const NOTE_EATER_MAX_NOTES = 12;
+export const NOTE_EATER_BASE_NOTES = 5;
+export const NOTE_EATER_MAX_NOTES = 7;
 
 export class NoteEaterGame {
   constructor({ random = Math.random } = {}) { this.random = random; this.reset(); }
@@ -22,7 +22,7 @@ export class NoteEaterGame {
   distance(a, b) { return Math.hypot(a.x - b.x, (a.y - b.y) * this.aspect); }
   get eatRadius() { return clamp(this.mouth.width * 2.25, .11, .27); }
   get magnetRadius() { return this.eatRadius * 1.65; }
-  get noteTarget() { return Math.min(NOTE_EATER_MAX_NOTES, NOTE_EATER_BASE_NOTES + grooveStage(this.maxGroove)); }
+  get noteTarget() { return Math.min(NOTE_EATER_MAX_NOTES, NOTE_EATER_BASE_NOTES + Math.floor(grooveStage(this.maxGroove) / 2)); }
   setPaused(paused) { this.paused = !!paused; if (paused) { this.armed = false; this.mouthState = "UNKNOWN"; } }
   highlight(type, data = {}) { this.events.push({ type, at: this.time, data }); }
   spawn(tutorial = false, openingIndex = -1) {
@@ -30,9 +30,9 @@ export class NoteEaterGame {
     const type = tutorial ? 2 : this.nextType++ % NOTE_TYPES.length;
     const side = this.nextId % 4, lane = .2 + this.random() * .6;
     const starts = [{ x: .025, y: lane }, { x: .975, y: lane }, { x: lane, y: .03 }, { x: lane, y: .97 }];
-    const opening = [{ x: .22, y: .22 }, { x: .72, y: .18 },
+    const opening = [{ x: .22, y: .22 }, { x: .78, y: .25 },
       { x: clamp(this.mouth.x + .08, .12, .88), y: clamp(this.mouth.y - .025, .14, .84) },
-      { x: .82, y: .43 }, { x: .18, y: .55 }, { x: .62, y: .67 }, { x: .32, y: .81 }, { x: .8, y: .78 }];
+      { x: .24, y: .77 }, { x: .78, y: .77 }];
     const start = tutorial ? { x: this.mouth.x + .07, y: this.mouth.y - .08 } : opening[openingIndex] ?? starts[side];
     const target = { x: .15 + this.random() * .7, y: .25 + this.random() * .5 };
     const length = Math.hypot(target.x - start.x, (target.y - start.y) * this.aspect) || 1;

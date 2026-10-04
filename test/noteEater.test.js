@@ -46,18 +46,18 @@ test("the first bite is one safe choice, then a 3-2-1 countdown; it is excluded 
   assert.equal(g.eaten, 0); g.step(2999, sample("CLOSED")); assert.equal(g.phase, "countdown");
   g.step(1, sample("CLOSED")); assert.equal(g.phase, "playing"); assert.equal(g.elapsed, 0); assert.equal(g.notes.length, NOTE_EATER_BASE_NOTES);
 });
-test("the opening offers eight visible choices, every pitch and an immediately reachable bite", () => {
+test("the opening offers five spaced choices, every pitch and an immediately reachable bite", () => {
   const g = playing();
-  assert.equal(g.notes.length, 8); assert.equal(new Set(g.notes.map(n => n.type)).size, 5);
+  assert.equal(g.notes.length, 5); assert.equal(new Set(g.notes.map(n => n.type)).size, 5);
   assert.ok(g.notes.every(n => n.x > .1 && n.x < .9 && n.y > .1 && n.y < .9));
-  assert.equal(new Set(g.notes.map(n => `${n.x},${n.y}`)).size, 8);
+  assert.equal(new Set(g.notes.map(n => `${n.x},${n.y}`)).size, 5);
   assert.ok(g.notes.some(n => g.distance(n, g.mouth) < g.eatRadius));
 });
-test("groove expands the field to twelve without losing choices when groove decays", () => {
+test("groove expands the field to seven without losing choices when groove decays", () => {
   const g = playing();
   for (let i = 0; i < 8; i++) { bite(g, i % 5); assert.ok(g.notes.length <= NOTE_EATER_MAX_NOTES); }
-  assert.equal(g.notes.length, 12); assert.equal(g.noteTarget, 12);
-  for (let i = 0; i < 250; i++) { g.step(100, sample("CLOSED")); assert.equal(g.notes.length, 12); }
+  assert.equal(g.notes.length, 7); assert.equal(g.noteTarget, 7);
+  for (let i = 0; i < 250; i++) { g.step(100, sample("CLOSED")); assert.equal(g.notes.length, 7); }
   assert.ok(g.groove < 80); assert.equal(g.eaten, 8);
 });
 test("one open mouth eats only the nearest note and must close before the next bite", () => {
@@ -79,9 +79,9 @@ test("forgiving radius scales with mouth width and magnet pulls only nearby choi
   const n = { ...g.notes[0], x: .75, y: .5, vx: 0, vy: 0 }; g.notes = [n]; g.step(100, sample("CLOSED"));
   assert.ok(n.magnet); assert.ok(n.x < .75); assert.ok(g.magnetRadius > g.eatRadius);
 });
-test("passed choices softly sound without penalties or a groove reset, and replenish to eight", () => {
+test("passed choices softly sound without penalties or a groove reset, and replenish to five", () => {
   const g = playing(); g.groove = 50; g.notes.forEach(n => { n.age = 20000; }); g.step(100, sample("CLOSED"));
-  assert.equal(g.effects.filter(e => e.type === "pass").length, 8); assert.equal(g.notes.length, 8); assert.ok(g.groove > 49);
+  assert.equal(g.effects.filter(e => e.type === "pass").length, 5); assert.equal(g.notes.length, 5); assert.ok(g.groove > 49);
 });
 test("groove grows through five backing stages, emits highlight hooks and preserves the melody order", () => {
   const g = playing(), order = [4, 0, 4, 2, 1, 3, 2, 0]; let fast = false, celebrations = 0;

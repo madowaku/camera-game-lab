@@ -35,7 +35,7 @@ async (page) => {
   check(await page.evaluate(()=>__noteGame.phase==='countdown'&&__noteTimes.some(n=>!n.quiet)), 'first bite sounds immediately and begins countdown');
   check(await page.locator('.ne-cue').textContent()==='3','countdown begins at 3');
   await page.clock.runFor(3100);
-  check(await page.evaluate(()=>__noteGame.phase==='playing'&&__noteGame.eaten===0&&__noteGame.notes.length===8),'round starts with eight choices; tutorial excluded');
+  check(await page.evaluate(()=>__noteGame.phase==='playing'&&__noteGame.eaten===0&&__noteGame.notes.length===5),'round starts with five choices; tutorial excluded');
   check(await page.evaluate(()=>new Set(__noteGame.notes.map(n=>n.type)).size===5),'all five pitches are available at the start');
   const bounds = await page.locator('.ne-stage').boundingBox();
   const aim = async () => {
@@ -52,7 +52,7 @@ async (page) => {
   await page.keyboard.up('Space'); await page.clock.runFor(90);
   for(let i=0;i<8;i++){await aim();await page.locator('.ne-bite').click();await page.clock.runFor(180);}
   check(await page.evaluate(()=>__noteGame.eaten>=7&&__noteGame.maxGroove>=80),'practice bites build groove above 80');
-  check(await page.evaluate(()=>__noteGame.notes.length===12),'high groove brings twelve playable notes');
+  check(await page.evaluate(()=>__noteGame.notes.length===7),'high groove stays at seven playable notes');
   check(await page.locator('.ne-view').evaluate(e=>e.classList.contains('is-party')),'high groove turns on the party frame');
   check(await page.locator('.ne-canvas').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=0;i<d.length;i+=4)if(d[i]>160&&d[i]<250&&d[i+1]<150&&d[i+2]<150)n++;return n>100;}),'playable canvas has colored pixel evidence');
   await page.screenshot({path:'output/playwright/note-eater-playing-390.png'});
