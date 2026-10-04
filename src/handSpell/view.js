@@ -37,7 +37,7 @@ export class HandSpellView {
     this.renderer.fx = { glow: 0, punch: 0, lock: 0 };
     this.media = matchMedia('(prefers-reduced-motion: reduce)'); this.reducedMotion = this.media.matches;
     this.replay = this.options.creator ? new SpellReplay() : null;
-    this.bind(); this.audio.arm(); this.render(); this.notify(); return this.generation;
+    this.bind(); this.audio.arm(); this.render(); this.notify(); void this.ensureVisual3d(this.generation); return this.generation;
   }
   async ensureVisual3d(token = this.generation) {
     if (this.visual3d || this.visual3dError || !this.active) return this.visual3d;
