@@ -8,6 +8,7 @@ import { SoftServeAnimation } from "./animation.js";
 import logo from "./assets/logo.png";
 import { CreatorMode } from "../creator/CreatorMode.js";
 import { softServeCreatorProfile } from "./creatorProfile.js";
+import { SoftServeDirectorEvents } from "./directorEvents.js";
 import "../creator/creator.css";
 import "./softServe.css";
 
@@ -18,7 +19,7 @@ class SoftServeView {
     this.generation = 0; this.phase = "idle"; this.source = "camera"; this.active = false;
     this.game = new SoftServeGame(); this.audio = new SoftServeAudio(); this.soundPreference = true; this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     root.innerHTML = `<div class="ss-view"><div class="ss-toolbar"><img class="ss-mini-logo" src="${logo}" alt="SOFT SERVE"><strong class="ss-height"></strong><div class="ss-tools"><button type="button" class="ss-sound" aria-pressed="false"></button><button type="button" class="ss-pause"></button></div></div>
-      <span class="ss-source"></span><div class="ss-hud"><span class="ss-risk"></span><strong class="ss-multiplier"></strong></div>
+      <span class="ss-source"></span><div class="ss-creator-face" hidden><label><span>FACE</span><select aria-label="Face mode"><option>ORIGINAL</option><option>EFFECT</option><option>HIDE</option></select></label></div><div class="ss-hud"><span class="ss-risk"></span><strong class="ss-multiplier"></strong></div>
       <div class="ss-stage" tabindex="0" role="group"><video muted playsinline></video><canvas aria-hidden="true"></canvas><canvas class="creator-scene" aria-hidden="true" hidden></canvas><div class="ss-overlay" role="status" aria-live="polite" hidden></div></div>
       <div class="ss-meters"><label class="ss-meter"><span class="ss-melt-label"></span><span class="ss-melt-value"></span><progress class="ss-melt" max="100"></progress></label><label class="ss-meter"><span class="ss-balance-label"></span><span class="ss-balance-value"></span><progress class="ss-balance" max="100"></progress></label></div>
       <div class="ss-caption"><h2 class="ss-callout" role="status" aria-live="polite"></h2><p class="ss-instruction"></p></div>
@@ -49,7 +50,7 @@ class SoftServeView {
         summaryEn: `${r.source === "demo" ? "Practice" : "Camera"} · ${r.maxSwirls} swirls ×${r.multiplier} · ${r.eatenPercent}% eaten` } : null };
   }
   setLocale(locale) { this.locale = locale; this.render(); }
-  configure(options) { this.creatorConfig = { creator: !!options.creator, faceMode: options.faceMode ?? "ORIGINAL" }; }
+  configure(options) { this.launchOptions=options;this.creatorConfig = { creator: !!options.creator, faceMode: options.faceMode ?? "ORIGINAL" }; }
   activate() { this.active = true; this.phase = "idle"; this.render(); }
   bind() {
     this.abort?.abort(); this.abort = new AbortController(); const signal = this.abort.signal, n = this.nodes;
@@ -89,6 +90,11 @@ class SoftServeView {
     n.bite.addEventListener("click", () => { if (this.source === "demo" && !this.game.paused) this.pendingBite = true; }, { signal });
     n.retry.addEventListener("click", () => void this.startCamera(), { signal });
     n.demo.addEventListener("click", () => this.startDemo(), { signal });
+    this.$(".ss-creator-face select").addEventListener("change", event => {
+      this.creatorConfig.faceMode=event.target.value;
+      if(this.launchOptions)this.launchOptions.faceMode=event.target.value;
+      this.creator?.setFaceMode(event.target.value);this.render();
+    }, { signal });
   }
   syncPause() {
     const paused = this.userPaused || this.backgroundPaused;
@@ -98,9 +104,10 @@ class SoftServeView {
     this.releaseInputs(); this.active = true; this.source = source; this.phase = "loading"; this.status = "LOADING_MODEL";
     this.game = new SoftServeGame(); this.game.reset(source); this.raw = null; this.lastInput = -Infinity;
     this.cursor = { x: .5, y: .72 }; this.pendingBite = false; this.pointer = null; this.userPaused = false; this.backgroundPaused = document.hidden; this.lastEffect = null; this.lastPour = 0;
-    this.animation = new SoftServeAnimation({ finishMs: this.creatorConfig.creator ? 1800 : 750 }); this.receiptSaved = false;
+    this.animation = new SoftServeAnimation({ finishMs: this.creatorConfig.creator ? 3100 : 750 }); this.receiptSaved = false;
     this.creatorResult = null; this.oversizeHighlight = false; this.finalApproach = false; this.lastHighlight = null;
     if(this.creatorConfig.creator)this.creator = new CreatorMode(this.creatorCanvas,{profile:softServeCreatorProfile,faceMode:this.creatorConfig.faceMode,reducedMotion:this.reducedMotion});
+    this.directorEvents=this.creator?new SoftServeDirectorEvents(event=>this.creator.event(event)):null;
     this.bind(); this.syncPause(); if (this.soundPreference) this.audio.enable(); this.render(); this.notify(); return this.generation;
   }
   async startCamera() {
@@ -109,7 +116,7 @@ class SoftServeView {
     catch (error) { if (token === this.generation && error.name !== "AbortError") this.fail(); }
   }
   startDemo() { this.setup("demo"); this.begin(); this.nodes.stage.focus({ preventScroll: true }); }
-  begin() { this.phase = "ready"; this.lastTick = performance.now(); this.render(); this.notify(); this.raf = requestAnimationFrame(this.tick); }
+  begin() { this.phase = "ready"; this.creator?.event({type:"GAME_START",timestamp:0});this.lastTick = performance.now(); this.render(); this.notify(); this.raf = requestAnimationFrame(this.tick); }
   project(point) { return projectMouth(point, this.video.videoWidth, this.video.videoHeight, this.nodes.stage.clientWidth, this.nodes.stage.clientHeight); }
   sample(now, dt) {
     if (this.source === "camera") {
@@ -127,15 +134,15 @@ class SoftServeView {
     if (!this.active) return;
     const dt = now - this.lastTick; this.lastTick = now;
     if (this.animation.advance(dt, this.userPaused || this.backgroundPaused)) {
-      this.creatorResult = this.creator?.snapshot() ?? null;
-      this.phase = "result"; this.raf = null; this.saveReceipt(); this.render(); this.notify(); return;
+      this.render();this.raf=null;void this.completeRound();return;
     }
-    if (this.phase === "finishing") { this.render(); this.raf = requestAnimationFrame(this.tick); return; }
+    if (this.phase === "finishing") { this.currentSample=this.sample(now,dt);this.render(); this.raf = requestAnimationFrame(this.tick); return; }
     const sample = this.sample(now, dt);
     if(this.creator && !this.finalApproach && this.game.phase === "eat" && this.game.amount <= 1.01 && sample?.open && sample?.mouth && Math.hypot(sample.mouth.x-this.game.tip.x,sample.mouth.y-this.game.tip.y)<.15) {
       this.finalApproach=true;this.creator.highlight("finish",this.animation.time,{anticipation:true});
     }
     this.currentSample = sample; this.game.step(dt, sample);
+    this.directorEvents?.observe(this.game,this.animation.time);
     const changed = this.phase !== this.game.phase; this.phase = this.game.phase;
     const effect = this.game.effect;
     if (effect && effect !== this.lastEffect) { this.audio.play(effect.type); this.lastEffect = effect; this.animation.consume(effect, sample?.mouth); }
@@ -148,14 +155,22 @@ class SoftServeView {
       this.phase = "finishing"; this.animation.finish(this.game.result.outcome);
       const r=this.game.result;
       this.creator?.highlight(r.outcome === "clean" ? "finish" : "fail",this.animation.time,{final:true,score:r.score,size:r.maxSwirls,swirl:r.beauty,outcome:r.outcome});
-      // Preserve only the already selected face treatment for the creator finale.
       this.render();
-      this.input.stop(); this.raw = null; this.currentSample = null; this.keys.clear(); this.pendingBite = false;
+      if(!this.creator){this.input.stop(); this.raw = null; this.currentSample = null;}
+      this.keys.clear(); this.pendingBite = false;
       this.audio.play(this.game.result.outcome);
     }
     this.render();
     if (changed) this.notify(); this.raf = requestAnimationFrame(this.tick);
   };
+  async completeRound() {
+    const token=this.generation;
+    this.creator?.event({type:"GAME_END",timestamp:this.animation.time,score:this.game.result.score});
+    this.creatorResult=this.creator?await this.creator.finish({source:this.source,sound:this.soundPreference}):null;
+    if(token!==this.generation||!this.active)return;
+    this.input.stop();this.raw=null;this.currentSample=null;
+    this.phase="result";this.saveReceipt();this.render();this.notify();
+  }
   saveReceipt() {
     if (this.receiptSaved) return; this.receiptSaved = true;
     try {
@@ -177,6 +192,10 @@ class SoftServeView {
     const text = (key, value) => { if (n[key].textContent !== String(value)) n[key].textContent = value; };
     n.view.classList.toggle("is-result", !!r); n.stage.classList.toggle("is-demo", this.source === "demo"); n.stage.classList.toggle("is-finishing", this.phase === "finishing"); n.stage.setAttribute("aria-label", t.board);
     n.view.classList.toggle("is-creator", !!this.creator); this.creatorCanvas.hidden = !this.creator;
+    n.view.classList.toggle("is-reaction",this.phase==="finishing"&&this.animation.finishAge>650);
+    this.$(".ss-creator-face").hidden=!this.creator||!!r;
+    this.$(".ss-creator-face select").value=this.creatorConfig.faceMode;
+    this.$(".ss-creator-face select").title=this.locale==="ja"?"変更後の映像に反映されます":"Applies to newly captured frames";
     text("source", t[this.source]); text("pause", t[this.userPaused ? "resume" : "pause"]); n.pause.setAttribute("aria-pressed", String(!!this.userPaused)); n.pause.disabled = ["idle", "loading", "error", "result"].includes(this.phase);
     text("sound", t[this.audio.enabled ? "soundOn" : "soundOff"]); n.sound.setAttribute("aria-pressed", String(this.audio.enabled)); n.sound.disabled = !!r;
     const steps = t.steps.map((label, i) => `<li class="${(g.phase === "eat" ? i === 2 : g.amount >= 3 ? i === 1 : i === 0) ? "is-current" : ""}"><b>${i + 1}</b>${label}</li>`).join("");
@@ -199,7 +218,8 @@ class SoftServeView {
     n.bite.hidden = this.source !== "demo" || this.phase !== "eat"; n.bite.disabled = g.paused; text("bite", t.bite);
     n.recovery.hidden = this.phase !== "error"; text("retry", t.retry); text("demo", t.tryDemo);
     for (const key of ["hud", "meters", "caption", "hint", "steps", "actions"]) n[key].hidden = !!r;
-    drawSoftServe(this.canvas, g, { demo: this.source === "demo", mouth: this.currentSample?.mouth, open: this.currentSample?.open, locale: this.locale, reducedMotion: this.reducedMotion, animation: this.animation });
+    drawSoftServe(this.canvas, g, { demo: this.source === "demo", mouth: this.currentSample?.mouth, open: this.currentSample?.open, locale: this.locale, reducedMotion: this.reducedMotion, animation: this.animation, quietReaction:!!this.creator });
+    if(this.creator)this.creator.hud={swirls:Math.floor(g.maxAmount)};
     this.creator?.compose(this.video,this.canvas,{time:this.animation.time,face:this.currentSample?.face,open:this.currentSample?.open,biteAge:this.animation.biteAge,source:this.source});
   }
 }

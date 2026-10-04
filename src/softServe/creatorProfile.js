@@ -1,6 +1,8 @@
 import { softServeFaceEffect } from "./faceEffect.js";
+import { softServeDirectorProfile } from "../creator/profiles/softServeDirector.js";
 export const softServeCreatorProfile=Object.freeze({
   brand:"SOFT SERVE",
+  director:softServeDirectorProfile,
   faceEffect:softServeFaceEffect,
   perfect:{label:"PERFECT SWIRL!",duration:1100,slow:.5},
   fail:{label:"NOOOOO!",duration:1250,freeze:180,splashColor:"#fff7eb"},

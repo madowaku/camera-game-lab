@@ -101,8 +101,8 @@ export const experiments = Object.freeze([
     launchReasonEn: "Your hand is the cone. Go taller for a bigger bonus. Eat it all before it melts or falls!",
     launchStepsJa: [["手のひらを中央へ", "つままず、リングが満ちたら左右に"], ["好きな高さまで", "もう一巻き？ 今やめてもOK"], ["横へ離して食べる", "口を近づけて、離して、ペロッ"]],
     launchStepsEn: [["Palm below the nozzle", "No pinching. Fill the ring, then swirl"], ["How high will you go?", "One more swirl? Your call"], ["Move sideways. Eat!", "Open wide, approach, pull away"]],
-    privacyJa: "片手と口をインカメラで追跡します。PLAYは録画せず、CREATORはリプレイ用に端末メモリだけへ一時保存。退出時に破棄し、外部へ送信しません。初回はモデルをダウンロードします。",
-    privacyEn: "Front camera tracks your hand and mouth. PLAY does not record. CREATOR keeps a temporary replay in device memory, discards it on exit and never uploads it. Models download on first use.",
+    privacyJa: "片手と口をインカメラで追跡します。PLAYは録画しません。CREATORはカメラ映像から共有動画を端末内で作り、退出時に破棄します。共有を選ぶまで外部へ送信しません。初回はモデルをダウンロードします。",
+    privacyEn: "Front camera tracks your hand and mouth. PLAY does not record. CREATOR makes clips on your device and discards them on exit. Video is not sent until you choose Share. Models download on first use.",
     aliases: ["#soft-serve"], module: "softServe", demo: true, motif: "softServe",
     loadPresentation: () => import("../softServe/presentation.js"),
     resultShare: (r, locale) => {

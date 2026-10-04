@@ -25,3 +25,17 @@
 .platform--soft-serve .creator-again { min-height:44px; background:transparent; color:#805c4c; border:0; font-size:11px; margin:5px 0; }
 @media(max-height:650px) { .creator-replay-canvas { width:240px; } }
 @media(prefers-reduced-motion:reduce) { .creator-mode-tabs * { transition:none; } }
+.ss-creator-face { margin:5px 0; font-size:10px; color:#805c4c; }
+.ss-creator-face label { display:flex; gap:8px; align-items:center; justify-content:flex-end; }
+.ss-creator-face select { min-height:44px; border:1px solid #e5d3b9; border-radius:12px; padding:5px 10px; color:#583a2d; background:#fffcf6; }
+.ss-view.is-creator.is-reaction .ss-meters,.ss-view.is-creator.is-reaction .ss-steps,.ss-view.is-creator.is-reaction .ss-hint,.ss-view.is-creator.is-reaction .ss-caption { visibility:hidden; }
+.creator-ready { font-size:20px; color:#583a2d; margin:5px 0 8px; }
+.creator-replay-video { display:block; width:min(100%,270px); aspect-ratio:9/16; background:#fff7eb; border-radius:18px; margin:auto; }
+.creator-replay .creator-replay-canvas { width:min(100%,270px); border-radius:18px; }
+.creator-format-picker { display:flex; justify-content:center; gap:6px; margin:12px auto 0; max-width:335px; }
+.platform--soft-serve .creator-format-picker button { min-height:44px; padding:8px; flex:1; font-size:11px; border:1px solid #e5d3b9; border-radius:25px; color:#583a2d; background:#fffcf6; }
+.platform--soft-serve .creator-format-picker button[aria-pressed="true"] { color:#fff7eb; background:#583a2d; }
+.creator-export-status { font-size:11px; color:#805c4c; min-height:18px; margin:9px 0; }
+.platform--soft-serve .creator-replay-controls button:disabled { opacity:.45; }
+.creator-replay [hidden] { display:none; }
+@media(max-width:400px) { .creator-replay .creator-replay-canvas,.creator-replay-video { width:min(100%,225px); } }

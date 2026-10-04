@@ -1,15 +1,35 @@
 import { CREATOR_SIZE } from "./CameraLayout.js";
 import { drawFaceMode, normalizeFaceMode } from "./FaceMode.js";
 import { HighlightEvents } from "./HighlightEvent.js";
+import { DirectorEventBus } from "./DirectorEventBus.js";
+import { DirectorRecorder } from "./DirectorRecorder.js";
+import { AutoDirector } from "./AutoDirector.js";
+import { creatorMetric } from "./metrics.js";
 const clamp=n=>Math.max(0,Math.min(1,n));
 const oval=(c,x,y,rx,ry)=>{c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
 export class CreatorMode {
   constructor(canvas,{profile,faceMode="ORIGINAL",reducedMotion=false}={}) {
     this.canvas=canvas;this.profile=profile;this.faceMode=normalizeFaceMode(faceMode);this.reducedMotion=reducedMotion;
+    this.faceModes=new Set([this.faceMode]);
     canvas.width=CREATOR_SIZE.width;canvas.height=CREATOR_SIZE.height;
     this.camera=document.createElement("canvas");this.camera.width=270;this.camera.height=480;
     this.highlights=new HighlightEvents(profile);this.frames=[];this.live=[];this.bytes=0;this.lastCapture=-Infinity;this.generation=0;this.recording=true;
+    if(profile.director) {
+      this.director = new AutoDirector(profile.director);
+      this.events = new DirectorEventBus(profile.director);
+      this.recorder = new DirectorRecorder(profile.director);
+      this.events.subscribe(event => this.recorder.mark(event, profile.director));
+      canvas.width=540;canvas.height=960;this.camera.width=540;this.camera.height=960;
+      creatorMetric("creator_mode_started");creatorMetric("face_mode_selected",{faceMode:this.faceMode});
+    }
   }
+  event(payload) {
+    const event=this.events?.emit(payload);
+    if(event?.type==="HERO"){this.markHero(event.timestamp);creatorMetric("hero_detected");}
+    return event;
+  }
+  markHero(timestamp) { this.heroTimestamp=timestamp; }
+  setFaceMode(mode) { this.faceMode=normalizeFaceMode(mode);this.faceModes.add(this.faceMode);creatorMetric("face_mode_selected",{faceMode:this.faceMode}); }
   highlight(type,time=this.time??0,data={}) {
     if(typeof time==="object"){data=time;time=this.time??0;}
     const event=this.highlights.highlight(type,time,data);
@@ -19,6 +39,20 @@ export class CreatorMode {
   compose(video,food,{time=0,face=null,open=false,biteAge=Infinity,source="camera"}={}) {
     this.time=time;
     const c=this.canvas.getContext("2d"),camera=this.camera.getContext("2d"),w=270,h=480,event=this.highlights.latest(time);
+    if(this.director){
+      c.setTransform(this.canvas.width/w,0,0,this.canvas.height/h,0,0);
+      camera.setTransform(this.camera.width/w,0,0,this.camera.height/h,0,0);
+      camera.fillStyle="#fff7eb";camera.fillRect(0,0,w,h);
+      if(source==="camera")drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect});
+      c.fillStyle="#fff7eb";c.fillRect(0,0,w,h);
+      if(source==="camera")c.drawImage(this.camera,0,0,w,h);
+      c.drawImage(food,0,0,w,h);
+      c.textAlign="center";c.font="800 9px sans-serif";c.fillStyle="#fff7eb";c.strokeStyle="#583a2d";c.lineWidth=2;
+      const brand=`◉ CAMERA GAME #${String(this.profile.director.gameNumber).padStart(3,"0")}`;
+      c.strokeText(brand,w/2,h*.085);c.fillText(brand,w/2,h*.085);
+      if(this.heroTimestamp===undefined&&this.hud){c.font="800 12px sans-serif";const label=`${this.hud.swirls} SWIRLS`;c.strokeText(label,w/2,h*.9);c.fillText(label,w/2,h*.9);}
+      this.recorder.capture(this.canvas,time);return;
+    }
     if(video.srcObject){camera.fillStyle="#fff7eb";camera.fillRect(0,0,w,h);drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect});}
     c.fillStyle="#fff7eb";c.fillRect(0,0,w,h);
     if(source==="camera")c.drawImage(this.camera,0,0);
@@ -60,5 +94,12 @@ export class CreatorMode {
     if(!this.reducedMotion){for(let i=0;i<14;i++){const a=i*2.4,r=35+(age%900)/900*60;c.fillStyle=["#f57682","#a9be88","#f6c561","#fff7eb"][i%4];c.save();c.translate(w*.5+Math.cos(a)*r,y+Math.sin(a)*r);c.rotate(a+age/700);c.fillRect(-2,-3,4,6);c.restore();}}
   }
   snapshot() { this.recording=false;return {frames:[...this.frames],events:this.highlights.events.map(e=>({...e,data:{...e.data}})),brand:this.profile.brand,faceMode:this.faceMode}; }
-  dispose() { ++this.generation;this.recording=false;this.frames=[];this.live=[];this.bytes=0;this.camera.width=0;this.canvas.width=0; }
+  async finish({source="camera",sound=true}={}) {
+    if(!this.director)return this.snapshot();
+    const frames=await this.recorder.finish(),events=this.events.events.map(e=>({...e,metadata:{...e.metadata}}));
+    const plans={15:this.director.plan(frames,events,"15"),7:this.director.plan(frames,events,"7")};
+    creatorMetric("creator_mode_completed",{source,faceMode:this.faceMode});
+    return {frames,events,plans,brand:this.profile.brand,faceMode:this.faceMode,faceModes:[...this.faceModes],source,sound,reducedMotion:this.reducedMotion,files:{}};
+  }
+  dispose() { ++this.generation;this.recording=false;this.recorder?.dispose();this.events?.dispose();this.frames=[];this.live=[];this.bytes=0;this.camera.width=0;this.canvas.width=0; }
 }

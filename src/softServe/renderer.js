@@ -46,7 +46,7 @@ export function drawPortrait(canvas,shape) {
   const vh=Math.min(h/(.034*shape.amount+.26),w*2.4),vw=Math.min(w*1.4,vh*.72);
   drawFood(c,shape,{w:vw,h:vh,x:w*.5,y:h*.86-Math.min(vw*.13,vh*.17)*1.85});
 }
-export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reducedMotion=false,locale="ja",animation=null}={}) {
+export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reducedMotion=false,locale="ja",animation=null,quietReaction=false}={}) {
   const s=surface(canvas);if(!s)return;const {c,w,h}=s,x=game.cone.x*w,y=game.cone.y*h;
   const serving=game.phase==="serve",ready=game.phase==="ready",eating=game.phase==="eat";
   if(demo){
@@ -84,7 +84,7 @@ export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reduc
     c.save();c.globalAlpha=fade;c.translate(tx+(bite.mouth.x*w-tx)*pull,ty+(bite.mouth.y*h-ty)*pull);const scale=reducedMotion?1:1-pull*.7;c.scale(scale,age<80&&!reducedMotion ? .82 : scale);c.translate(-tx,-ty);drawFood(c,bite.before,{w,h,x:(bite.cone?.x??game.cone.x)*w,y:(bite.cone?.y??game.cone.y)*h,cone:false,fromLevel:bite.afterAmount});c.restore();
     if(age>100){c.save();c.globalAlpha=fade;c.fillStyle="#fffaf0";c.beginPath();c.roundRect(tx-w*.12,ty-h*.1,w*.24,h*.07,20);c.fill();c.fillStyle="#ad4350";c.font="800 "+Math.max(15,w*.05)+"px 'Yu Gothic',sans-serif";c.textAlign="center";c.fillText(locale==="ja"?"ぱくっ！":"YUM!",tx,ty-h*.052);c.restore();}
   }
-  if(animation?.finishAt!==null&&animation?.outcome==="clean"){
+  if(animation?.finishAt!==null&&animation?.outcome==="clean"&&(!quietReaction||animation.finishAge<650)){
     const age=animation.finishAge;c.save();c.globalAlpha=clamp(age/180);c.fillStyle="#fffaf0";c.beginPath();c.roundRect(w*.18,h*.33,w*.64,h*.16,32);c.fill();c.fillStyle="#a9404d";c.textAlign="center";c.font="800 "+w*.075+"px 'Yu Gothic',sans-serif";c.fillText(locale==="ja"?"ごちそうさま！":"ALL GONE!",w*.5,h*.425);
     if(!reducedMotion){c.fillStyle="#f57682";for(let i=0;i<8;i++){const a=i*Math.PI/4,r=w*(.18+clamp(age/750)*.15);ellipse(c,w*.5+Math.cos(a)*r,h*.4+Math.sin(a)*r,w*.008,w*.012);}}c.restore();
   }

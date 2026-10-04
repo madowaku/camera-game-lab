@@ -1,5 +1,8 @@
 # SOFT SERVE CREATOR MODE v0.1
 
+このページはv0.1時点の記録です。現行実装と動画出力は
+[CREATOR MODE v0.2 / AUTO DIRECTOR](CREATOR_MODE_V02_PROGRESS.md)を参照してください。
+
 2026-10-03。ユーザーの追加依頼に基づく、camera-game-labのCREATOR MODE第1号。
 通常PLAYの入力・時間・得点は同じまま、撮れ高の表示と短いリプレイを追加する。
 

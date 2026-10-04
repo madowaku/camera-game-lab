@@ -260,10 +260,13 @@ provide labeled camera-free practice. JA / EN, sound, pause, result breakdown,
 RETRY and shared results are supported.
 
 The launcher offers PLAY and CREATOR. CREATOR starts after choosing ORIGINAL,
-EFFECT or HIDE, composes a 9:16 view, and turns perfect swirls, failures and the
-final bite into a seven-second highlight replay. The shared `src/creator/`
-modules accept game-specific highlight events. Video export and direct SNS
-sharing are reserved for v0.2. See [Creator Mode and verification](docs/SOFT_SERVE_CREATOR_MODE.md).
+EFFECT or HIDE and composes a 9:16 view. Auto Director keeps the final bite and
+three seconds of reaction, then automatically creates standard (up to 15 seconds)
+and seven-second videos. Failed rounds also produce clips. Replay, video saving,
+file sharing and RETRY are available; recording and editing stay on-device.
+The shared `src/creator/` modules use game events and Director Profiles.
+See [Creator Mode v0.2 and verification](docs/CREATOR_MODE_V02_PROGRESS.md)
+and [the pending five-play human check](docs/CREATOR_MODE_V02_PLAYTEST.md).
 
 Hand and mouth tracking use one front-camera stream with MediaPipe. The initial
 models require a connection; camera frames stay on-device. See

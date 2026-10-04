@@ -11,6 +11,9 @@ async (page) => {
   await page.evaluate(()=>{window.__realNow=performance.now.bind(performance);});
   await page.clock.install();
   await page.evaluate(async()=>{
+    // This suite checks face rendering and Canvas replay; native video output
+    // uses a real clock in soft-serve-auto-director.js.
+    window.MediaRecorder=undefined;
     const source=await(await fetch('/src/softServe/view.js')).text();
     const {SoftServeGame}=await import(source.match(/from "([^"]*\/games\/softServe\.js[^"]*)"/)[1]);
     const {SoftServeInput}=await import(source.match(/from "([^"]*\/input\/softServeInput\.js[^"]*)"/)[1]);
@@ -59,10 +62,11 @@ async (page) => {
     await page.screenshot({path:'output/playwright/creator-delicious-'+mode+'.png'});
     check(await page.evaluate(()=>__creator.highlights.events.some(e=>e.type==='finish'&&e.data.final)),'game emits final-bite highlight '+mode);
     check(!(await page.locator('.platform-result').isVisible()),'creator finale precedes replay '+mode);
-    for(let i=0;i<8;i++){await page.clock.runFor(220);await page.waitForTimeout(35);}
+    for(let i=0;i<15;i++){await page.clock.runFor(220);await page.waitForTimeout(35);}
     await page.locator('.creator-replay').waitFor();
     check(await page.evaluate(()=>__creator.frames.length===0&&__creator.live.length===0),'game recorder releases its buffers after replay handoff '+mode);
-    check(await page.locator('.creator-replay-canvas').evaluate(c=>c.width===270&&c.height===480),'replay canvas preserves portrait pixels '+mode);
+    check(await page.locator('.creator-replay-canvas').evaluate(c=>c.width===540&&c.height===960),'replay canvas preserves portrait pixels '+mode);
+    await page.locator('[data-creator-action="7"]').click();
     await page.clock.runFor(6500);await page.waitForTimeout(40);
     await page.screenshot({path:'output/playwright/creator-replay-outro-'+mode+'.png'});
     await page.locator('[data-creator-action="replay"]').click();await page.clock.runFor(400);await page.waitForTimeout(50);

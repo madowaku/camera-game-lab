@@ -4,7 +4,7 @@ import { drawPortrait, heroShape } from "./renderer.js";
 import { messages } from "./messages.js";
 import { escapeHtml as esc } from "../platform/copy.js";
 import "./softServe.css";
-import { Replay } from "../creator/Replay.js";
+import { CreatorResult } from "../creator/CreatorResult.js";
 import "../creator/creator.css";
 const text = locale => messages[locale === "ja" ? "ja" : "en"];
 export function launchMarkup(game, locale) {
@@ -23,7 +23,7 @@ export function howtoMarkup(game,locale) {
 }
 export function resultMarkup(game,r,locale) {
   const t=text(locale),clean=r.outcome==="clean";
-  if(r.creator)return `<section class="creator-replay"><p class="creator-replay-title">${t.replayTitle} · ${r.creator.faceMode}</p><canvas class="creator-replay-canvas" role="img" aria-label="${locale==="ja"?"あなたの撮れ高リプレイ":"Your highlight replay"}"></canvas><div class="creator-replay-controls"><button type="button" data-creator-action="replay">↻ REPLAY</button><button type="button" data-result-action="share">${t.challengeText}</button></div><button class="creator-again" type="button" data-result-action="retry">PLAY AGAIN</button><button class="ss-text-button" type="button" data-result-action="browse">${t.otherGames} →</button><details class="ss-result-details"><summary>${t.scoreDetails} · ${r.score}</summary><p>${t[r.outcome]} · ${r.maxSwirls} ${t.swirls} · ${t.eaten} ${r.eatenPercent}% · ${r.beauty}</p></details></section>`;
+  if(r.creator)return `<section class="creator-replay"><h2 class="creator-ready">${t.clipReady}</h2><p class="creator-replay-title">AUTO DIRECTOR · ${(r.creator.faceModes??[r.creator.faceMode]).join(" / ")}${r.source==="demo"?` · ${t.practiceLabel}`:""}</p><canvas class="creator-replay-canvas" role="img" aria-label="${locale==="ja"?"あなたの撮れ高リプレイ":"Your highlight replay"}"></canvas><video class="creator-replay-video" controls playsinline muted hidden aria-label="${t.clipReady}"></video><div class="creator-format-picker" role="group" aria-label="Clip length"><button type="button" data-creator-action="15" aria-pressed="true">15 SEC</button><button type="button" data-creator-action="7" aria-pressed="false">7 SEC</button><button type="button" data-creator-action="replay">↻ REPLAY</button></div><p class="creator-export-status" role="status" aria-live="polite">${t.clipGenerating}</p><div class="creator-replay-controls"><button type="button" data-creator-action="share" disabled>↗ SHARE</button><button type="button" data-creator-action="save" disabled>↓ ${t.clipSave}</button></div><button class="creator-again" type="button" data-creator-action="encode" hidden>${t.clipEncodeRetry}</button><button class="creator-again" type="button" data-result-action="retry">↻ RETRY</button><button class="ss-text-button" type="button" data-result-action="browse">${t.otherGames} →</button><details class="ss-result-details"><summary>${t.scoreDetails} · ${r.score}</summary><p>${t[r.outcome]} · ${r.maxSwirls} ${t.swirls} · ${t.eaten} ${r.eatenPercent}% · ${r.beauty}</p></details></section>`;
   return `<section class="ss-result-card"><img class="ss-result-logo" src="${logo}" alt="SOFT SERVE" width="720" height="480"><p class="ss-result-greeting">${t[r.outcome]}</p>
     <h2>${r.outcome === "empty" ? t.emptyTitle : `${r.maxSwirls}<small>${clean?t.finishedUnit:t.madeUnit}</small>`}</h2>
     ${r.source==="demo"?`<p class="ss-practice">${t.practiceLabel}</p>`:""}<canvas class="ss-result-food" role="img" aria-label="${esc(t.madeShape)} · ${r.maxSwirls} ${t.swirls}"></canvas>
@@ -35,15 +35,13 @@ export function paint(root,result) {
   if(result?.creator)return;
   const canvas=root.querySelector("canvas");if(canvas)drawPortrait(canvas,result?.shape??heroShape());
 }
-export function mountResult(root,result) {
+export function mountResult(root,result,locale) {
   if(!result.creator)return;
-  const player=new Replay(root.querySelector("canvas"),result.creator),button=root.querySelector('[data-creator-action="replay"]');
-  const play=()=>player.play();button.addEventListener("click",play);player.play();
-  const background=()=>{if(document.hidden)player.stop();};document.addEventListener("visibilitychange",background);
-  return ()=>{button.removeEventListener("click",play);document.removeEventListener("visibilitychange",background);player.dispose();};
+  const t=text(locale),player=new CreatorResult(root,result.creator,{generating:t.clipGenerating,ready:t.clipVideoReady,failed:t.clipFailed,unsupported:t.clipUnsupported,noFrames:t.clipNoFrames,saved:t.clipSaved,shared:t.clipShared});
+  return ()=>player.dispose();
 }
 export function discardResult(result) {
-  if(result?.creator){result.creator.frames=[];result.creator.events=[];}
+  if(result?.creator){result.creator.frames=[];result.creator.events=[];result.creator.files={};result.creator.plans={};}
 }
 export function handleLaunchClick(root,event) {
   const mode=event.target.closest("[data-creator-mode]"),face=event.target.closest("[data-face-mode]"),entry=root.querySelector(".ss-entry");
