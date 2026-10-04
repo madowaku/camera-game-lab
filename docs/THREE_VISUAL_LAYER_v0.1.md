@@ -789,15 +789,15 @@ BODY WINGSで2本目の再利用検証。
 以下を満たしたらv0.1完成。
 
 - [ ] existing 2D games remain unchanged
-- [ ] three.js loads only for three-enabled games
-- [ ] game logic has no Three.js dependency
-- [ ] input layer has no Three.js dependency
-- [ ] one active game creates at most one WebGL renderer
-- [ ] renderer/resources are released on deactivate
-- [ ] normalized camera coordinates map consistently on front/rear camera
-- [ ] reduced-motion works
-- [ ] WebGL failure has a fallback
-- [ ] MAGIC TEST uses all four common effects
+- [x] three.js loads only for three-enabled games
+- [x] game logic has no Three.js dependency
+- [x] input layer has no Three.js dependency
+- [x] one active game creates at most one WebGL renderer
+- [x] renderer/resources are released on deactivate
+- [x] normalized camera coordinates map consistently on front/rear camera
+- [x] reduced-motion works
+- [x] WebGL failure has a fallback
+- [x] HAND SPELL pilot uses all four common effects
 - [ ] BODY WINGS can reuse the same Visual Layer without copying infrastructure
 
 ---

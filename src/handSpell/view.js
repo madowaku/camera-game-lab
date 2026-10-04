@@ -19,7 +19,7 @@ export class HandSpellView {
       <div class="hs-stage" tabindex="0" role="group" aria-label="HAND SPELL"><video muted playsinline hidden aria-hidden="true"></video><canvas class="hs-canvas" width="540" height="960" role="img" aria-label="HAND SPELL"></canvas><p class="hs-live sr-only" role="status" aria-live="polite"></p>
       <div class="hs-overlay" hidden><div><h2></h2><p role="status"></p><button type="button" class="hs-resume hs-primary" hidden></button><button type="button" class="hs-camera-retry hs-primary" hidden></button><button type="button" class="hs-practice hs-secondary" hidden></button><button type="button" class="hs-exit hs-text"></button></div></div></div>
       <div class="hs-controls"><div class="hs-sign-controls">${SIGNS.map((s, i) => `<button type="button" data-hs-sign="${s}" aria-label="${s}"><b>${GLYPHS[s]}</b><span>${i + 1} · ${s}</span></button>`).join('')}</div><button type="button" class="hs-release hs-primary">RELEASE!</button></div><button type="button" class="hs-skip hs-text" hidden></button><p class="hs-hint"></p></section>`;
-    this.$ = s => root.querySelector(s); this.canvas = this.$('.hs-canvas'); this.video = this.$('video'); this.renderer = new HandSpellRenderer(this.canvas);
+    this.$ = s => root.querySelector(s); this.canvas = this.$('.hs-canvas'); this.video = this.$('video'); this.renderer = new HandSpellRenderer(this.canvas); this.visual3d = null; this.threeScene = null; this.visual3dError = null;
     this.input = new HandSpellInput(this.video, { onStatus: (status, error) => { if (!this.active || this.source !== 'camera') return; this.status = status; if (status === 'ERROR') this.fail(error); else this.render(); } });
     this.render();
   }
@@ -38,6 +38,18 @@ export class HandSpellView {
     this.media = matchMedia('(prefers-reduced-motion: reduce)'); this.reducedMotion = this.media.matches;
     this.replay = this.options.creator ? new SpellReplay() : null;
     this.bind(); this.audio.arm(); this.render(); this.notify(); return this.generation;
+  }
+  async ensureVisual3d(token = this.generation) {
+    if (this.visual3d || this.visual3dError || !this.active) return this.visual3d;
+    try {
+      const [{ createThreeVisualLayer }, { HandSpellThreeScene }] = await Promise.all([import('../visual3d/createThreeVisualLayer.js'), import('./threeScene.js')]);
+      if (!this.active || token !== this.generation) return null;
+      const visual = createThreeVisualLayer({ host: this.$('.hs-stage'), mirror: false, onError: error => { this.visual3dError = error; } });
+      if (!this.active || token !== this.generation) { visual.dispose(); return null; }
+      this.visual3d = visual; this.threeScene = new HandSpellThreeScene(visual); return visual;
+    } catch (error) {
+      this.visual3dError = error; console.warn('Three.js visual layer unavailable; keeping Canvas2D fallback.', error); return null;
+    }
   }
   async startCamera() { const token = this.setup('camera'); try { await this.input.start(); if (token === this.generation && this.active) this.begin(); } catch (e) { if (token === this.generation && this.active && e.name !== 'AbortError') this.fail(e); } }
   startDemo() { this.setup('demo'); this.begin(); this.$('.hs-stage').focus({ preventScroll: true }); }
@@ -116,7 +128,7 @@ export class HandSpellView {
     }
     g.step(dt);
     for (const e of g.drainEvents()) {
-      this.audio.play(e, g.outcome); this.animate(e);
+      this.audio.play(e, g.outcome); this.animate(e); this.threeScene?.handleEvent(e, g);
       if (e.type === 'lock') { this.lock = `${GLYPHS[e.sign]} ${e.sign} ✓`; this.lockUntil = now + 700; }
       if (e.type === 'tryAgain') { this.lock = 'COPY THIS'; this.lockUntil = now + 550; }
       if (['tutorialNext', 'input', 'tutorialDone'].includes(e.type)) { this.signGate.reset(this.primary?.sign ?? null); this.releaseGate.reset(); }
@@ -125,7 +137,7 @@ export class HandSpellView {
     this.phase = g.phase;
     const t = copy(this.locale), release = ['tutorial-release', 'release'].includes(g.scene) || g.signs.length >= 3 && g.scene === 'input';
     const coach = g.paused ? t[g.pauseReason === 'tracking' ? 'lost' : 'paused'] : g.released && ['input', 'release'].includes(g.scene) ? t.armed : release ? t.release : g.scene === 'memorize' ? t.memory : g.scene === 'tutorial' ? t.tutorial : g.scene === 'input' ? this.source === 'demo' ? t.demoHint : !this.primary ? t.lost : this.primary.reason === 'small' ? t.small : !this.primary.sign ? t.coach : this.signGate.blocked === this.primary.sign ? t.neutral : t.hold : '';
-    this.renderer.draw(g, { video: this.video, source: this.source, faceMode: this.options.faceMode, face: this.input.face, hands, now, reducedMotion: this.reducedMotion, coach, lock: now < this.lockUntil ? this.lock : '', gateProgress: this.signGate.progress, tutorialLabel: `${g.tutorialStep + 1} / 3` });
+    this.renderer.draw(g, { video: this.video, source: this.source, faceMode: this.options.faceMode, face: this.input.face, hands, now, reducedMotion: this.reducedMotion, coach, lock: now < this.lockUntil ? this.lock : '', gateProgress: this.signGate.progress, tutorialLabel: `${g.tutorialStep + 1} / 3` });\n    this.threeScene?.update({ game: g, hands, now, dt, reducedMotion: this.reducedMotion });
     if (this.replay && g.phase !== 'tutorial' && !g.paused) this.replay.capture(this.canvas, g.elapsed, g.scene);
     if (this.phase === 'result') {
       const d = discover(g.outcome); Object.assign(g.result, { book: d.book, isNew: d.isNew, creator: this.options.creator ? this.replay.snapshot(this.options.faceMode, this.source) : null, inferenceFps: this.source === 'camera' ? Math.round(this.input.fps) : null });
@@ -156,6 +168,6 @@ export class HandSpellView {
     this.canvas.setAttribute('aria-label', `HAND SPELL · ${label}`);
   }
   stopTweens() { this.tweens.forEach(t => t.kill()); this.tweens.clear(); }
-  releaseInputs() { this.generation++; this.input.stop(); this.audio.stop(); this.stopTweens(); this.abort?.abort(); if (this.frameId != null) cancelAnimationFrame(this.frameId); this.frameId = null; this.replay?.dispose(); this.replay = null; }
+  releaseInputs() { this.generation++; this.input.stop(); this.audio.stop(); this.stopTweens(); this.abort?.abort(); if (this.frameId != null) cancelAnimationFrame(this.frameId); this.frameId = null; this.replay?.dispose(); this.replay = null; this.threeScene?.dispose(); this.threeScene = null; this.visual3d?.dispose(); this.visual3d = null; this.visual3dError = null; }
   deactivate() { this.active = false; this.releaseInputs(); this.phase = 'idle'; }
 }

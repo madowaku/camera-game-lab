@@ -102,6 +102,6 @@ test('seven-second replay includes cue, actual input, release, cast and reaction
   assert.equal(replayFrame(replay, 0).time, 2000); assert.equal(replayFrame(replay, 2000).time, 4000); assert.equal(replayFrame(replay, 4000).time, 8000); assert.equal(replayFrame(replay, 5000).time, 9800); assert.equal(replayFrame(replay, 7000).time, 15000);
 });
 test('canonical and legacy routes use licensed lazy music and never require microphone', () => {
-  const g = experiments.find(g => g.id === 'solo-hand-spell'); assert.equal(g.duration, 15); assert.equal(g.requiresMicrophone, false);
+  const g = experiments.find(g => g.id === 'solo-hand-spell'); assert.equal(g.duration, 15); assert.equal(g.requiresMicrophone, false); assert.equal(g.visual, 'hybrid');
   assert.equal(resolveRoute('#hand-spell', experiments).experiment.id, g.id); assert.equal(trackForGame(g).id, 'handSpell'); assert.match(musicCreditMarkup(g, 'ja'), /23061/);
 });
