@@ -1,4 +1,19 @@
-# FINGER GUN music asset
+# Game music assets
+
+## BODY WINGS (EXP-046)
+
+BODY WINGS uses the opening 30 seconds of the already downloaded **8-bit Stage1**
+by もっぴーさうんど through the shared MusicBed. Source: [OpenTracks track 1982](https://opentracks.com/bgm/detail/1982).
+The [creator profile](https://opentracks.com/creator/detail/55) specifies the site
+license, checked again for this implementation. The
+[audio-source license](https://opentracks.com/help/articles/license/) permits
+commercial game BGM. Exact asset hash and source provenance remain in
+`docs/opentracks-music.json`; no duplicate source download was needed.
+BGM starts in the timed round and stops during pause, result and exit.
+BEST FLIGHT is a silent visual replay: the OpenTracks track is not offered for
+download, listening, or as a secondary music asset inside a creator tool.
+
+## FINGER GUN
 
 - Track: [8-bit Aggressive1](https://opentracks.com/bgm/detail/1978)
 - Creator: もっぴーさうんど (Moppy Sound)

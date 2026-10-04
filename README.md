@@ -4,6 +4,18 @@ Experimental web games where **your body is the controller**.
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 
+## EXP-046: BODY WINGS
+
+Spread your arms and become the plane. Bank your shoulders left and right through
+30 rings in a 30-second RING RUSH. Open `#/game/solo-body-wings` or `#body-wings`.
+Generated toy wings attach to the segmented, mirrored live player; arms may relax
+after takeoff. Includes camera-free arrows/drag/touch practice, JA/EN, combo BOOST,
+fictional flight stats, CREATOR face modes and a six-second BEST FLIGHT replay.
+Imagegen artwork and OpenTracks music provenance are in
+[the asset manifest](docs/body-wings-assets.json). See
+[implementation and verification](docs/BODY_WINGS_PROGRESS.md) and
+[the pending five-round human playtest](docs/BODY_WINGS_PLAYTEST.md).
+
 ## LAB FEED — platform v0.1
 
 The home screen is a portrait, vertically snapping feed: one experiment per

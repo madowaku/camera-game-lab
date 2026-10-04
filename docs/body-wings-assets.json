@@ -1,0 +1,30 @@
+{
+  "experiment": "EXP-046",
+  "generator": "Built-in Imagegen",
+  "generatedAt": "2026-10-03",
+  "assets": [
+    {
+      "path": "src/wings/assets/cover-v1.webp",
+      "original": "exec-db49773d-89df-42e6-86b9-1ccdfc0bae41.png",
+      "prompt": "Use case: stylized-concept. Create polished key art for BODY WINGS, a playful camera-native flight game. Portrait 2:3 composition. A delighted young adult shown waist-up in a front-facing three-quarter view at lower center, both arms outstretched like a plane, wearing orange aviation goggles, glossy ivory-and-tangerine toy jet wings attached along their arms and a small glowing blue engine pack at their back. Bright clean cyan sky, rounded cotton clouds at edges, golden-orange glowing flight rings receding diagonally into the upper half. Pop editorial illustration with tactile soft 3D toy materials, crisp silhouette, sunshine and energy, airy rather than busy. Large open sky in the top third for live HTML title. The person is the plane; no aircraft replacing them. No text, no lettering, no watermarks, no UI. This is actual production key art, not a screenshot or mockup.",
+      "use": "Launcher key art; resized copy in public/previews/body-wings.webp."
+    },
+    {
+      "path": "src/wings/assets/wings-v1.webp",
+      "original": "exec-c97c6a06-b313-41b0-bbbc-0fa5be34df3c.png",
+      "prompt": "Use case: stylized-concept production game sprite. Generate one isolated symmetrical pair of glossy ivory-and-tangerine toy jet wings viewed directly from above/front as a flat horizontal wearable wingsuit accessory. Wide horizontal silhouette, left wing reaches left, right wing reaches right, narrow small central orange engine hub between them. Long smooth swept wings with rounded tips, ivory top panels, orange outer tips and rear accent stripes, dark thin mechanical seams, small turquoise lights near the central hub. The central hub is only 10 percent of total width. Both wings on the same horizontal axis, perfectly symmetrical, no perspective foreshortening, no body or face or arms, no floor, no cast shadow outside the object. Charming high-quality soft 3D toy aesthetic. Asset must be fully visible with transparent padding around every edge. Genuinely transparent alpha background. No text, no logos, no labels, no checkerboard painted into background. Landscape 3:2 canvas, pair occupies middle 45 percent of image height and 90 percent width. Intended to be composited over a real person's arms in a camera game.",
+      "use": "Alpha-preserving in-game wings overlay. Canvas draws it along the shoulder line."
+    }
+  ],
+  "processing": "Image size and WebP encoding only. Generated alpha preserved. No SVG substitute for generated artwork.",
+  "music": {
+    "title": "8-bit Stage1",
+    "creator": "もっぴーさうんど",
+    "source": "https://opentracks.com/bgm/detail/1982",
+    "license": "https://opentracks.com/help/articles/license/",
+    "creatorTerms": "https://opentracks.com/creator/detail/55",
+    "asset": "src/assets/music/stage-one.mp3",
+    "provenance": "docs/opentracks-music.json",
+    "use": "Opening 30s as game BGM, through existing shared MusicBed. Reuses the previously downloaded and verified local asset. No music included in replay/export."
+  }
+}
