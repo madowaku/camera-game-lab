@@ -21,10 +21,10 @@ test("held closure requires both eyes, three stable frames and 120ms", () => {
 });
 test("a natural bilateral blink emits once without awarding held-closed defense", () => {
   const state = new EyeState(); open(state);
-  state.update(result(0.9), 80); state.update(result(0.9), 110);
-  const frame = state.update(result(), 140);
+  state.update(result(0.9), 80); state.update(result(0.9), 120);
+  const frame = state.update(result(), 160);
   assert.equal(frame.eyeState, "EYES_OPEN"); assert.deepEqual(frame.events, ["BLINK_BOTH"]);
-  assert.ok(!state.update(result(), 160).events.includes("BLINK_BOTH"));
+  assert.ok(!state.update(result(), 180).events.includes("BLINK_BOTH"));
 });
 test("face loss is never EYES_CLOSED and return must requalify", () => {
   const state = new EyeState(); open(state);
@@ -48,4 +48,20 @@ test("ten deliberate close/open cycles yield ten qualified pairs without held re
     close += frame.events.includes("EYES_CLOSED"); opened += frame.events.includes("EYES_OPEN");
   }
   assert.equal(close, 10); assert.equal(opened, 10);
+});
+
+test("sub-80ms noise is rejected and 450ms closures emit LONG, never BLINK", () => {
+  const s = new EyeState(); open(s); s.update(result(.9), 80);
+  assert.ok(!s.update(result(), 140).events.includes('BLINK_BOTH'));
+  s.update(result(.9), 200); s.update(result(.9), 350); s.update(result(.9), 500);
+  const ended = s.update(result(), 650);
+  assert.ok(ended.events.includes('LONG_CLOSE_BOTH')); assert.ok(!ended.events.includes('BLINK_BOTH'));
+});
+test("opening one eye ends bilateral defense without inventing a blink", () => {
+  const s = new EyeState(); open(s);
+  for(const t of [80,140,200]) s.update(result(.9), t);
+  const events = [];
+  for(const t of [220,240,260]) events.push(...s.update(result(.9,.1), t).events);
+  assert.equal(s.state,'EYES_OPEN'); assert.ok(!events.includes('BLINK_BOTH'));
+  assert.ok(!s.update(result(),280).events.includes('BLINK_BOTH'));
 });

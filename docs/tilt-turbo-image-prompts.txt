@@ -1,0 +1,21 @@
+EXP-053 TILT TURBO — built-in image_gen.imagegen
+Generated 2026-10-04. PNG originals preserved; optimized WebP assets consumed by the game.
+
+CAR — transparent_background: true
+Saved: src/tiltTurbo/assets/car-v1.png → car-v1.webp
+
+Use case: stylized-concept
+Asset type: transparent player-car sprite for TILT TURBO, a portrait arcade racing game controlled by head tilt.
+Primary request: one beautiful small orange-red toy racing car, rear-facing view from above and behind, driving away toward the top of the image. Compact rounded aerodynamic body, cream-white twin racing stripes, chunky black rubber tires, glossy teal rear windshield, small rear spoiler, warm headlights visible only subtly. Playful premium miniature 3D toy render with clean bevels and readable silhouette.
+Composition: centered single car, near orthographic three-quarter top/rear view, all four tires visible, car's nose toward top, rear toward bottom, symmetric steering-neutral pose, enough padding around entire car. Transparent background with actual alpha. No cast ground shadow (runtime draws it), no road, no scenery, no speed trails, no typography, no logo, no watermark. The car should occupy 80% of square image height.
+Lighting: warm soft studio light upper left, crisp enough for a 90px-wide gameplay sprite.
+
+COVER — transparent_background: false
+Saved: src/tiltTurbo/assets/cover-v1.png → cover-v1.webp; public/previews/tilt-turbo.webp
+
+Use case: stylized-concept
+Asset type: portrait 9:16 key art for TILT TURBO, a playful racing game using head tilt.
+Primary request: vivid premium toy-world racing illustration, a glossy orange-red small race car with two ivory stripes drifting toward the viewer on a sweeping S-shaped charcoal road, ivory and coral curb stripes, warm mint green rolling hills and oversized rounded trees, sunny peach sky. Above the road in the upper third, a small expressive smiling toy-like human head tilted slightly to the left, with a simple curved steering arrow, showing that the head steers the car. It should read in one glance: tilt head, race toy car. No realistic person, no arms or hands, no other cars.
+Composition: full-bleed tall portrait poster, S road recedes toward upper-right horizon, big car lower center oriented diagonally and lifting as if a little jump, subtle cream puffs behind tires, clear silhouette. Leave quiet sky at very top for code-rendered title. Small playful checkered finish banner in distant background. Soft rounded clay and plastic 3D miniature diorama aesthetic, polished dimensional surfaces, energetic but uncluttered. Palette teal, warm ivory, coral orange, mint.
+Constraints: no text, no letters, no watermark, no UI, no dashboard panels, no logos. Image will be cropped to 9:16.
+

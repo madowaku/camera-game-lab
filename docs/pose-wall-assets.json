@@ -1,0 +1,33 @@
+{
+  "experiment": "EXP-048 POSE WALL / SOLO",
+  "verifiedOn": "2026-10-04",
+  "images": [{
+    "source": "src/poseWall/assets/cover-v1.png",
+    "asset": "src/poseWall/assets/cover-v1.webp",
+    "preview": "public/previews/pose-wall.webp",
+    "generator": "built-in Imagegen",
+    "prompt": "docs/pose-wall-image-prompt.txt",
+    "description": "Bright tactile game-show studio with coral Y-pose and mint T-pose foam cutout walls. Generated key art is used in the entrance, discovery and result. Animated wall geometry is rendered in canvas.",
+    "sourceSha256": "DC737F0025F67FC32F89812EEB7FAC00F3DE156C69D5122E0C30B97E67B8D0E6",
+    "assetSha256": "68BB22B15327CDC9785C89A3DA346D0B343111282A79508F5FACA0A8DCCC02FD",
+    "processing": "Source PNG 1024x1536 retained. Cover converted to 768x1152 WebP quality 87; preview to 512x768 WebP quality 83."
+  }],
+  "music": {
+    "title": "おもちゃの一日",
+    "creator": "いまたく",
+    "trackUrl": "https://opentracks.com/bgm/detail/7044",
+    "downloadPage": "https://opentracks.com/bgm/detail/7044/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/273#terms-of-use",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Creator follows the site license. Commercial game background music use and editing are permitted. No standalone audio distribution or listening feature. No creator-tool provision of the music to secondary users.",
+    "acquisition": "Reused the already downloaded OpenTracks source in this workspace (also used by TOY DRUM). Site license, site terms and creator conditions rechecked on 2026-10-04; the track page was not retrievable by web search. Original acquisition provenance is documented in docs/toy-drum-assets.json.",
+    "sourceDownload": "Ignored local output/music-sources/toy-drum/toy-day-source.mp3",
+    "sourceSha256": "02FAC4B3FAECAB606E55A6AD5A02815A5105F0935CF54E0D21D0870B73566A3A",
+    "asset": "src/assets/music/pose-wall.mp3",
+    "assetSha256": "3D5972551C072FD90DF228CD247B6C829A6A43A0F4DBDBB5D2621E8CD87EFA15",
+    "processing": "Opening 18 seconds. Stereo MP3 96kbit/s, 44.1kHz; loudnorm target -20 LUFS / -2dB true peak, 50ms fade-in and one-second fade-out.",
+    "delivery": "Vite ?inline import inside a lazy music JS chunk. Follows shared BGM ON/OFF, pause, focus loss, results and exit lifecycle. No standalone MP3 in public/dist."
+  },
+  "effects": "Original procedural Web Audio: descending wall/approach sweep, rising pop and chord for PERFECT, light sweep for CLEAR, rubbery pitch bends for SQUEEZE, descending sawtooth thud for CRASH. No third-party SE samples."
+}

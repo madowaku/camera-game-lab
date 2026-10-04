@@ -1,0 +1,61 @@
+/* A pocket arcade ident: outline → offset → overshoot → settle. */
+[data-motion-scene="entry"] { animation:motion-enter 520ms cubic-bezier(.16,1,.3,1) both; }
+.motion-art { position:relative; isolation:isolate; }
+.motion-emblem { position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:2; color:var(--motion-color); }
+.motion-emblem i { position:absolute; width:100px; height:100px; border:2px solid currentColor; border-radius:50%; right:-25px; top:18%; opacity:0; animation:motion-ident 950ms cubic-bezier(.16,1,.3,1) both; }
+.motion-emblem i:nth-child(2) { width:130px; height:130px; right:-40px; margin-top:-15px; animation-delay:65ms; }
+.motion-emblem i:nth-child(3) { width:160px; height:160px; right:-55px; margin-top:-30px; animation-delay:130ms; }
+.motion-emblem span { position:absolute; left:0; bottom:15%; width:100%; height:14px; background:repeating-linear-gradient(90deg,currentColor 0 16px,transparent 16px 26px); transform:skewY(-12deg); opacity:0; animation:motion-tiles 750ms 160ms both; }
+[data-motion="slash"] .motion-emblem i,[data-motion="impact"] .motion-emblem i { border-radius:0; transform:rotate(-25deg); }
+[data-motion="pop"] .motion-emblem i { border-radius:18%; border-width:4px; }
+[data-motion="echo"] .motion-emblem { opacity:.4; }
+[data-motion="speed"] .motion-emblem span { height:4px; box-shadow:0 12px currentColor,0 24px currentColor; }
+
+/* All geometry stays inside the play surface and cannot capture input. */
+.motion-layer { position:absolute; inset:0; z-index:4; overflow:hidden; pointer-events:none; contain:layout paint style; }
+.motion-layer * { pointer-events:none; }
+.motion-burst { position:absolute; inset:0; color:var(--motion-color,#d7ff3f); animation:motion-lifetime 760ms linear both; }
+.motion-ring { position:absolute; left:var(--burst-x); top:var(--burst-y); width:90px; height:90px; margin:-45px; border:3px solid currentColor; border-radius:50%; opacity:0; animation:motion-ring 620ms cubic-bezier(.16,1,.3,1) both; }
+.motion-ring--echo { border-width:1px; animation-delay:65ms; }
+.motion-ray { position:absolute; left:var(--burst-x); top:var(--burst-y); width:7px; height:18px; margin:-9px -3px; background:currentColor; opacity:0; animation:motion-ray 540ms calc(var(--ray) * 7ms) cubic-bezier(.12,.7,.25,1) both; }
+.motion-ray:nth-of-type(2n) { color:#fff8d7; }
+.motion-caption { position:absolute; left:50%; top:17%; width:max-content; max-width:90%; padding:6px 14px; border:2px solid currentColor; background:#17201eeb; color:var(--motion-color); font:clamp(20px,5vw,38px)/1.1 Impact,Haettenschweiler,sans-serif; letter-spacing:.03em; text-align:center; transform:translateX(-50%); text-shadow:2px 2px #10120f; animation:motion-caption 740ms cubic-bezier(.16,1,.3,1) both; }
+.motion-burst--start .motion-ring { width:240px; height:240px; margin:-120px; border-width:1px; }
+.motion-burst--start .motion-ray { height:32px; }
+.motion-burst--combo .motion-ring,.motion-burst--special .motion-ring { width:160px; height:160px; margin:-80px; border-width:4px; }
+[data-motion="slash"] .motion-ring { border-radius:0; border-width:2px; }
+[data-motion="slash"] .motion-ray { width:3px; height:52px; }
+[data-motion="impact"] .motion-ring { border-radius:12%; border-width:5px; }
+[data-motion="impact"] .motion-ray { width:11px; height:26px; }
+[data-motion="pop"] .motion-ray { width:12px; height:12px; border-radius:3px; }
+[data-motion="swirl"] .motion-ring { border-style:dashed; border-width:3px; }
+[data-motion="swirl"] .motion-ray { width:9px; height:9px; border-radius:50%; }
+[data-motion="speed"] .motion-ring { height:45px; margin-top:-22px; transform:skewX(-20deg); }
+[data-motion="speed"] .motion-ray { width:3px; height:55px; }
+[data-motion="echo"] .motion-burst { opacity:.45; }
+[data-motion="echo"] .motion-ray { display:none; }
+[data-motion="echo"] .motion-ring { border-width:1px; }
+[data-motion="orbit"] .motion-ring { border-style:dashed; }
+[data-motion="orbit"] .motion-ray { width:4px; height:14px; }
+
+/* Native outcome/score text stays exact and accessible throughout the reveal. */
+[data-motion-scene="result"] > section { animation:motion-enter 540ms cubic-bezier(.16,1,.3,1) both; }
+[data-motion-scene="result"] :is(h1,h2,[class$="result-score"],[class$="result-hero"] strong) { animation:motion-score 650ms 80ms cubic-bezier(.16,1,.3,1) both; }
+[data-motion-scene="result"] :is(dl > div,[class$="result-stats"] > span) { animation:motion-enter 450ms 140ms cubic-bezier(.16,1,.3,1) both; }
+[data-motion-scene="result"] :is(dl > div,[class$="result-stats"] > span):nth-child(2) { animation-delay:210ms; }
+[data-motion-scene="result"] :is(dl > div,[class$="result-stats"] > span):nth-child(3) { animation-delay:280ms; }
+[data-motion-scene="result"] .result-actions { animation:motion-enter 400ms 300ms cubic-bezier(.16,1,.3,1) both; }
+
+@keyframes motion-enter { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes motion-ident { 0% { opacity:0; scale:.25; rotate:-65deg; } 30% { opacity:.85; } 65% { opacity:.5; scale:1.12; rotate:12deg; } 100% { opacity:0; scale:1.3; rotate:30deg; } }
+@keyframes motion-tiles { 0% { opacity:0; translate:-110% 0; } 25% { opacity:.6; } 70% { opacity:.25; } 100% { opacity:0; translate:110% 0; } }
+@keyframes motion-lifetime { 0%,90% { visibility:visible; } 100% { visibility:hidden; } }
+@keyframes motion-ring { 0% { opacity:0; scale:.2; rotate:-30deg; } 12% { opacity:.85; } 70% { opacity:.25; } 100% { opacity:0; scale:1.7; rotate:25deg; } }
+@keyframes motion-ray { 0% { opacity:0; transform:rotate(var(--angle)) translateY(-28px) scale(.4); } 15% { opacity:1; } 100% { opacity:0; transform:rotate(var(--angle)) translateY(-95px) scale(.2); } }
+@keyframes motion-caption { 0% { opacity:0; translate:0 16px; scale:.78; rotate:-6deg; } 18% { opacity:1; scale:1.06; rotate:1deg; } 30%,70% { opacity:1; translate:0 0; scale:1; rotate:0deg; } 100% { opacity:0; translate:0 -12px; scale:.96; } }
+@keyframes motion-score { from { opacity:0; scale:.85; } 55% { opacity:1; scale:1.045; } to { opacity:1; scale:1; } }
+@media (max-width:480px) { .motion-caption { font-size:25px; padding:6px 11px; } }
+@media (prefers-reduced-motion:reduce) {
+  [data-motion-scene],[data-motion-scene] * { animation:none !important; }
+  .motion-layer,.motion-emblem { display:none; }
+}

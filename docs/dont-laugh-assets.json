@@ -1,0 +1,66 @@
+{
+  "experiment": "EXP-055 DON’T LAUGH",
+  "verifiedOn": "2026-10-04",
+  "images": [
+    {
+      "source": "src/dontLaugh/assets/bird-v1.png",
+      "asset": "src/dontLaugh/assets/bird-v1.webp",
+      "generator": "built-in Imagegen",
+      "prompt": "docs/dont-laugh-image-prompts.txt",
+      "description": "Deadpan tactile yellow bird; used as a transparent landmark-anchored AR sprite.",
+      "processing": "Generated RGBA 1295x1214 retained. Optimized WebP within 384x384, quality 90, alpha preserved.",
+      "sourceSha256": "C919633C6822EDECF751678B53B0E2CD7DE0C26FF8AFFED83A7345FB002BD774",
+      "assetSha256": "42B87952792DED4E42513F7C591C041CB7FC4D4869F3D4DC4C21CFC0392D4098"
+    },
+    {
+      "source": "src/dontLaugh/assets/cover-v1.png",
+      "asset": "src/dontLaugh/assets/cover-v1.webp",
+      "preview": "public/previews/dont-laugh.webp",
+      "generator": "built-in Imagegen",
+      "prompt": "docs/dont-laugh-image-prompts.txt",
+      "description": "A fictional straight-faced Japanese adult, his miniature self clones and yellow bird. Key art for entry and discovery; actual gameplay clones crop the live player's own face.",
+      "processing": "Generated portrait PNG retained; WebP 768x1152 q87; discovery preview 512x768 q83.",
+      "sourceSha256": "3A3AC13C05075C20946E8A349A86B79A6D2415081BA5CA24AE4A0A5B4CC41595",
+      "assetSha256": "94835067B7811894C0AC48A453754F50673865997AAD15305CE9D1C8F5B35D90"
+    }
+  ],
+  "music": {
+    "title": "おもちゃの一日",
+    "creator": "いまたく",
+    "trackUrl": "https://opentracks.com/bgm/detail/7044",
+    "downloadPage": "https://opentracks.com/bgm/detail/7044/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/273#terms-of-use",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "acquisition": "Reused the commercially licensed OpenTracks download already in the workspace, originally acquired for TOY DRUM. Creator conditions, license and terms checked 2026-10-04. Track page fetch returned cache miss; original acquisition is recorded in docs/toy-drum-assets.json. No bulk automated site collection.",
+    "sourceDownload": "output/music-sources/toy-drum/toy-day-source.mp3",
+    "asset": "src/assets/music/toy-drum.mp3",
+    "module": "src/assets/music/toyDrum.js",
+    "processing": "Existing opening 36s; stereo 96kbit/s MP3 44.1kHz, -20 LUFS/-2dB target, 50ms fade-in/1s fade-out. No new copy needed.",
+    "conditions": "Commercial game background use and editing permitted under the site license; creator follows it. No standalone distribution, listening feature or provision of music to secondary creator-tool users.",
+    "delivery": "Inline encoded audio in an existing lazy JS music chunk. Follows shared BGM mute/pause/results/navigation. Exported CREATOR video contains no BGM/audio.",
+    "sourceSha256": "02FAC4B3FAECAB606E55A6AD5A02815A5105F0935CF54E0D21D0870B73566A3A",
+    "assetSha256": "95E257C3F90B3F05BB2E75404324273F3B94307210562E56234A70AFB90E71A3"
+  },
+  "effects": [
+    {
+      "asset": "src/dontLaugh/assets/se/shutter.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_ui-audio (1)/Audio/mouseclick1.ogg",
+      "creator": "Kenney",
+      "license": "CC0",
+      "licenseFile": "src/dontLaugh/assets/se/License.txt",
+      "use": "Caught camera click"
+    },
+    {
+      "asset": "src/dontLaugh/assets/se/tick.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_ui-audio (1)/Audio/click5.ogg",
+      "creator": "Kenney",
+      "license": "CC0",
+      "licenseFile": "src/dontLaugh/assets/se/License.txt",
+      "use": "Countdown and final ticks"
+    },
+    {
+      "description": "Original Web Audio rubber pitch bends for self clones/mouth motion, attack sweep and final/survival chords. No third-party samples."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+async page=>{
+  await page.clock.resume();const base=new URL(page.url()).origin;await page.goto(base+'/?qa=tilt-model-'+Date.now()+'#tilt-turbo');await page.waitForFunction(()=>document.querySelector('.tt-entry .launch-camera')?.disabled===false);
+  return await page.evaluate(async()=>{
+    const registry=await(await fetch('/src/platform/experiments.js')).text(),viewPath=registry.match(/import\("([^"]*tiltTurbo\/view\.js[^"]*)"\)/)[1],viewText=await(await fetch(viewPath)).text(),inputPath=viewText.match(/from ["']([^"']*input\/tiltTurboInput\.js[^"']*)["']/)[1],inputText=await(await fetch(inputPath)).text();
+    const vision=await import(inputText.match(/from ["']([^"']*mediapipe[^"']*)["']/)[1]),{TiltTurboInput}=await import(inputPath),input=new TiltTurboInput(document.createElement('video'));
+    const files=await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm');let model,delegate='GPU';try{model=await input.createRecognizer(files,delegate);}catch{delegate='CPU';model=await input.createRecognizer(files,delegate);}
+    try{const canvas=document.createElement('canvas');canvas.width=720;canvas.height=1280;const c=canvas.getContext('2d');c.fillStyle='#fff7df';c.fillRect(0,0,720,1280);const start=performance.now(),result=model.detectForVideo(canvas,start),firstInferenceMs=Math.round(performance.now()-start),warmInferenceMs=[];for(let i=0;i<3;i++){const at=performance.now();model.detectForVideo(canvas,at);warmInferenceMs.push(Math.round(performance.now()-at));}if(!Array.isArray(result.faceLandmarks)||result.faceLandmarks.length)throw Error('Blank frame invents a face');return {model:'real FaceLandmarker float16/1',wasm:'tasks-vision 1.0.1',delegate,firstInferenceMs,warmInferenceMs,blankFaces:0,cameraRequested:false};}finally{model.close();}
+  });
+}

@@ -1,5 +1,19 @@
 # Game music assets
 
+## TILT TURBO (EXP-053)
+
+- Reuses the locally downloaded [8-bit Stage1 by もっぴーさうんど](https://opentracks.com/bgm/detail/1982).
+- [OpenTracks license](https://opentracks.com/help/articles/license/) permits
+  commercial game background use and editing; [creator terms](https://opentracks.com/creator/detail/55)
+  follow that license. Rechecked 2026-10-04.
+- Existing source/edit/checksums remain in `docs/opentracks-music.json` and
+  `docs/tilt-turbo-assets.json`. Bundled SHA-256:
+  `7C225F5848F0BC949E47083DB414913502D22535EBA08186BE37582F47A70972`.
+- Plays only in the active race through shared MusicBed; follows BGM mute,
+  manual/background pause, result and exit. Face loss does not pause the race.
+- Lazy inline JS audio; no standalone MP3 in public/dist and no music download
+  or listening feature. CREATOR replay and saved video contain no audio.
+
 ## PALM PONG (EXP-048)
 
 - Track: [パステルハウス](https://opentracks.com/bgm/detail/1021), by かずち.
@@ -43,6 +57,17 @@ Exact prompts, processing and asset paths: [manifest](../../../docs/palm-pong-as
   follows BGM ON/OFF, pause, result and exit. Percussion is original Web Audio.
 
 Exact image and music provenance: [TOY DRUM manifest](../../../docs/toy-drum-assets.json).
+
+## DON’T LAUGH (EXP-055)
+
+Uses the existing commercially licensed **おもちゃの一日** by いまたく from
+[OpenTracks](https://opentracks.com/bgm/detail/7044), originally downloaded for
+TOY DRUM. The [creator conditions](https://opentracks.com/creator/detail/273)
+follow the [site license](https://opentracks.com/help/articles/license/), checked
+2026-10-04, which permits commercial game background use and editing. The same
+inline lazy music module is reused; no extra standalone source is distributed.
+CREATOR exports are silent and do not supply the track to secondary users.
+Hashes and acquisition provenance: [manifest](../../../docs/dont-laugh-assets.json).
 
 ## BODY WINGS (EXP-046)
 
@@ -99,3 +124,27 @@ HAND BEAT keeps its own timed beat. NOTE BLASTER uses music in practice mode onl
 - Use: background music for the hand toy. No standalone listening or music download feature. The souvenir is a still PNG and contains no soundtrack.
 
 The song starts after the automatic greeting, follows the shared BGM switch and stops on pause, results and departure. Brief hand-tracking loss keeps the toy and background music running. Exact provenance is in [the HANDY PALS manifest](../../../docs/handy-pals-assets.json).
+
+## EXP-054 AIR SLASH (2026-10-04)
+
+- Track: [イケイケな気分](https://opentracks.com/bgm/detail/11555) / ハヤシユウ.
+- [Creator conditions](https://opentracks.com/creator/detail/59): follows the site license; checked 2026-10-04.
+- [License](https://opentracks.com/help/articles/license/) and [site terms](https://opentracks.com/help/articles/terms/) checked 2026-10-04. Commercial game background use and editing are permitted under these terms.
+- Asset: `air-slash.mp3`, first 20s, 96 kbit/s stereo, 44.1kHz; normalized to −20 LUFS, −2dB true peak target, 50ms fade-in and 2s fade-out.
+- Source acquisition: official download form CSRF POST, track=1. Source retained only in ignored `output/air-slash/`.
+- Runtime: inline audio data in the lazy music module; no standalone music download or listening feature. CREATOR exports are silent.
+- Exact hashes, generation prompts and shared CC0 SFX sources: [AIR SLASH asset manifest](../../../docs/air-slash-assets.json).
+
+## EXP-004 BLINK HORROR v0.2
+
+Reuses **不穏ROOM / MAKOOTO**, [OpenTracks track 9957](https://opentracks.com/bgm/detail/9957).
+The [site license](https://opentracks.com/help/articles/license/) and
+[creator conditions](https://opentracks.com/creator/detail/258) were checked
+again on 2026-10-04: commercial game background use is permitted under the
+site-conforming conditions. Source and bundle hashes and existing audio edits
+remain unchanged. BLINK uses a quiet 0.07 volume during RUN and mutes BGM
+inside the locker and during the passing event; pauses, results and exit stop
+music. Encoded audio is delivered through the existing lazy JS module, with
+no standalone music download or listening feature. Courtesy credit is reachable
+from the game's information/how-to sheet. Exact generated images, prompts,
+shared Kenney CC0 SE and audio provenance: [manifest](../../../docs/blink-horror-assets.json).

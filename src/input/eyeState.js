@@ -33,13 +33,18 @@ export class EyeState {
     this.present = true;
     const shut = reading.blinkLeftScore >= this.config.closed && reading.blinkRightScore >= this.config.closed;
     const open = reading.blinkLeftScore <= this.config.open && reading.blinkRightScore <= this.config.open;
+    const wink = (reading.blinkLeftScore <= this.config.open && reading.blinkRightScore >= this.config.closed) ||
+      (reading.blinkRightScore <= this.config.open && reading.blinkLeftScore >= this.config.closed);
     if (shut && this.blinkSince === null) this.blinkSince = timestamp;
     if (open && this.blinkSince !== null) {
       const duration = timestamp - this.blinkSince;
-      if (duration >= 30 && duration <= 450) events.push("BLINK_BOTH");
+      if (duration >= 80 && duration < 450) events.push("BLINK_BOTH");
+      if (duration >= 450) events.push("LONG_CLOSE_BOTH");
       this.blinkSince = null;
     }
-    const next = shut ? "EYES_CLOSED" : open ? "EYES_OPEN" : null;
+    // A wink is never a bilateral closure, including during reopening.
+    if (wink) this.blinkSince = null;
+    const next = shut ? "EYES_CLOSED" : open || wink ? "EYES_OPEN" : null;
     if (!next || next === this.state) { this.candidate = null; this.frames = 0; }
     else {
       if (this.candidate !== next) { this.candidate = next; this.since = timestamp; this.frames = 0; }
@@ -49,6 +54,7 @@ export class EyeState {
         this.state = next; this.candidate = null; this.frames = 0; events.push(next);
       }
     }
-    return { ...reading, present: true, ready: this.state === "EYES_OPEN" || this.state === "EYES_CLOSED", eyeState: this.state, timestamp, fps: elapsed > 0 ? 1000 / elapsed : 0, events };
+    return { ...reading, closedDurationMs: this.blinkSince === null ? 0 : timestamp - this.blinkSince,
+      present: true, ready: this.state === "EYES_OPEN" || this.state === "EYES_CLOSED", eyeState: this.state, timestamp, fps: elapsed > 0 ? 1000 / elapsed : 0, events };
   }
 }

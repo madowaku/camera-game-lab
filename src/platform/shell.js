@@ -16,6 +16,8 @@ import { createLauncher } from "./launcher.js";
 import * as arcadePresentation from "./gamePresentation.js";
 import "./gamePresentation.css";
 import { MusicBed, trackForGame, musicCreditMarkup } from "./music.js";
+import { decorateMotion } from './motionDirector.js';
+import './motion.css';
 
 export function mountPlatform(app) {
   const invalid = validateRegistry(experiments);
@@ -106,6 +108,7 @@ export function mountPlatform(app) {
       session.resultCleanup?.();
       cacheRoot.hidden = true;
       result.innerHTML = session.presentation.resultMarkup(game, session.result, locale);
+      decorateMotion(result, game, 'result');
       session.presentation.paint(result, session.result);
       session.resultCleanup = session.presentation.mountResult?.(result, session.result, locale);
       result.querySelector("button")?.focus({ preventScroll: true });
@@ -114,6 +117,7 @@ export function mountPlatform(app) {
     cacheRoot.hidden = !["guardian", "duo", "smuggler"].includes(game.module);
     result.classList.add("arcade-result");
     result.innerHTML = arcadePresentation.resultMarkup(game, session.result, locale);
+    decorateMotion(result, game, 'result');
     gamePage.insertBefore(result, cacheRoot);
     result.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
     // Keep result controls in reach after a full-screen game.
@@ -170,10 +174,12 @@ export function mountPlatform(app) {
     if (session?.game.id === game.id && session.presentation) {
       panel.classList.remove("has-guide");
       panel.innerHTML = session.presentation.launchMarkup(game, locale);
+      decorateMotion(panel, game, 'entry');
       session.presentation.paint(panel); return;
     }
     panel.classList.remove("has-guide");
     panel.innerHTML = arcadePresentation.launchMarkup(game, locale);
+    decorateMotion(panel, game, 'entry');
     panel.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
   }
   function updateChrome() {

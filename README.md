@@ -2,6 +2,57 @@
 
 Experimental web games where **your body is the controller**.
 
+All 28 playable routes now have game-specific motion graphics: animated
+entrances, actual success bursts, combo/special cut-ins and staged result
+reveals. Eight motion identities match each game's palette and character.
+Pause, route cleanup and live reduced-motion preferences are supported.
+See [motion coverage, references and verification](docs/MOTION_GRAPHICS_V01.md).
+
+## EXP-054: AIR SLASH
+
+Your hands become blades. Open `#/game/solo-air-slash` or `#air-slash`.
+A 15-second score attack with two palm centers, speed-qualified swept collisions,
+directional fruit halves, juice, 45–60ms hitstop, POWER SLASH, bomb penalties,
+JUICY combos, ten-combo bonus storms, final FRUIT STORM and crossing-hand X-SLASH.
+Includes camera-free drag / two-finger / arrows + WASD / X practice, JA/EN,
+tracking-loss pause and safe recovery, RETRY/NEXT/SHARE and separate BGM/SE mute.
+CREATOR selects the best six seconds plus a one-second score card, with
+ORIGINAL/EFFECT/HIDE and optional silent video export. Imagegen fruit/cover,
+commercially usable OpenTracks music and shared Kenney CC0 sounds are recorded in
+[the asset manifest](docs/air-slash-assets.json) and
+[exact generation prompts](docs/air-slash-image-prompts.txt). See
+[implementation and verification](docs/AIR_SLASH_PROGRESS.md) and
+[pending physical-device playtests](docs/AIR_SLASH_PLAYTEST.md).
+
+## EXP-055: DON’T LAUGH
+
+Your own face is the final boss. Open `#/game/solo-dont-laugh` or `#dont-laugh`.
+Calibrate a straight face, count 3–2–1, and survive 15 seconds of an AR bird,
+long eyebrows, a giant nose, delayed face, self clones, mouth SE and taunts.
+The last three seconds combine the attacks. A sustained 400ms smile loses;
+missing/multiple/cropped faces pause time. Includes JA/EN, touch/L practice,
+separate camera/practice bests, local attack preferences, a caught still and
+automatic 1.5-second replay. CREATOR adds ORIGINAL/EFFECT/HIDE and optional
+silent video saving. Imagegen art, OpenTracks BGM and shared Kenney CC0 SE are
+documented in [the asset manifest](docs/dont-laugh-assets.json), with
+[exact generation prompts](docs/dont-laugh-image-prompts.txt). See the
+[implemented MVP specification](docs/DONT_LAUGH_SPEC_V01.md) and
+[pending human/device playtest](docs/DONT_LAUGH_PLAYTEST.md).
+
+## EXP-053: TILT TURBO
+
+Your head is the wheel. Open `#/game/solo-tilt-turbo` or `#tilt-turbo` for a
+20-second toy race with front-camera head roll, ±5° neutral and 25° full steering.
+Quick live calibration/tutorial, curving road, forgiving BONK, cone near misses,
+drift, final rapid turns, jump and confetti finish. Face loss keeps racing while
+the car eases to center. Includes A/D/arrows/screen-half practice, JA/EN,
+RETRY/NEXT/SHARE, BGM/SE and CREATOR's final seven-second silent replay/save.
+Imagegen car/cover and commercial-use OpenTracks music/Kenney CC0 SE are recorded
+in [the asset manifest](docs/tilt-turbo-assets.json) and
+[exact image prompts](docs/tilt-turbo-image-prompts.txt). See
+[implementation and verification](docs/TILT_TURBO_PROGRESS.md) and
+[the pending physical/human playtest](docs/TILT_TURBO_PLAYTEST.md).
+
 ## EXP-049: WIPE! (SOLO / DUO)
 
 Wave your palm to wipe a foggy window clean. Open `#/game/solo-wipe` / `#wipe`
@@ -50,6 +101,21 @@ OpenTracks BGM and shared Kenney CC0 impacts are documented in
 [pending physical-device and human checks](docs/COUNTER_CAM_PLAYTEST.md).
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
+
+## EXP-048: POSE WALL (SOLO)
+
+Make the shape and slip through five colorful foam walls in 15 seconds.
+Open `#/game/solo-pose-wall` or `#pose-wall`. MediaPipe Pose tracks seven
+upper-body points; a 300ms direction score gives PERFECT, CLEAR, SQUEEZE or
+CRASH. Crashes break the wall and the round continues. Includes portrait
+framing, wrist-loss grace, tracking recovery, camera-free pose buttons / 1–5
+keys / joint dragging, JA/EN, measured results, RETRY/NEXT/SHARE and BGM/SFX.
+Imagegen key art and commercially usable OpenTracks music are documented in
+[the asset manifest](docs/pose-wall-assets.json), with the exact
+[generation prompt](docs/pose-wall-image-prompt.txt). See
+[implementation and verification](docs/POSE_WALL_PROGRESS.md) and the
+[pending device/human gates](docs/POSE_WALL_PLAYTEST.md). SOLO POSE WALL and
+DUO PALM PONG share the display number EXP-048 and use separate canonical IDs.
 
 ## EXP-048: PALM PONG
 
@@ -142,12 +208,18 @@ See [implementation and verification](docs/NOTE_EATER_PROGRESS.md) and the
 
 ## EXP-004: BLINK HORROR
 
-Look to escape; close both eyes to hide while the thing behind you retreats.
-The 26-second round has deterministic rushes, audio proximity cues and explicit
-tracking-loss pauses. A camera-free Space / hold-button demo follows the same rules.
-Open `#/game/solo-blink-horror` from Feed or Explore. Results preserve camera/demo
-provenance through RETRY, NEXT and SHARE. See [implementation and QA](docs/BLINK_HORROR_PROGRESS.md).
-Physical-camera acceptance and human playtests are still pending.
+Keep your eyes open to run toward EXIT. A blink brings the monster closer;
+reach the locker to BLINK NOW safely, then close both eyes during DON'T LOOK
+until the GO cue. One roughly 35-second stage, five monster distances, brief
+mirror/shoulder reflections and a harmless final blink surprise. Includes
+OPEN/CLOSED calibration, tracking-loss pauses, Space / hold-button practice,
+JA/EN, measured BLINKS/CLOSE CALLS/TIME and separate camera/practice BEST.
+Open `#/game/solo-blink-horror` or `#blink-horror`. Imagegen corridor/monster,
+commercially usable OpenTracks music and shared Kenney CC0 SE are documented
+in [the asset manifest](docs/blink-horror-assets.json) and
+[exact generation prompts](docs/blink-horror-image-prompts.txt). See
+[implementation and QA](docs/BLINK_HORROR_PROGRESS.md) and the
+[pending physical/human playtest](docs/BLINK_HORROR_PLAYTEST.md).
 
 ## EXP-005: PINCH WORLD
 

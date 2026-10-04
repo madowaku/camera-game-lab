@@ -60,6 +60,19 @@ Navigation is FEED / EXPLORE with active text and underline. Explore uses labele
 
 Motion uses short 160ms control transitions and slow, small preview gesture movements. Only the current and adjacent previews animate. Reduced motion disables animation and smooth scrolling. Native scrolling always owns the swipe.
 
+Game motion has eight identities: rhythm waves, sharp slashes, impact blocks,
+toy pops, quiet echoes, orbital ticks, soft swirls and speed lines. Entrances
+reveal an outline, rotating forms and a tiled sweep in under one second.
+During play, actual successful judgments trigger a 540–760ms local burst;
+combo milestones and special actions add a brief typographic cut-in. Result
+scores and supporting stats arrive in sequence without changing their values.
+Geometry remains inside the play surface, ignores pointer input and never
+shakes the camera view. Keep at most three bursts and throttle ordinary hits.
+Pause, tracking loss, exit and results clear live effects; reduced motion
+suppresses them, including when changed during a round. Profiles, trigger
+adapters and CSS live in `src/platform/motionProfiles.js`, `motionDirector.js`
+and `motion.css`. See [coverage and verification](docs/MOTION_GRAPHICS_V01.md).
+
 Game entrances lead with a game-specific illustrated action, a short challenge,
 three steps and PLAY. Full instructions open in the shared sheet, with focus
 returning to the trigger. Camera details stay in an expandable section. On a

@@ -1,0 +1,20 @@
+EXP-004 BLINK HORROR v0.2 — built-in Imagegen prompts
+Generated: 2026-10-04 (JST). No CLI fallback. PNG → WebP quality 88; alpha preserved.
+
+ASSET 1 — src/blink/assets/corridor-v2.webp (also public/artwork/blink-horror-v2.webp)
+
+Use case: stylized-concept.
+Asset type: production background for the browser horror game EXP-004 BLINK HORROR, Stage 001. A single tall portrait 2:3 game environment image.
+Primary request: A deserted, long institutional corridor at night, seen in first person, converging toward a distant closed steel exit door. Cinematic analog horror with believable old painted plaster, grimy tiles, fluorescent ceiling lamps and damp reflections. Along the left wall midway there is a clearly recognizable pair of dark sage metal lockers with vent slats; along the right wall is a tall narrow tarnished mirror, reflecting an empty hallway. Clear central path, tiled floor leading into depth. Exit door at the exact central vanishing point; above it is a small luminous pale mint sign reading exactly "EXIT". 
+Lighting/mood: very low light but legible geometry, muted petrol green ambient light, dusty warm highlights from failing ceiling lamps, near black shadow recesses. Menacing absence, no creature visible.
+Composition/framing: first-person eye level, perfectly centered one point perspective, corridor fills entire frame edge to edge, generous dark space at top for separately rendered game UI. Long corridor and small distant exit. Rich readable texture, sophisticated indie horror game art, realistic photographic 3D render.
+Constraints: environment only; no person, no monster, no hands, no blood, no gore, no game UI, no watermark, no text except the small EXIT sign.
+
+ASSET 2 — src/blink/assets/monster-v2.webp (transparent)
+
+Use case: stylized-concept.
+Asset type: a transparent monster sprite for the browser horror game BLINK HORROR. One isolated full-body creature, portrait.
+Primary request: an unnervingly tall humanoid shadow with a small smooth featureless head, very long arms and fingers, narrow hunched shoulders and impossibly lanky legs. Subtle wisps of dirty black fabric merge into its silhouette. Only two tiny pale ivory pinprick eyes catch the light; no mouth. A believable cinematic analog horror shadow presence, textured near-black charcoal, faint cold edge light so silhouette reads against a dark green corridor. Facing the viewer, arms hanging, looming slightly forward.
+Composition: entire body including hands and feet visible, centered with generous transparent margin, single creature. Photographic dark creature concept art.
+Constraints: true transparent background, no scenery, no ground plane, no shadow rectangle, no text, no watermark, no gore, no blood, no wounds, no bright glowing outline, no cartoon. This creature appears briefly in a mirror or close-up, never constantly.
+

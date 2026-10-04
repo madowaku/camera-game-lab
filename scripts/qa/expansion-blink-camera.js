@@ -8,7 +8,7 @@ async (page) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto(base + '/?qa=blink-camera#/game/solo-blink-horror');
   await page.waitForFunction(() => document.querySelector('.launch-camera')?.disabled === false);
-  await page.clock.install();
+  await page.clock.install(); await page.clock.pauseAt(new Date());
   await page.evaluate(async () => {
     const source = await (await fetch('/src/input/bodyInput.js')).text();
     const vision = await import(source.match(/from "([^"]*mediapipe[^"]*)"/)[1]);
@@ -25,7 +25,7 @@ async (page) => {
     vision.FilesetResolver.forVisionTasks = async () => ({});
     vision.FaceLandmarker.createFromOptions = async () => ({
       setOptions: async (options) => { if (options.outputFaceBlendshapes) window.__blendshapeOptions++; },
-      detectForVideo: () => window.__eye.present ? { faceLandmarks: [[{}, { x: .5, y: .42 }]], faceBlendshapes: [{ categories: ['eyeBlinkLeft', 'eyeBlinkRight'].map((categoryName) => ({ categoryName, score: window.__eye.closed ? .9 : .1 })) }] } : {},
+      detectForVideo: () => window.__eye.present ? { faceLandmarks: [[{}, { x: .5, y: .42 }]], faceBlendshapes: [{ categories: ['eyeBlinkLeft', 'eyeBlinkRight'].map((categoryName) => ({ categoryName, score: window.__eye.closed || (window.__eye.wink && categoryName === 'eyeBlinkLeft') ? .9 : .1 })) }] } : {},
       close: () => window.__modelCloses++,
     });
     const canvas = document.createElement('canvas'); canvas.width = 360; canvas.height = 640;
@@ -46,26 +46,35 @@ async (page) => {
   check(await page.evaluate(() => __mediaRequests === 0 && __contexts.length === 0), 'no sensors or audio before explicit camera start');
   await page.locator('.launch-camera').click();
   await page.waitForFunction(() => document.querySelector('video')?.srcObject && window.__mediaRequests === 1);
-  await page.clock.runFor(4200);
+  // Video.play() resolves on the real media pipeline, independently of the
+  // virtual clock. Advance in small turns until the fresh tracker is ready.
+  for (let i = 0; i < 20 && !(await page.locator('.bh-message').textContent()).includes('Close both eyes once'); i++) await page.clock.runFor(200);
+  check((await page.locator('.bh-message').textContent()).includes('Close both eyes once'), 'camera calibration verifies OPEN then CLOSED');
+  await page.evaluate(() => { __eye.closed = true; }); await page.clock.runFor(250);
+  await page.evaluate(() => { __eye.closed = false; }); await page.clock.runFor(1800);
   check(await page.evaluate(() => __blendshapeOptions === 1), 'shared face model enables blendshapes once');
   const progress = () => page.locator('.bh-progress-value').textContent();
-  check(await progress() !== '0%', 'raw open eyes finish calibration and advance');
-  await page.evaluate(() => { __eye.closed = true; }); await page.clock.runFor(400);
-  check(await page.locator('.bh-stage').evaluate((el) => el.classList.contains('is-closed')), 'qualified raw closed eyes hide');
+  check(await progress() !== 'EXIT 100m', 'raw open eyes finish calibration and advance');
+  await page.evaluate(() => { __eye.wink = true; }); await page.clock.runFor(250);
+  await page.evaluate(() => { __eye.wink = false; }); await page.clock.runFor(150);
+  check(await page.locator('.bh-stage').getAttribute('data-monster') === '0', 'a wink never incurs a bilateral blink penalty');
+  await page.evaluate(() => { __eye.closed = true; }); await page.clock.runFor(600);
+  check(await page.locator('.bh-stage').evaluate((el) => el.classList.contains('is-closed')), 'qualified raw closed eyes close the scene');
+  check(await page.locator('.bh-stage').getAttribute('data-monster') === '1', 'camera LONG CLOSE costs exactly one Stage 001 approach');
   const closedProgress = await progress(); await page.clock.runFor(500);
   check(await progress() === closedProgress, 'closed eyes pause escape');
   await page.evaluate(() => { __eye.present = false; }); await page.clock.runFor(100);
   const frozen = await page.locator('.bh-stage').evaluate((el) => el.style.getPropertyValue('--danger'));
   await page.clock.runFor(2200);
-  check(await page.locator('.bh-stage').evaluate((el) => el.style.getPropertyValue('--danger')) === frozen, 'FACE_LOST never retreats danger');
+  check(await page.locator('.bh-stage').evaluate((el) => el.style.getPropertyValue('--danger')) === frozen, 'FACE_LOST freezes danger');
   check(!(await page.locator('.bh-stage').evaluate((el) => el.classList.contains('is-closed'))), 'FACE_LOST is visibly distinct from hiding');
   await page.evaluate(() => { __eye.present = true; __eye.closed = false; }); await page.clock.runFor(200);
   check(await progress() === closedProgress, 'tracking recovery waits for stable face');
-  await page.clock.runFor(20000);
+  await page.clock.runFor(40000);
   await page.locator('.platform-result').waitFor({ state: 'visible' });
   await page.waitForFunction(() => __contexts.every((c) => c.state === 'closed'));
   check(await page.evaluate(() => __tracks.every((t) => t.readyState === 'ended') && __modelCloses === 1 && __rafs.size === 0), 'RESULT stops tracks, model, audio and every game animation frame');
-  check((await page.locator('.platform-result').textContent()).includes('Camera'), 'camera result has camera source');
+  check((await page.locator('.platform-result').textContent()).includes('CAMERA'), 'camera result has camera source');
   await page.locator('[data-result-action="retry"]').click();
   await page.waitForFunction(() => __mediaRequests === 2);
   await page.clock.runFor(100);
@@ -81,11 +90,11 @@ async (page) => {
   await page.waitForFunction(() => document.querySelector('.launch-camera')?.disabled === false);
   await page.locator('.launch-camera').click(); await page.locator('.bh-recovery').waitFor({ state: 'visible' });
   await page.locator('.bh-demo').click(); await page.clock.runFor(3000);
-  check((await page.locator('.bh-source').textContent()).includes('DEMO'), 'permission denial recovers into clearly labeled demo');
+  check((await page.locator('.bh-source').textContent()).includes('PRACTICE'), 'permission denial recovers into clearly labeled practice');
   await page.locator('.game-back').click(); await page.clock.runFor(100);
   await page.waitForFunction(() => __contexts.every((c) => c.state === 'closed'));
   check(await page.evaluate(() => __tracks.every((t) => t.readyState === 'ended')), 'error/demo/exit path leaves no live tracks');
   await page.evaluate(() => clearInterval(__paint));
   check(errors.length === 0, 'no uncaught browser errors');
-  return { checks, errors, synthetic: true, physicalDevice: false };
+  await page.clock.resume(); return { checks, errors, synthetic: true, physicalDevice: false };
 }

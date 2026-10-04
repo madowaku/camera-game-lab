@@ -1,8 +1,11 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  blinkSpooky: { id: "blinkSpooky", title: "不穏ROOM", creator: "MAKOOTO", url: "https://opentracks.com/bgm/detail/9957", volume: .07, load: () => import("../assets/music/uneasyRoom.js") },
+  airSlash: { id: "airSlash", title: "イケイケな気分", creator: "ハヤシユウ", url: "https://opentracks.com/bgm/detail/11555", volume: .2, load: () => import("../assets/music/airSlash.js") },
   humanClock: { id: "humanClock", title: "The Swing of Time", creator: "ザイオン (zion)", url: "https://opentracks.com/bgm/detail/22437", volume: .2, load: () => import("../assets/music/humanClock.js") },
   wipe: { id: "wipe", title: "お掃除しましょ", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/12218", volume: .18, load: () => import("../assets/music/wipe.js") },
+  poseWall: { id: "poseWall", title: "おもちゃの一日", creator: "いまたく", url: "https://opentracks.com/bgm/detail/7044", volume: .2, load: () => import("../assets/music/poseWall.js") },
   palmPong: { id: "palmPong", title: "パステルハウス", creator: "かずち", url: "https://opentracks.com/bgm/detail/1021", volume: .18, load: () => import("../assets/music/palmPong.js") },
   toyDrum: { id: "toyDrum", title: "おもちゃの一日", creator: "いまたく", url: "https://opentracks.com/bgm/detail/7044", volume: .22, load: () => import("../assets/music/toyDrum.js") },
   handy: { id: "handy", title: "ぷかぷか", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/11821", volume: .25, load: () => import("../assets/music/handyPals.js") },
@@ -12,14 +15,18 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-air-slash": "airSlash",
+  "solo-dont-laugh": "toyDrum",
+  "solo-tilt-turbo": "stage",
   "solo-counter-cam": "finger",
   "solo-human-clock": "humanClock",
   "solo-wipe": "wipe", "duo-wipe": "wipe",
+  "solo-pose-wall": "poseWall",
   "duo-palm-pong": "palmPong",
   "solo-toy-drum": "toyDrum",
   "solo-body-wings": "stage",
   "solo-handy-pals": "handy",
-  "solo-finger-gun": "finger", "solo-eat-dont-eat": "cozy", "solo-blink-horror": "spooky",
+  "solo-finger-gun": "finger", "solo-eat-dont-eat": "cozy", "solo-blink-horror": "blinkSpooky",
   "solo-pinch-world": "cozy", "solo-ghost-trail": "spooky", "voice-note-blaster": "stage",
   "duo-tiny-bot-duel": "stage", "guardian-spirit": "stage", "outcam-watermelon-guide": "stage",
   "outcam-false-bridge": "cozy", "outcam-frame-smuggler": "spooky", "solo-daitai-hero": "stage",
@@ -32,7 +39,7 @@ export function trackForGame(game, source) {
   return tracks[themes[game.id]] ?? null;
 }
 export function musicAudible(snapshot, foreground = true) {
-  return foreground && !snapshot?.paused && ["playing", "locked", "review", "clear", "stage-clear"].includes(snapshot?.phase);
+  return foreground && !snapshot?.paused && !snapshot?.musicSilent && ["playing", "locked", "review", "clear", "stage-clear"].includes(snapshot?.phase);
 }
 export function musicCreditMarkup(game, locale) {
   const track = tracks[themes[game.id]];

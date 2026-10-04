@@ -2,7 +2,7 @@ export const artworkAssets = Object.freeze({
   "solo-hand-beat": "/artwork/hand-beat-v1.webp",
   "solo-finger-gun": "/artwork/finger-gun-v1.webp",
   "solo-eat-dont-eat": "/artwork/eat-dont-eat-v1.webp",
-  "solo-blink-horror": "/artwork/blink-horror-v1.webp",
+  "solo-blink-horror": "/artwork/blink-horror-v2.webp",
   "solo-pinch-world": "/artwork/pinch-world-v1.webp",
   "solo-ghost-trail": "/artwork/ghost-trail-v1.webp",
   "voice-note-blaster": "/artwork/note-blaster-v1.webp",

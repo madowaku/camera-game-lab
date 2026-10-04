@@ -1,4 +1,5 @@
 // Compatibility adapters own launch/lifecycle only. Game rules remain in src/games.
+import { MotionDirector } from './motionDirector.js';
 const startSelectors = { solo: "#play-button", duo: ".duo-start-button", watermelon: ".outcam-start-button", blaster: ".nb-start" };
 const demoSelectors = { duo: ".duo-fallback-button", watermelon: ".outcam-demo-button", daitai: ".dh-tap-button", guardian: ".gs-demo", blaster: ".nb-demo" };
 
@@ -38,6 +39,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     const entry = current; current = null;
     entry.enabled = false;
     entry.autoStart = false;
+    entry.motion.stop();
     entry.instance.deactivate(); releaseResources(entry.instance); closeAudio(entry.instance);
     entry.host.hidden = true;
   }
@@ -54,10 +56,12 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
       try { instance = factory(host, locale, { onExit, onReplay: () => { if (current === entry && entry.enabled) onReplay?.(entry.game); } }); }
       catch (error) { host.remove(); throw error; }
       entry = { instance, host, enabled: false, autoStart: false, lastPhase: null, game };
+      entry.motion = new MotionDirector(host);
       cache.set(game.module, entry);
       const observe = () => {
         if (current !== entry || !entry.enabled) return;
         const snapshot = snapshotOf(instance, game.module);
+        entry.motion.update(instance, entry.game, snapshot);
         if (entry.lastPhase !== snapshot.phase) {
           entry.lastPhase = snapshot.phase;
           onState(snapshot, entry.game);
@@ -70,9 +74,15 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
         }
       };
       if (instance.subscribe) instance.subscribe(observe);
-      else {
+      if (typeof instance.render === 'function') {
         const render = instance.render.bind(instance);
-        instance.render = (...args) => { const result = render(...args); observe(); return result; };
+        instance.render = (...args) => {
+          const result = render(...args);
+          if (instance.subscribe) {
+            if (current === entry && entry.enabled) entry.motion.update(instance, entry.game, snapshotOf(instance, entry.game.module));
+          } else observe();
+          return result;
+        };
       }
       if (game.module === "guardian") {
         const enterPhoto = instance.enterPhoto.bind(instance);
@@ -95,6 +105,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     const entry = current;
     entry.options = options; entry.instance.configure?.(options);
     entry.lastPhase = null; entry.host.hidden = false; entry.autoStart = true; entry.enabled = true;
+    entry.motion.begin(entry.game);
     entry.instance.activate(entry.game.mode);
     if (source === "demo" && entry.instance.startDemo) entry.instance.startDemo();
     else if (source === "demo") entry.host.querySelector(entry.game.demoSelector ?? demoSelectors[entry.game.module])?.click();
@@ -105,10 +116,10 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     prepare, begin, stop,
     snapshot() { return current?.enabled ? snapshotOf(current.instance, current.game.module) : null; },
     setLocale(locale) { current?.instance.setLocale(locale); },
-    releaseResult() { if (current) { current.autoStart = false; releaseResources(current.instance); closeAudio(current.instance); } },
+    releaseResult() { if (current) { current.autoStart = false; current.motion.stop(); releaseResources(current.instance); closeAudio(current.instance); } },
     retry(source) {
       if (!current) return;
-      ++generation; current.autoStart = false; current.enabled = false; current.instance.deactivate(); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
+      ++generation; current.autoStart = false; current.enabled = false; current.motion.stop(); current.instance.deactivate(); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
     },
   };
 }

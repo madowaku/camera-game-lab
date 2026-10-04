@@ -1,0 +1,57 @@
+{
+  "experiment": "EXP-053",
+  "id": "solo-tilt-turbo",
+  "verifiedAt": "2026-10-04",
+  "images": [
+    {
+      "asset": "src/tiltTurbo/assets/car-v1.webp",
+      "source": "src/tiltTurbo/assets/car-v1.png",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": true,
+      "use": "Toy-car player sprite",
+      "sourceSha256": "C51CCE8D43156FCD637C11649395756B1FDC0E03CF9EEEF833CAE7A0FB9299D2",
+      "assetSha256": "91E20564112635CAE43F99DBFA10FD921FE506E50FCE4071D6F8B040B6845B31",
+      "prompt": "Use case: stylized-concept\nAsset type: transparent player-car sprite for TILT TURBO, a portrait arcade racing game controlled by head tilt.\nPrimary request: one beautiful small orange-red toy racing car, rear-facing view from above and behind, driving away toward the top of the image. Compact rounded aerodynamic body, cream-white twin racing stripes, chunky black rubber tires, glossy teal rear windshield, small rear spoiler, warm headlights visible only subtly. Playful premium miniature 3D toy render with clean bevels and readable silhouette.\nComposition: centered single car, near orthographic three-quarter top/rear view, all four tires visible, car's nose toward top, rear toward bottom, symmetric steering-neutral pose, enough padding around entire car. Transparent background with actual alpha. No cast ground shadow (runtime draws it), no road, no scenery, no speed trails, no typography, no logo, no watermark. The car should occupy 80% of square image height.\nLighting: warm soft studio light upper left, crisp enough for a 90px-wide gameplay sprite."
+    },
+    {
+      "asset": "src/tiltTurbo/assets/cover-v1.webp",
+      "source": "src/tiltTurbo/assets/cover-v1.png",
+      "preview": "public/previews/tilt-turbo.webp",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": false,
+      "use": "Entrance and discovery key art",
+      "sourceSha256": "8768A3AEDC8EF5F5B3237EB48D1333055C3CC1EA3ECC82C0AC3457928E1F9C61",
+      "assetSha256": "B07229C75C97E9710CB527D79AA9361266E3F2C7E02C9987BFE99706128751C0",
+      "prompt": "Use case: stylized-concept\nAsset type: portrait 9:16 key art for TILT TURBO, a playful racing game using head tilt.\nPrimary request: vivid premium toy-world racing illustration, a glossy orange-red small race car with two ivory stripes drifting toward the viewer on a sweeping S-shaped charcoal road, ivory and coral curb stripes, warm mint green rolling hills and oversized rounded trees, sunny peach sky. Above the road in the upper third, a small expressive smiling toy-like human head tilted slightly to the left, with a simple curved steering arrow, showing that the head steers the car. It should read in one glance: tilt head, race toy car. No realistic person, no arms or hands, no other cars.\nComposition: full-bleed tall portrait poster, S road recedes toward upper-right horizon, big car lower center oriented diagonally and lifting as if a little jump, subtle cream puffs behind tires, clear silhouette. Leave quiet sky at very top for code-rendered title. Small playful checkered finish banner in distant background. Soft rounded clay and plastic 3D miniature diorama aesthetic, polished dimensional surfaces, energetic but uncluttered. Palette teal, warm ivory, coral orange, mint.\nConstraints: no text, no letters, no watermark, no UI, no dashboard panels, no logos. Image will be cropped to 9:16."
+    }
+  ],
+  "music": {
+    "title": "8-bit Stage1",
+    "creator": "もっぴーさうんど",
+    "sourceUrl": "https://opentracks.com/bgm/detail/1982",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/55",
+    "verifiedAt": "2026-10-04",
+    "asset": "src/assets/music/stage-one.mp3",
+    "assetSha256": "7C225F5848F0BC949E47083DB414913502D22535EBA08186BE37582F47A70972",
+    "sourceSha256": "518328f23c098a1a966270a62ac887e554726007ab10ebef95cc09f4dddbad32",
+    "downloadPage": "https://opentracks.com/bgm/detail/1982/download",
+    "reuse": "Existing locally downloaded and edited OpenTracks source; no duplicate download needed.",
+    "edit": "Existing 63.7-second stereo 96 kbit/s MP3, -20 LUFS, 50ms fade-in, 300ms fade-out.",
+    "use": "Commercial game background use allowed by site license; creator follows site license. Lazy inline JS, no public standalone MP3, listening or music-download feature. Active round only. Creator clips and replay are silent."
+  },
+  "effects": [
+    {
+      "asset": "src/tiltTurbo/assets/bonk.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds/Audio/impactWood_medium_000.ogg",
+      "creator": "Kenney",
+      "license": "CC0",
+      "licenseFile": "src/tiltTurbo/assets/Kenney-LICENSE.txt",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "sha256": "1723A9FD25103ED41AF06054814E84E65F4A772BAC86AB2DC927DA93D9592FF5",
+      "use": "Toy wall/cone bonk"
+    }
+  ],
+  "originalAudio": "Countdown/race stingers, drift, near-miss and jump tones synthesized with Web Audio."
+}
+

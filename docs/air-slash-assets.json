@@ -1,0 +1,70 @@
+{
+  "experiment": "EXP-054 AIR SLASH",
+  "verifiedOn": "2026-10-04",
+  "images": [
+    {
+      "source": "src/airSlash/assets/cover-v1.png",
+      "asset": "src/airSlash/assets/cover-v1.webp",
+      "preview": "public/previews/air-slash.webp",
+      "generator": "built-in Imagegen",
+      "prompt": "docs/air-slash-image-prompts.txt (COVER)",
+      "sourceSha256": "19C2F6C8C16303DBA7934B190612435F2EA94AF8E3F1600AB7987C8522DEE61A",
+      "assetSha256": "52F2530AB833CB1E60278394592594A706D0BA94FB273730B1B5E5C0E0B79496",
+      "processing": "Source retained; WebP 720px width quality 85; preview 432px quality 82."
+    },
+    {
+      "source": "src/airSlash/assets/fruit-atlas-v1.png",
+      "asset": "src/airSlash/assets/fruit-atlas-v1.webp",
+      "generator": "built-in Imagegen with transparent_background=true",
+      "prompt": "docs/air-slash-image-prompts.txt (FRUIT ATLAS)",
+      "description": "3×2 apple/orange/watermelon/lemon/strawberry/bomb atlas. Native RGBA alpha preserved; canvas clips and separates actual measured slash angles.",
+      "sourceSha256": "D2E1A76155035FA10E2E8F52681BB5F3CC82B13A77A91E271DEE0BE818CB1288",
+      "assetSha256": "32BD0EBBD5A4D82AEF50A56174295B1F0F4DC22DD511ABE8DAC1129AF866A86B",
+      "processing": "Source retained; WebP 768×512, quality 88, alphaQuality 100. No semantic image edits."
+    }
+  ],
+  "music": {
+    "title": "イケイケな気分",
+    "creator": "ハヤシユウ",
+    "trackUrl": "https://opentracks.com/bgm/detail/11555",
+    "downloadPage": "https://opentracks.com/bgm/detail/11555/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/59",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Creator follows site license. Commercial game background use and editing permitted. No listening/download feature or soundtrack in creator exports.",
+    "acquisition": "Official GET form and CSRF POST with track=1; checked 2026-10-04.",
+    "sourceDownload": "output/air-slash/music-source.mp3 (ignored local source)",
+    "sourceSha256": "2B3E70BEB56F2EAADAD35272A83151053EEB60BEA001BF981284D930E6EAEF80",
+    "asset": "src/assets/music/air-slash.mp3",
+    "assetSha256": "078D03E9FF76C3876F3F7FC333926FB8B833A1C9009E197B5EC038A19286F27B",
+    "processing": "First 20 seconds. −20 LUFS, −2dB true peak target, 50ms fade-in, 18–20s fade-out; 44.1kHz stereo MP3 96kbit/s.",
+    "delivery": "Inline data inside lazy JS module; shared BGM pause/mute/results/navigation lifecycle."
+  },
+  "effects": {
+    "provider": "Kenney RPG Audio and Impact Sounds",
+    "sourceRoot": "C:/Dev/AssetsShared/Audio/SE",
+    "license": "CC0",
+    "localLicenses": [
+      "src/airSlash/assets/sfx/RPG-LICENSE.txt",
+      "src/airSlash/assets/sfx/IMPACT-LICENSE.txt"
+    ],
+    "files": [
+      {
+        "source": "kenney_rpg-audio/Audio/knifeSlice.ogg",
+        "asset": "src/airSlash/assets/sfx/slash.ogg",
+        "use": "slash swoosh, 180ms rate limit"
+      },
+      {
+        "source": "kenney_rpg-audio/Audio/chop.ogg",
+        "asset": "src/airSlash/assets/sfx/split.ogg",
+        "use": "fruit crack layered with swoosh"
+      },
+      {
+        "source": "kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg",
+        "asset": "src/airSlash/assets/sfx/bomb.ogg",
+        "use": "bomb impact"
+      }
+    ],
+    "procedural": "Original Web Audio filtered-noise explosion, low tone and milestone chords. Optional clip export is silent."
+  }
+}

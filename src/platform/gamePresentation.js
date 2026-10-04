@@ -17,8 +17,8 @@ export const gameGuides = {
     en: ['A snack… or a very bad idea?', ['Start with lips closed','Calibrate your relaxed mouth'], ['Open wide for food','Take a bite when it is edible'], ['Keep everything else out','12 decisions in 15 seconds']],
   },
   'solo-blink-horror': {
-    ja: ['目を閉じる勇気、ある？', ['目を開けて進む','出口へ向かって逃げよう'], ['気配がしたら閉じる','両目を閉じると敵が退く'], ['26秒を逃げきる','音と距離を頼りに進もう']],
-    en: ['Dare to close your eyes?', ['Look to move forward','Keep heading for the exit'], ['Close both eyes to hide','Make the approaching thing retreat'], ['Survive 26 seconds','Listen closely. Choose your moment.']],
+    ja: ['まばたきしたければ、隠れろ。', ['目を開けて走る','まばたきすると怪物が1段階近づく'], ['ロッカーでまばたき','BLINK NOWなら何回閉じても安全'], ['DON’T LOOKは目を閉じる','GO!の音で目を開けて、EXITへ逃げろ']],
+    en: ['Need to blink? Find somewhere to hide.', ['Keep your eyes open to run','Every blink brings it one step closer'], ['Blink inside the locker','BLINK NOW means you are safe'], ['DON’T LOOK: close both eyes','Wait for the GO! sound, then run to EXIT']],
   },
   'solo-pinch-world': {
     ja: ['その手で、小さな大仕事。', ['手を重ねてグー','手のひらのカーソルで掴む'], ['握ったまま運ぶ','四角は壁のすき間を通す'], ['手を開いて置く','同じ形のくぼみへ置こう']],
@@ -96,8 +96,8 @@ export function resultModel(game,r,locale) {
     case 'solo-blink-horror':
       title=r.outcome==='escaped'?say('闇から、生還。','OUT OF THE DARK.'):r.outcome==='timeout'?say('出口まで、あと少し。','THE EXIT WAS SO CLOSE.'):say('すぐ後ろにいた。','IT WAS RIGHT BEHIND YOU.');
       hero=Number.isFinite(r.seconds)?r.seconds.toFixed(1):'—';unit=say('秒 生き延びた','SECONDS SURVIVED');
-      hint=r.outcome==='escaped'?say('次も、目を閉じる勇気を。','Dare to escape again?'):say('近づく気配がしたら、両目を閉じよう。','Close both eyes when it gets close.');
-      metrics=[metric('隠れた回数','HIDES',number(r.hides)),metric('進んだ距離','PROGRESS',`${number(r.score)}%`)];break;
+      hint=r.outcome==='escaped'?say('まばたきは、ロッカーの中で。','Save your blinks for the locker.'):say('走る時は目を開け、DON’T LOOKで閉じよう。','Eyes open to run. Close them at DON’T LOOK.');
+      metrics=[metric('まばたき','BLINKS',number(r.blinks)),metric('危機一髪','CLOSE CALLS',number(r.closeCalls)),metric('ベスト','BEST',Number.isFinite(r.best)?r.best.toFixed(1)+'s':'—')];break;
     case 'solo-pinch-world':
       title=say('小さな大仕事、完了。','A TINY JOB, WELL DONE.');hero='3 / 3';unit=say('課題クリア','TASKS COMPLETE');
       metrics=[metric('クリア時間','TIME',seconds(r.seconds*1000)),metric('つかんだ回数','GRABS',number(r.successfulGrabs))];

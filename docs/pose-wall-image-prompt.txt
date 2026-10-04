@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: Portrait 2:3 key art for the mobile camera game POSE WALL. Also a quiet stage background during gameplay.
+Primary request: A bright playful TV game-show set with colorful toy foam walls with upper-body pose shaped holes advancing toward the viewer, instantly communicating "match the hole".
+Scene/backdrop: sunny butter-yellow studio, mint and coral side podiums, cream tiled floor in strong perspective, chunky blue archway in the distance.
+Subject: One big coral foam panel standing at mid-distance with an unmistakable friendly human upper-body Y-pose-shaped cutout: circular head, short torso, two exaggerated diagonal upward arms. A second smaller mint T-pose wall behind it. Real empty holes showing the set through them, no person filling them.
+Style/medium: polished tactile 3D toy illustration, soft bevels, clay-like matte foam, crisp playful commercial game artwork.
+Composition/framing: Portrait 1024x1536. Panels occupy center/lower two thirds. Upper quarter is calm empty warm yellow for a separately rendered game title. Camera level, frontal, central vanishing point. Leave generous breathing room, sparse small confetti near floor and edges.
+Lighting/mood: bright studio lighting, soft ambient shadows, cheerful fun, warm whites.
+Color palette: butter yellow, tomato coral, turquoise mint, cobalt blue, cream.
+Constraints: No text, no letters, no logos, no UI, no dark science fiction. Pose hole must read as arms raised and circular head. No full-body legs required.

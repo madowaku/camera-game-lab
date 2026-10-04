@@ -855,7 +855,9 @@ function deactivate() {
 }
 function snapshot() {
   const result = { handBeat: state.hand.result, fingerGun: state.finger.result, eatDontEat: state.eat.result }[state.mode];
-  return { phase: state.sessionActive ? "playing" : result ? "result" : "idle", result, source: "camera" };
+  const current = { handBeat: state.hand, fingerGun: state.finger, eatDontEat: state.eat }[state.mode];
+  return { phase: state.sessionActive ? "playing" : result ? "result" : "idle", result, source: "camera",
+    motion: { hits: current.hits, point: state.mode === 'fingerGun' ? state.finger.aim : null } };
 }
 function setLocale(locale) { state.locale = locale; renderUi(); }
 cameraButton.addEventListener("click", startCamera);

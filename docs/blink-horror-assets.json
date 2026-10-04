@@ -1,0 +1,27 @@
+{
+  "experiment": "EXP-004 BLINK HORROR v0.2",
+  "verifiedAt": "2026-10-04 (JST)",
+  "images": [
+    { "asset": "src/blink/assets/corridor-v2.webp", "discoveryCopy": "public/artwork/blink-horror-v2.webp", "source": "Imagegen built-in tool", "original": "output/blink-horror/corridor-v2.png", "sha256": "8f68034177eb351d4a41bacff969cce07562eaecde2b0fc475b75a77691538ff", "dimensions": [1024,1536], "processing": "WebP encoding quality 88; no semantic edits" },
+    { "asset": "src/blink/assets/monster-v2.webp", "source": "Imagegen built-in tool", "original": "output/blink-horror/monster-v2.png", "sha256": "79f159c5866d882491c1e12e89ad7964c947bf375e05643f0306f08269d876c0", "dimensions": [1024,1536], "processing": "WebP encoding quality 88; generated alpha preserved", "alphaVerified": true }
+  ],
+  "prompts": "docs/blink-horror-image-prompts.txt",
+  "music": {
+    "title": "不穏ROOM", "creator": "MAKOOTO", "sourceUrl": "https://opentracks.com/bgm/detail/9957",
+    "downloadPage": "https://opentracks.com/bgm/detail/9957/download",
+    "creatorTerms": "https://opentracks.com/creator/detail/258", "license": "https://opentracks.com/help/articles/license/",
+    "asset": "src/assets/music/uneasy-room.mp3", "module": "src/assets/music/uneasyRoom.js",
+    "assetSha256": "9d1e65b395652ddfbc0ef64c9ad8e02bef1f46e900ac2208f640c159de04e39f",
+    "sourceSha256": "62a796833cd00598424f689148b65860cd09731de732136b198bc1c6af377098",
+    "reuse": "Previously downloaded OpenTracks asset. Track, site license and creator conditions checked again 2026-10-04.",
+    "condition": "Site-conforming. Commercial game background use permitted; not standalone redistribution or a listening feature.",
+    "processing": "Existing first 85 seconds, stereo MP3 96kbps/44.1kHz, -20 LUFS, -2dB true peak; 50ms in and 400ms out fade.",
+    "delivery": "Lazy JS module with inline encoded audio; no standalone music file in public or dist. Volume 0.07 during RUN, silent during HIDE/DONT_LOOK, pauses and result."
+  },
+  "effects": [
+    { "asset": "src/blink/assets/step.ogg", "original": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds/Audio/footstep_concrete_000.ogg", "source": "https://kenney.nl/assets/impact-sounds", "license": "CC0", "localLicense": "src/blink/assets/Kenney-Impact-License.txt", "sha256": "d7267e183067757c92c169de2a379abea592cfca6b39bb2e8feea15221ad79fe", "use": "Player running steps; monster steps at 0.7x with StereoPanner from left to right during pass" },
+    { "asset": "src/blink/assets/door-open.ogg", "original": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/doorOpen_1.ogg", "source": "https://kenney.nl/assets/rpg-audio", "license": "CC0", "localLicense": "src/blink/assets/Kenney-RPG-License.txt", "sha256": "4ab93bab96522d8eb109ff96dc57cb6765deb02448fe14c10472084be5bb2a0b" },
+    { "asset": "src/blink/assets/door-close.ogg", "original": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/doorClose_1.ogg", "source": "https://kenney.nl/assets/rpg-audio", "license": "CC0", "localLicense": "src/blink/assets/Kenney-RPG-License.txt", "sha256": "834d29c60a8a8bfb50b158cdb6b7dfa8f02812a408a1ee9703d038dfab0b1aeb" }
+  ],
+  "originalSynthesis": "Low impact tone, filtered noise breathing, two-note GO cue and quiet epilogue sting in src/blink/audio.js."
+}
