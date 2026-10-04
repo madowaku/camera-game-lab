@@ -1,8 +1,10 @@
 # Three.js Visual Layer v0.1 Implementation
 
-Status: PILOT IMPLEMENTED  
-Date: 2026-10-04  
-Pilot: EXP-056 HAND SPELL
+Status: SHARED REUSE VERIFIED ON DESKTOP
+
+Date: 2026-10-05
+
+Pilots: EXP-056 HAND SPELL / EXP-046 BODY WINGS
 
 ## Implemented
 
@@ -32,6 +34,28 @@ If dynamic import or WebGLRenderer creation fails, HAND SPELL logs one warning a
 
 CREATOR replay currently captures the existing Canvas2D output only. The Three.js overlay is additive during live play but is not composited into the seven-second replay yet. The old Canvas2D spell effects remain, so replay is still meaningful.
 
-## Next gate
+## Second consumer: BODY WINGS
 
-Use the same src/visual3d layer in BODY WINGS without copying infrastructure. If that succeeds, Visual Layer v0.1 graduates from pilot to shared production layer.
+BODY WINGS now reuses the same renderer, projection, quality governor, disposal,
+ParticleTrail and ImpactBurst. Its game-specific sky, cloud meshes and approaching
+rings live in `src/wings/threeScene.js`. The shared layer owns no flight rules.
+
+The second consumer required only two shared API/lifecycle adjustments:
+
+- `render(now, { force: true })` allows a paused scene to redraw after resize or
+  reduced-motion changes without sampling the pause as a slow frame.
+- Disposal checks whether the WebGL context is already lost before requesting
+  context loss, avoiding a duplicate-loss warning during fallback.
+
+BODY WINGS renders a Three world behind its existing segmented player/wing
+Canvas2D foreground and DOM HUD. This game's segmentation needs the existing
+camera composite rather than a raw DOM video background. Replay still records
+the complete Canvas2D version, at recorder cadence.
+
+Desktop browser checks cover both consumers, lazy loading, 10 enter/exit cycles,
+late import completion, init failure, context loss, quality degradation, pause,
+resize, live reduced motion and synthetic camera/CREATOR paths. See
+[BODY WINGS reuse and verification](BODY_WINGS_THREE_V01.md).
+
+The code-reuse gate is met. Physical mobile camera/GPU performance and human
+playtests remain pending; desktop synthetic checks do not establish those gates.

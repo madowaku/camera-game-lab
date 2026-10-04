@@ -130,7 +130,7 @@ export const experiments = Object.freeze([
     load: () => import("../handy/view.js").then(m => m.createView) }),
   define({ id: "solo-body-wings", exp: "EXP-046", collection: "SOLO", category: "SOLO",
     titleJa: "BODY WINGS", titleEn: "BODY WINGS", subtitleJa: "腕をひろげる。かたむく。あなたが飛行機。", subtitleEn: "Spread your wings. Lean. You are the plane.",
-    input: ["BODY"], duration: 30, accent: "#74d2f3", tags: ["flight", "AR", "creator", "翼", "飛行", "肩"],
+    input: ["BODY"], duration: 30, accent: "#74d2f3", visual: "hybrid", tags: ["flight", "AR", "creator", "翼", "飛行", "肩"],
     aliases: ["#body-wings", "#wings"], module: "bodyWings", demo: true, motif: "body", previewType: "image", previewAsset: "/previews/body-wings.webp",
     privacyJa: "インカメラで肩と腕を追跡します。マイクは使いません。PLAYは録画せず、CREATORのリプレイは端末メモリだけに一時保存し、退出時に破棄します。映像は外部送信しません。初回は認識モデルをダウンロードします。",
     privacyEn: "Front camera tracks shoulders and arms. No microphone. PLAY does not record. CREATOR keeps a temporary replay in device memory and discards it on exit. Video is never uploaded. Models download on first use.",

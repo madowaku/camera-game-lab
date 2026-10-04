@@ -70,17 +70,19 @@ export function createThreeVisualLayer({
     return camera.position.clone().add(direction.multiplyScalar((planeZ - camera.position.z) / direction.z));
   };
 
-  const render = (now = performance.now()) => {
-    if (disposed || paused || failed) return false;
+  // A paused scene may redraw once after resize/accessibility changes. Such a
+  // redraw is not a frame-time sample and does not resume its animation.
+  const render = (now = performance.now(), { force = false } = {}) => {
+    if (disposed || (paused && !force) || failed) return false;
     applySize(false);
-    if (lastRenderAt) {
+    if (!paused && lastRenderAt) {
       const next = governor.sample(now - lastRenderAt);
       if (next) {
         quality = next; lastSize = ''; applySize(true);
         qualityListeners.forEach(listener => listener(quality));
       }
     }
-    lastRenderAt = now;
+    if (!paused) lastRenderAt = now;
     renderer.render(scene, camera);
     return true;
   };
@@ -103,7 +105,10 @@ export function createThreeVisualLayer({
       disposed = true; observer?.disconnect(); media?.removeEventListener?.('change', onReduced);
       canvas.removeEventListener('webglcontextlost', onContextLost);
       qualityListeners.clear(); disposeObject3D(scene); scene.clear();
-      renderer.dispose(); renderer.forceContextLoss?.(); canvas.remove();
+      const context = renderer.getContext();
+      renderer.dispose();
+      if (!context.isContextLost()) renderer.forceContextLoss?.();
+      canvas.remove();
     },
   };
 }

@@ -52,13 +52,24 @@ async function start({ creator = false, faceMode = "ORIGINAL", source = "camera"
   view = new BodyWingsView(host, locale); view.configure({ creator, faceMode }); view.activate();
   view.saveReceipt = () => {}; // Keep synthetic data out of human round history.
   if (source === "camera") await view.startCamera(); else view.startDemo();
-  cancelAnimationFrame(view.raf); now = view.lastTick;
+  cancelAnimationFrame(view.raf); await view.visual3dReady; now = view.lastTick;
 }
-const redPixels = () => { const a = view.canvas.getContext("2d").getImageData(0, 0, view.canvas.width, view.canvas.height).data; let red = 0; for (let i = 0; i < a.length; i += 4) if (a[i] > 200 && a[i + 1] < 60 && a[i + 2] < 100) red++; return red; };
+const redPixels = () => {
+  // Hybrid's foreground is transparent. Inspect its visible color on sky,
+  // not unpremultiplied RGB at alpha=1/255 along antialiased sprite edges.
+  const a = view.canvas.getContext("2d").getImageData(0, 0, view.canvas.width, view.canvas.height).data;
+  let red = 0;
+  for (let i = 0; i < a.length; i += 4) {
+    const opacity = a[i + 3] / 255;
+    if (a[i] * opacity + 116 * (1 - opacity) > 200 && a[i + 1] * opacity + 210 * (1 - opacity) < 60 && a[i + 2] * opacity + 243 * (1 - opacity) < 100) red++;
+  }
+  return red;
+};
 document.querySelector("#run").addEventListener("click", async event => {
   event.target.disabled = true; checks.length = 0; report.textContent = "Running…";
   try {
-    await start(); await step(500); check(view.game.phase === "transform", "camera pose auto-starts after continuous 500ms");
+    await start(); check(!!view.threeScene, "synthetic camera exercises the shared Three visual layer");
+    await step(500); check(view.game.phase === "transform", "camera pose auto-starts after continuous 500ms");
     await step(1000); check(view.game.phase === "tutorial", "transformation lasts one second");
     await step(3200); check(view.game.phase === "tutorial", "stillness does not pass left-lean tutorial");
     tilt = -.24; await step(250); check(view.game.phase === "playing" && view.game.tutorialDone, "mirrored left shoulder turn completes tutorial");

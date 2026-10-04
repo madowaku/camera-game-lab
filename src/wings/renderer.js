@@ -1,5 +1,6 @@
 import wingsUrl from "./assets/wings-v1.webp";
 import { clamp } from "../input/bodyWingsPose.js";
+import { projectFlightRing } from "./visualLayout.js";
 
 const oval = (c, x, y, rx, ry) => { c.beginPath(); c.ellipse(x, y, Math.max(.01, rx), Math.max(.01, ry), 0, 0, Math.PI * 2); c.fill(); };
 export class WingsRenderer {
@@ -7,12 +8,14 @@ export class WingsRenderer {
     this.canvas = canvas; this.person = document.createElement("canvas");
     this.wings = new Image(); this.wings.src = wingsUrl;
   }
-  draw(game, { video, input, pose, demo, faceMode = "ORIGINAL", reducedMotion, landing = 0, locale = "ja" } = {}) {
-    const canvas = this.canvas, w = Math.max(240, canvas.clientWidth), h = Math.max(400, canvas.clientHeight);
+  draw(game, { video, input, pose, demo, faceMode = "ORIGINAL", reducedMotion, landing = 0, locale = "ja", hybrid = false, width, height } = {}) {
+    const canvas = this.canvas, w = width ?? Math.max(240, canvas.clientWidth), h = height ?? Math.max(400, canvas.clientHeight);
     const dpr = Math.min(devicePixelRatio || 1, 2);
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
     const c = canvas.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const time = game.time, boost = game.boosted, flying = !["ready", "transform"].includes(game.phase);
+    c.clearRect(0, 0, w, h);
+    if (!hybrid) {
     const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, "#199ce7"); sky.addColorStop(.55, "#80d5f7"); sky.addColorStop(1, "#e6f8fa");
     c.fillStyle = sky; c.fillRect(0, 0, w, h);
     const sun = c.createRadialGradient(w * .84, h * .12, 1, w * .84, h * .12, w * .7); sun.addColorStop(0, "#fff5c388"); sun.addColorStop(1, "#ffffff00"); c.fillStyle = sun; c.fillRect(0, 0, w, h);
@@ -33,8 +36,8 @@ export class WingsRenderer {
     // Draw far rings first. Their X converges toward the vanishing point;
     // the near ring reaches exactly the player's shoulder plane for grading.
     for (const ring of [...game.ringsAhead].reverse()) {
-      const p = ring.progress, scale = .13 + .87 * p ** 2;
-      const x = w * (.5 + (ring.x - .5) * scale), y = h * (.19 + .5 * p ** 1.6), r = w * (.018 + .165 * p ** 2);
+      const p = ring.progress, projected = projectFlightRing(ring);
+      const x = w * projected.x, y = h * projected.y, r = w * projected.radius;
       c.save(); c.shadowColor = "#ffdc63"; c.shadowBlur = reducedMotion ? 0 : 8 + 8 * p;
       c.strokeStyle = ring.id % 3 === 1 ? "#fff4ac" : "#ffcb44"; c.lineWidth = 3 + p * 6;
       c.beginPath(); c.ellipse(x, y, r, r * .86, 0, 0, Math.PI * 2); c.stroke(); c.shadowBlur = 0;
@@ -42,6 +45,7 @@ export class WingsRenderer {
       c.setLineDash([3, 5]); c.strokeStyle = "#ffffffa0"; c.lineWidth = 1;
       if (p > .7) { c.beginPath(); c.moveTo(x, y + r); c.lineTo(x, h * .85); c.stroke(); }
       c.restore();
+    }
     }
     const playerX = w * (game.x + (.5 - game.x) * landing * .3), shoulderY = h * .69;
     const last = game.effect, age = last ? game.time - last.at : Infinity;
@@ -55,7 +59,7 @@ export class WingsRenderer {
       const angle = Math.atan(game.tilt) + wobble;
       const wingWidth = (body?.span ?? w * .86) * deploy;
       c.save(); c.translate(playerX, shoulderY); c.rotate(angle); c.globalAlpha = Math.min(1, deploy * 2);
-      if (boost && !reducedMotion) { c.strokeStyle = "#bfffff"; c.lineWidth = 3; for (const x of [-.4, .4]) { c.beginPath(); c.moveTo(wingWidth * x, 10); c.lineTo(wingWidth * x * 1.1, 95); c.stroke(); } }
+      if (boost && !reducedMotion && !hybrid) { c.strokeStyle = "#bfffff"; c.lineWidth = 3; for (const x of [-.4, .4]) { c.beginPath(); c.moveTo(wingWidth * x, 10); c.lineTo(wingWidth * x * 1.1, 95); c.stroke(); } }
       if (this.wings.complete && this.wings.naturalWidth) c.drawImage(this.wings, -wingWidth * .5, -wingWidth * .333, wingWidth, wingWidth * .667);
       else { c.fillStyle = "#fff2d3"; c.beginPath(); c.moveTo(-wingWidth / 2, -5); c.lineTo(wingWidth / 2, -5); c.lineTo(wingWidth * .35, 20); c.lineTo(-wingWidth * .35, 20); c.fill(); }
       c.fillStyle = "#fb7620"; c.fillRect(-w * .024, 4, w * .048, w * .12);
@@ -77,7 +81,7 @@ export class WingsRenderer {
       c.fillStyle = "#075783"; c.font = `700 ${Math.max(13, w * .04)}px 'Yu Gothic', sans-serif`; c.textAlign = "center";
       c.fillText(locale === "ja" ? "← 左へかたむいて！" : "← LEAN LEFT!", w * .5, h * .39);
     }
-    if (last && age < 650 && ["PERFECT", "GOOD", "BOOST"].includes(last.type) && !reducedMotion) {
+    if (last && age < 650 && ["PERFECT", "GOOD", "BOOST"].includes(last.type) && !reducedMotion && !hybrid) {
       for (let i = 0; i < 16; i++) { const a = i * 2.4, r = age * .13 + 15; c.fillStyle = i % 2 ? "#fff8a0" : "#ffffff"; oval(c, playerX + Math.cos(a) * r, shoulderY + Math.sin(a) * r, 2, 2); }
     }
     if (boost) { c.strokeStyle = "#ffda5c"; c.lineWidth = 5; c.strokeRect(2, 2, w - 4, h - 4); }

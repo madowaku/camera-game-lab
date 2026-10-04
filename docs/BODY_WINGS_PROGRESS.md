@@ -1,5 +1,9 @@
 # EXP-046 BODY WINGS v0.1
 
+2026-10-05: BODY WINGS now reuses the shared Three.js Visual Layer for its sky,
+clouds, rings and BOOST effects. See [3D integration and verification](BODY_WINGS_THREE_V01.md)
+for the current rendering/lifecycle checks and Canvas2D replay limitation.
+
 Implemented and verified locally on 2026-10-04. Open
 `http://127.0.0.1:5176/#/game/solo-body-wings` while the Vite server is running.
 Canonical ID is `solo-body-wings`; `#body-wings` and `#wings` remain valid aliases.

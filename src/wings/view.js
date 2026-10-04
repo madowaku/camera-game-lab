@@ -16,13 +16,14 @@ export class BodyWingsView {
     this.game = new BodyWingsGame(); this.audio = new FlightAudio();
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     root.innerHTML = `<section class="bw-view"><div class="bw-toolbar"><span class="bw-source"></span><button type="button" class="bw-sound"></button><button type="button" class="bw-pause"></button></div>
-      <div class="bw-stage" tabindex="0" role="group"><video muted playsinline aria-hidden="true"></video><canvas class="bw-canvas" aria-hidden="true"></canvas><canvas class="bw-capture" hidden aria-hidden="true"></canvas>
+      <div class="bw-stage" tabindex="0" role="group"><video muted playsinline aria-hidden="true"></video><div class="bw-world" aria-hidden="true"></div><canvas class="bw-canvas" aria-hidden="true"></canvas><canvas class="bw-capture" hidden aria-hidden="true"></canvas>
       <div class="bw-hud"><div><small>RINGS</small><strong class="bw-rings">0</strong></div><span class="bw-flight-tag">RING RUSH</span><div><small>COMBO</small><strong class="bw-combo">×0</strong></div></div>
       <div class="bw-overlay" role="status" aria-live="polite" hidden></div><div class="bw-cue" role="status" aria-live="polite"></div><div class="bw-boost" hidden>BOOST · ×2</div>
       <div class="bw-timer"><strong class="bw-time">30.0</strong><small>SEC</small><progress class="bw-progress" max="30000" value="30000" aria-label="Remaining flight time"></progress></div></div>
       <p class="bw-hint"></p><div class="bw-recovery" hidden><button type="button" class="bw-retry"></button><button type="button" class="bw-practice"></button></div></section>`;
     this.$ = s => root.querySelector(s); this.video = this.$("video"); this.canvas = this.$(".bw-canvas");
     this.creatorCanvas = this.$(".bw-capture"); this.renderer = new WingsRenderer(this.canvas);
+    this.visual3d = null; this.threeScene = null; this.visual3dError = null; this.visual3dReady = null;
     this.input = new BodyWingsInput(this.video, { onPose: pose => { this.raw = pose; }, onStatus: (status, error) => {
       if (!this.active || this.source !== "camera") return;
       if (status === "ERROR") this.fail(error); else { this.status = status; this.render(); }
@@ -63,14 +64,60 @@ export class BodyWingsView {
     this.$(".bw-sound").addEventListener("click", () => { this.soundEnabled = !this.soundEnabled; this.audio.setEnabled(this.soundEnabled); this.render(); }, { signal });
     this.$(".bw-retry").addEventListener("click", () => void this.startCamera(), { signal });
     this.$(".bw-practice").addEventListener("click", () => this.startDemo(), { signal });
+    const media = matchMedia("(prefers-reduced-motion: reduce)");
+    this.reducedMotion = media.matches;
+    if (this.creator) this.creator.reducedMotion = this.reducedMotion;
+    media.addEventListener("change", event => {
+      this.reducedMotion = event.matches;
+      if (this.creator) this.creator.reducedMotion = event.matches;
+      this.render();
+    }, { signal });
   }
-  syncPause() { this.game.setPaused(this.userPaused || this.backgroundPaused); this.audio.update(this.game); }
+  syncPause() {
+    this.game.setPaused(this.userPaused || this.backgroundPaused); this.audio.update(this.game);
+    if (this.game.paused) this.visual3d?.pause(); else this.visual3d?.resume();
+  }
   setup(source) {
     this.releaseInputs(); this.creatorResult = null; this.active = true; this.source = source; this.phase = "loading"; this.status = "LOADING_MODEL";
     this.game = new BodyWingsGame(source); this.raw = null; this.pointerTilt = 0; this.pointerId = null;
     this.userPaused = false; this.backgroundPaused = document.hidden; this.landingMs = 0; this.highlights = []; this.receiptSaved = false;
-    if (this.options.creator) this.creator = new CreatorMode(this.creatorCanvas, { profile: bodyWingsCreatorProfile, faceMode: this.options.faceMode, reducedMotion: this.reducedMotion });
-    this.bind(); this.audio.enable(); this.audio.setEnabled(this.soundEnabled); this.syncPause(); this.render(); this.notify(); return this.generation;
+    this.visual3dError = null;
+    if (this.options.creator) {
+      this.creator = new CreatorMode(this.creatorCanvas, { profile: bodyWingsCreatorProfile, faceMode: this.options.faceMode, reducedMotion: this.reducedMotion });
+      this.replayRenderer = new WingsRenderer(document.createElement("canvas"));
+    }
+    this.bind(); this.audio.enable(); this.audio.setEnabled(this.soundEnabled); this.syncPause(); this.render(); this.notify();
+    this.visual3dReady = this.ensureVisual3d(this.generation); return this.generation;
+  }
+  async ensureVisual3d(token) {
+    let visual;
+    try {
+      const [{ createThreeVisualLayer }, { BodyWingsThreeScene }] = await Promise.all([
+        import('../visual3d/createThreeVisualLayer.js'), import('./threeScene.js'),
+      ]);
+      if (!this.active || token !== this.generation) return null;
+      visual = createThreeVisualLayer({ host: this.$('.bw-world'), mirror: false,
+        onError: error => { this.fallbackVisual3d(error, token); this.render(); } });
+      const scene = new BodyWingsThreeScene(visual);
+      this.visual3d = visual; this.threeScene = scene;
+      // Draw one complete world before replacing the opaque 2D fallback.
+      scene.update({ game: this.game });
+      this.syncPause(); this.render(); return visual;
+    } catch (error) {
+      // Once installed, scene disposal owns its effects before layer disposal.
+      // A constructor failure instead leaves only the partial layer to release.
+      if (visual && visual !== this.visual3d) visual.dispose();
+      this.fallbackVisual3d(error, token); this.render(); return null;
+    }
+  }
+  fallbackVisual3d(error, token = this.generation) {
+    if (!this.active || token !== this.generation) return;
+    if (!this.visual3dError) console.warn('BODY WINGS 3D unavailable; using Canvas2D.', error);
+    this.visual3dError = error; this.disposeVisual3d();
+  }
+  disposeVisual3d() {
+    this.threeScene?.dispose(); this.threeScene = null;
+    this.visual3d?.dispose(); this.visual3d = null;
   }
   async startCamera() {
     const token = this.setup("camera");
@@ -92,7 +139,10 @@ export class BodyWingsView {
       if (this.landingMs >= 800) this.phase = "result";
     } else {
       this.game.step(dt, this.currentPose); this.phase = this.game.phase === "result" ? "landing" : this.game.phase;
-      for (const event of this.game.events) { this.highlights.push(event); this.audio.effect(event.type); this.creator?.highlight(event.type, event.at, event.data); }
+      for (const event of this.game.events) {
+        this.highlights.push(event); this.audio.effect(event.type); this.creator?.highlight(event.type, event.at, event.data);
+        try { this.threeScene?.handleEvent(event, this.game); } catch (error) { this.fallbackVisual3d(error); }
+      }
     }
     this.audio.update(this.game); this.render();
     if (this.phase === "result") {
@@ -110,6 +160,8 @@ export class BodyWingsView {
   releaseInputs() {
     ++this.generation; cancelAnimationFrame(this.raf); this.raf = null; this.abort?.abort(); this.keys.clear(); this.input.stop(); this.audio.dispose();
     this.creator?.dispose(); this.creator = null; this.raw = null; this.currentPose = null;
+    this.disposeVisual3d(); this.visual3dReady = null;
+    if (this.replayRenderer) { this.replayRenderer.canvas.width = 0; this.replayRenderer.person.width = 0; this.replayRenderer = null; }
   }
   deactivate() { this.active = false; this.releaseInputs(); this.creatorResult = null; this.phase = "idle"; }
   render() {
@@ -126,12 +178,21 @@ export class BodyWingsView {
     const eventLabel = event === "BOOST" ? g.combo >= 10 ? "SUPER FLIGHT!" : "FLOW!" : event === "PERFECT" ? "PERFECT!" : event === "GOOD" ? "GOOD!" : event === "MISS" ? "MISS!" : event === "TUTORIAL_PASS" ? "PERFECT!" : null;
     const cue = this.phase === "ready" ? t.ready : this.phase === "transform" ? t.transform : this.phase === "playing" ? eventLabel || (g.elapsed < 2500 ? t.playing : "") : this.phase === "landing" ? "YOUR FLIGHT" : "";
     text(".bw-cue", cue); $(".bw-cue").dataset.state = this.phase;
+    $(".bw-cue").hidden = !!overlay;
     text(".bw-hint", t[this.source === "demo" ? "demoHint" : "cameraHint"]);
     $(".bw-recovery").hidden = this.phase !== "error"; text(".bw-retry", t.retryCamera); text(".bw-practice", t.practice);
-    this.renderer.draw(g, { video: this.video, input: this.input, pose: this.source === "camera" ? this.currentPose ?? (this.phase === "ready" ? this.raw : null) : null,
-      demo: this.source === "demo", faceMode: this.options.faceMode, reducedMotion: this.reducedMotion, landing: clamp(this.landingMs / 800), locale: this.locale });
+    try { this.threeScene?.update({ game: g }); } catch (error) { this.fallbackVisual3d(error); }
+    const hybrid = !!this.visual3d && !this.visual3d.failed;
+    const drawing = { video: this.video, input: this.input, pose: this.source === "camera" ? this.currentPose ?? (this.phase === "ready" ? this.raw : null) : null,
+      demo: this.source === "demo", faceMode: this.options.faceMode, reducedMotion: this.reducedMotion, landing: clamp(this.landingMs / 800), locale: this.locale };
+    this.renderer.draw(g, { ...drawing, hybrid });
     // Scene already contains the segmented, face-mode-safe player. Feed that
     // opaque composite to the shared recorder, without a second camera layer.
-    if (this.creator && !g.paused && !["idle", "loading", "error"].includes(this.phase)) this.creator.compose(this.video, this.canvas, { time: g.time, source: "demo" });
+    if (this.creator && !g.paused && !["idle", "loading", "error"].includes(this.phase) && g.time - this.creator.lastCapture >= 125) {
+      // Replay keeps the complete Canvas2D scene until WebGL composition ships.
+      // Draw at recording cadence, not a second full scene every display frame.
+      if (hybrid) this.replayRenderer.draw(g, { ...drawing, width: 270, height: 480 });
+      this.creator.compose(this.video, hybrid ? this.replayRenderer.canvas : this.canvas, { time: g.time, source: "demo" });
+    }
   }
 }
