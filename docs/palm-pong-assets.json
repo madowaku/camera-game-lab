@@ -1,0 +1,39 @@
+{
+  "experiment": "EXP-048",
+  "gameId": "duo-palm-pong",
+  "generatedAt": "2026-10-04",
+  "generator": "Built-in Imagegen",
+  "assets": [
+    {
+      "path": "src/palmPong/assets/cover-v1.webp",
+      "previewPath": "public/previews/palm-pong.webp",
+      "original": "C:/Users/hiro/.codex/generated_images/01a104a6-bfd6-7ed3-a1e4-4a167cb3c4ed/exec-e2eead30-b886-4aa0-af5b-8066a6d91ec7.png",
+      "prompt": "Use case: stylized-concept. Asset type: production key art for PALM PONG, a cooperative camera game. Portrait 2:3 composition. Primary request: two cheerful young adult friends standing side by side, facing the viewer, waist-up, each showing one open hand at chest height. A big glossy mint ping-pong paddle magically attached in front of the left person's palm, a big coral paddle attached to the right person's palm. A small sunny yellow ball with a white rim travels between the paddles with a short curved dotted trail. Warm cream backdrop, pale mint and coral translucent table graphic across the lower quarter. Playful tactile 3D editorial illustration, rounded forms, subtle paper grain, confident bold silhouettes, clean daylight, friendly warm cooperative energy. Mint and coral clothing, faces remain clearly visible above the hands. Leave quiet cream negative space in the top 22 percent for a live HTML title. Make the relation between palms, paddles and ball instantly readable. No written text, letters, logos, watermark, screenshot, extra people, or extra hands.",
+      "transparentBackground": false,
+      "sha256": "54CB744235796209EE27107AF649C8740F08C7901DB8746CB4824326D2916469",
+      "previewSha256": "A07839E77BFA89C67F3AF4E3C6A7263E356D67529148B2EAEC8817E76AD2091B",
+      "use": "Launcher illustration and Feed/Explore preview. Game paddles, rails and ball use canvas geometry matching the collision core."
+    }
+  ],
+  "processing": "Imagegen output inspected, copied into local output, resized to 960px / 640px wide and encoded as WebP with sharp, quality 88 / 82. Runtime art has a separate HTML title strip to keep faces and paddles visible; CSS crops the key art for responsive layout. No generated image edited or painted over.",
+  "music": {
+    "title": "パステルハウス",
+    "creator": "かずち",
+    "source": "https://opentracks.com/bgm/detail/1021",
+    "downloadPage": "https://opentracks.com/bgm/detail/1021/download",
+    "track": 1,
+    "creatorTerms": "https://opentracks.com/creator/detail/50",
+    "license": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-04",
+    "sourceSha256": "4EA51334AAE039354E4D288A0A2B3123C28747B65FEE1914B8C0FD560EBE71EA",
+    "asset": "src/assets/music/palm-pong.mp3",
+    "module": "src/assets/music/palmPong.js",
+    "sha256": "92AB8AD38EE182E0311D59C0A668CD13FDB83E092E128EA1917712F8AB6C0727",
+    "durationSeconds": 30,
+    "bytes": 361127,
+    "processing": "Opening 30 seconds; loudnorm I=-23:TP=-2:LRA=11, afade in 0.05s and out 29-30s, stereo 44.1kHz MP3 at 96kbit/s.",
+    "delivery": "Lazy inline audio inside JS. No standalone MP3 in public or dist, music player, downloads, recording or creator export. Shared MusicBed plays only active rounds/re-serves and freezes on pause; BGM ON/OFF is user-controlled.",
+    "sourceStorage": "Ignored output/palm-pong/pastel-house-source.mp3"
+  },
+  "sfx": "Original procedural Web Audio: pentatonic short notes with sine/triangle timbres for P1/P2, milestone chimes. Separate effect sound preference."
+}

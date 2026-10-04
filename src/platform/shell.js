@@ -217,6 +217,9 @@ export function mountPlatform(app) {
     const handyPalsTheme = route.view === "game" && route.experiment?.module === "handyPals";
     app.classList.toggle("platform--handy-pals", handyPalsTheme);
     document.body.classList.toggle("handy-pals-page", handyPalsTheme);
+    const palmPongTheme = route.view === "game" && route.experiment?.module === "palmPong";
+    app.classList.toggle("platform--palm-pong", palmPongTheme);
+    document.body.classList.toggle("palm-pong-page", palmPongTheme);
     app.classList.toggle("platform--arcade", route.view === "game" && !customTheme);
     result.classList.remove("arcade-result");
     panel.hidden = false; cacheRoot.hidden = true; cacheRoot.classList.remove("platform-has-result");
@@ -244,7 +247,7 @@ export function mountPlatform(app) {
         session.presentation = presentation;
         if (presentation) launchCopy(game);
         panel.querySelectorAll("button").forEach((button) => { button.disabled = false; });
-        panel.querySelector(".launch-status").textContent = t("ready");
+        panel.querySelector(".launch-status").textContent = game[locale === "ja" ? "launchReadyJa" : "launchReadyEn"] ?? t("ready");
       } catch (error) {
         if (generation !== routeGeneration) return;
         console.error("Game import failed", error);

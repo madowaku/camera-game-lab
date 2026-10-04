@@ -4,6 +4,18 @@ Experimental web games where **your body is the controller**.
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 
+## EXP-048: PALM PONG
+
+Two hands become mint and coral paddles. Keep a cooperative rally going for
+30 seconds in landscape. Open `#/game/duo-palm-pong` or `#palm-pong`. Includes
+two-hand front-camera tracking, swept front-face collisions, catch guides,
+650ms re-serves, tracking-loss pauses, separate two-touch / WASD + arrows
+practice, JA/EN, best rally, RETRY and challenge sharing. Imagegen cover art
+and commercially usable OpenTracks BGM are recorded in
+[the asset manifest](docs/palm-pong-assets.json). See
+[implementation and verification](docs/PALM_PONG_PROGRESS.md) and
+[the pending five-round human playtest](docs/PALM_PONG_PLAYTEST.md).
+
 ## EXP-047: TOY DRUM
 
 Swing your hands down into four colorful toy drums. Pop, squash, burst!

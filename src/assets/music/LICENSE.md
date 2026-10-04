@@ -1,5 +1,27 @@
 # Game music assets
 
+## PALM PONG (EXP-048)
+
+- Track: [パステルハウス](https://opentracks.com/bgm/detail/1021), by かずち.
+- Download: https://opentracks.com/bgm/detail/1021/download, track 1 (loop).
+- [Site license](https://opentracks.com/help/articles/license/) permits commercial
+  game background use and editing; checked 2026-10-04.
+- [Creator conditions](https://opentracks.com/creator/detail/50) add no restriction
+  relevant to this cooperative game; checked 2026-10-04.
+- Source SHA-256: `4EA51334AAE039354E4D288A0A2B3123C28747B65FEE1914B8C0FD560EBE71EA`.
+- Bundled `palm-pong.mp3` SHA-256:
+  `92AB8AD38EE182E0311D59C0A668CD13FDB83E092E128EA1917712F8AB6C0727`.
+- Opening 30 seconds, stereo MP3 at 96 kbit/s / 44.1kHz, normalized to −23 LUFS
+  with −2dB true peak target, 50ms fade-in and one-second fade-out.
+- Inlined into the lazy BGM JS module. No standalone audio file in `public/` or
+  `dist/`, music download, listening feature, recording or creator export.
+- Plays as a quiet background bed during the active round, including re-serves;
+  follows BGM ON/OFF and stops for pauses, result and exit. Return notes and
+  milestone sounds are original Web Audio synthesis.
+- Original download is retained only in ignored `output/palm-pong/`.
+
+Exact prompts, processing and asset paths: [manifest](../../../docs/palm-pong-assets.json).
+
 ## TOY DRUM (EXP-047)
 
 - Track: [おもちゃの一日](https://opentracks.com/bgm/detail/7044), by いまたく.

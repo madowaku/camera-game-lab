@@ -1,6 +1,7 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  palmPong: { id: "palmPong", title: "パステルハウス", creator: "かずち", url: "https://opentracks.com/bgm/detail/1021", volume: .18, load: () => import("../assets/music/palmPong.js") },
   toyDrum: { id: "toyDrum", title: "おもちゃの一日", creator: "いまたく", url: "https://opentracks.com/bgm/detail/7044", volume: .22, load: () => import("../assets/music/toyDrum.js") },
   handy: { id: "handy", title: "ぷかぷか", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/11821", volume: .25, load: () => import("../assets/music/handyPals.js") },
   stage: { id: "stage", title: "8-bit Stage1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1982", volume: .16, load: () => import("../assets/music/stageOne.js") },
@@ -9,6 +10,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "duo-palm-pong": "palmPong",
   "solo-toy-drum": "toyDrum",
   "solo-body-wings": "stage",
   "solo-handy-pals": "handy",
