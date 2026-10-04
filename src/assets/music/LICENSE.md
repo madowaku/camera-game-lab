@@ -1,5 +1,27 @@
 # Game music assets
 
+## TOY DRUM (EXP-047)
+
+- Track: [おもちゃの一日](https://opentracks.com/bgm/detail/7044), by いまたく.
+- Download: https://opentracks.com/bgm/detail/7044/download (track 1, loop version).
+- [Creator conditions](https://opentracks.com/creator/detail/273#terms-of-use):
+  follows the site license; checked 2026-10-04.
+- [OpenTracks audio-source license](https://opentracks.com/help/articles/license/)
+  and [site terms](https://opentracks.com/help/articles/terms/): checked 2026-10-04;
+  commercial game background use and editing are permitted.
+- Source SHA-256: `02FAC4B3FAECAB606E55A6AD5A02815A5105F0935CF54E0D21D0870B73566A3A`.
+- Bundled asset: `toy-drum.mp3`, SHA-256
+  `95E257C3F90B3F05BB2E75404324273F3B94307210562E56234A70AFB90E71A3`.
+- Edit: opening 36 seconds, stereo 96 kbit/s MP3 at 44.1kHz; -20 LUFS / -2dB
+  true peak target; 50ms fade-in and one-second fade-out. FEVER plays at 1.18x.
+- Delivery: inline encoded audio in a lazy JS module. No public standalone MP3,
+  listening player, source download button or secondary creator-tool soundtrack.
+- Original download stays in ignored local `output/music-sources/toy-drum/`.
+  Courtesy credit appears in the game information/how-to sheets. Runtime song
+  follows BGM ON/OFF, pause, result and exit. Percussion is original Web Audio.
+
+Exact image and music provenance: [TOY DRUM manifest](../../../docs/toy-drum-assets.json).
+
 ## BODY WINGS (EXP-046)
 
 BODY WINGS uses the opening 30 seconds of the already downloaded **8-bit Stage1**

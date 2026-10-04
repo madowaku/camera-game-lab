@@ -1,0 +1,25 @@
+{
+  "experiment": "EXP-047 TOY DRUM",
+  "verifiedOn": "2026-10-04",
+  "images": [
+    { "asset": "src/toyDrum/assets/drums-v1.webp", "source": "src/toyDrum/assets/drums-v1.png", "generator": "built-in Imagegen", "sourceSha256": "35727AA2C25E5E0BC404083FD9F3D071E0C509FF0792FE6E9AEA555364F66C24", "description": "Transparent 2 by 2 toy drum atlas; red, yellow, blue, green. Individual quadrants drawn independently on canvas.", "processing": "PNG to WebP, quality 90, preserving alpha; original source retained." },
+    { "asset": "src/toyDrum/assets/cover-v1.webp", "source": "src/toyDrum/assets/cover-v1.png", "generator": "built-in Imagegen", "sourceSha256": "F3C628E7407DBB38D5127B62046900BE4B5CE19F09DC0D3BE8467D26D1A134E1", "description": "Portrait toy room with four drums and bursting notes; also used in public/previews/toy-drum.webp.", "processing": "PNG to WebP, width 768 preserving aspect ratio, quality 86; original source retained." }
+  ],
+  "music": {
+    "title": "おもちゃの一日",
+    "creator": "いまたく",
+    "trackUrl": "https://opentracks.com/bgm/detail/7044",
+    "downloadPage": "https://opentracks.com/bgm/detail/7044/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/273#terms-of-use",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Creator follows the site license. Commercial game background use and audio editing permitted. No standalone audio redistribution, listening feature, or secondary creator-tool music provision.",
+    "sourceSha256": "02FAC4B3FAECAB606E55A6AD5A02815A5105F0935CF54E0D21D0870B73566A3A",
+    "asset": "src/assets/music/toy-drum.mp3",
+    "assetSha256": "95E257C3F90B3F05BB2E75404324273F3B94307210562E56234A70AFB90E71A3",
+    "processing": "Opening 36 seconds; stereo MP3, 96 kbit/s, 44.1kHz. Normalized to -20 LUFS, -2dB true peak; 50ms fade-in and 1s fade-out. Extra source length accommodates 1.18x FEVER playback during seconds 20-25.",
+    "delivery": "Vite ?inline encoded audio in lazy JS; no standalone MP3 in public or dist. Starts only after PLAY, follows shared BGM mute, pause and exit lifecycle.",
+    "sourceDownload": "Ignored local output/music-sources/toy-drum/toy-day-source.mp3"
+  },
+  "effects": "Original procedural Web Audio percussion: red DON, yellow PON, blue BOM, green PA; DOUBLE and BAAAN chords. No sampled third-party sound effects."
+}

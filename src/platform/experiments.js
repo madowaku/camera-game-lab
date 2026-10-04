@@ -128,6 +128,15 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../wings/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.rings}/${r.totalRings}リング、${r.distance}m飛んだ！ 最大コンボ ×${r.bestCombo}` : `${r.rings}/${r.totalRings} rings. ${r.distance}m flown! Best combo ×${r.bestCombo}`),
     load: () => import("../wings/view.js").then(m => m.createView) }),
+  define({ id: "solo-toy-drum", exp: "EXP-047", collection: "SOLO", category: "SOLO",
+    titleJa: "TOY DRUM", titleEn: "TOY DRUM", subtitleJa: "手を振り下ろす。ポコン！色が弾ける。", subtitleEn: "Hands down. Sounds up. Make some colorful noise!",
+    input: ["HAND"], duration: 30, accent: "#f36651", tags: ["rhythm", "toy", "music", "両手", "ドラム"],
+    aliases: ["#toy-drum", "#drum"], module: "toyDrum", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/toy-drum.webp",
+    privacyJa: "インカメラで両手の中心と動きを追跡します。マイク・録画・外部送信はありません。初回は認識モデルをダウンロードします。",
+    privacyEn: "Front camera tracks both palm centers and motion. No microphone, recording or uploads. The tracking model downloads on first use.",
+    loadPresentation: () => import("../toyDrum/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.hits}回ポコン！ ${r.score}点、最大コンボ×${r.bestCombo}${r.finishSuccess ? "。最後はBAAAN!!" : ""}` : `${r.hits} pops! ${r.score} points. Best combo ×${r.bestCombo}${r.finishSuccess ? ". BAAAN!!" : ""}`),
+    load: () => import("../toyDrum/view.js").then(m => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];

@@ -1,6 +1,7 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  toyDrum: { id: "toyDrum", title: "おもちゃの一日", creator: "いまたく", url: "https://opentracks.com/bgm/detail/7044", volume: .22, load: () => import("../assets/music/toyDrum.js") },
   handy: { id: "handy", title: "ぷかぷか", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/11821", volume: .25, load: () => import("../assets/music/handyPals.js") },
   stage: { id: "stage", title: "8-bit Stage1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1982", volume: .16, load: () => import("../assets/music/stageOne.js") },
   cozy: { id: "cozy", title: "みるくぷりん", creator: "キュス", url: "https://opentracks.com/bgm/detail/16072", volume: .22, load: () => import("../assets/music/milkPudding.js") },
@@ -8,6 +9,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-toy-drum": "toyDrum",
   "solo-body-wings": "stage",
   "solo-handy-pals": "handy",
   "solo-finger-gun": "finger", "solo-eat-dont-eat": "cozy", "solo-blink-horror": "spooky",
@@ -42,6 +44,7 @@ export class MusicBed {
     this.enabled = enabled; this.contextFactory = contextFactory; this.fetchBytes = fetchBytes;
     this.cache = new Map(); this.token = 0; this.context = null; this.source = null;
     this.track = null; this.buffer = null; this.offset = 0; this.wanted = false; this.failed = false;
+    this.rate = 1;
   }
   arm(track) {
     this.stop(); this.track = track; this.failed = false;
@@ -72,6 +75,8 @@ export class MusicBed {
     } catch { this.failed = true; }
   }
   update(snapshot, foreground = true) {
+    const nextRate = Math.max(.5, Math.min(2, Number(snapshot?.musicRate) || 1));
+    if (nextRate !== this.rate) { this.pause(); this.rate = nextRate; }
     this.wanted = musicAudible(snapshot, foreground);
     this.sync();
   }
@@ -87,6 +92,7 @@ export class MusicBed {
     try {
       const node = this.context.createBufferSource(), gain = this.context.createGain();
       node.buffer = this.buffer; node.loop = true;
+      if (node.playbackRate) node.playbackRate.value = this.rate;
       gain.gain.setValueAtTime(0, this.context.currentTime);
       gain.gain.linearRampToValueAtTime(this.track.volume, this.context.currentTime + .12);
       node.connect(gain); gain.connect(this.context.destination);
@@ -97,7 +103,7 @@ export class MusicBed {
   }
   pause() {
     if (!this.source) return;
-    this.offset = (this.offset + Math.max(0, this.context.currentTime - this.startedAt)) % this.buffer.duration;
+    this.offset = (this.offset + Math.max(0, this.context.currentTime - this.startedAt) * this.rate) % this.buffer.duration;
     try { this.source.stop(); this.source.disconnect(); this.gain.disconnect(); } catch { /* Already stopped. */ }
     this.source = null; this.gain = null;
   }
@@ -105,6 +111,6 @@ export class MusicBed {
     ++this.token; this.pause();
     const context = this.context; this.context = null;
     if (context && context.state !== "closed") void context.close().catch(() => {});
-    this.track = null; this.buffer = null; this.offset = 0; this.wanted = false; this.loading = false;
+    this.track = null; this.buffer = null; this.offset = 0; this.wanted = false; this.loading = false; this.rate = 1;
   }
 }

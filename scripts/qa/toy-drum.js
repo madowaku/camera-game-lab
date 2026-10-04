@@ -1,0 +1,60 @@
+async (page) => {
+  const base = new URL(page.url()).origin, checks = [], errors = [];
+  const check = (ok, name) => { if (!ok) throw Error(name); checks.push(name); };
+  page.on('pageerror', e => errors.push(e.message));
+  await page.addInitScript(() => { localStorage.setItem('camera-game-lab-locale', 'ja'); localStorage.setItem('camera-game-lab-platform-onboarded-v1', 'true'); });
+  await page.goto(base + '/?qa=toy-drum-' + Date.now() + '#/game/solo-toy-drum');
+  await page.waitForFunction(() => document.querySelector('.td-entry .launch-demo')?.disabled === false);
+  for (const size of [{ width: 390, height: 844 }, { width: 1440, height: 900 }, { width: 320, height: 640 }]) {
+    await page.setViewportSize(size);
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no entrance overflow ' + size.width);
+    check(await page.locator('.td-cover img').evaluate(i => i.complete && i.naturalWidth > 0), 'Imagegen cover loads ' + size.width);
+    check(await page.locator('.launch-camera').evaluate(e => e.getBoundingClientRect().height >= 44), 'camera target is at least 44px ' + size.width);
+    await page.screenshot({ path: `output/playwright/toy-drum-entry-${size.width}.png` });
+  }
+  check(await page.evaluate(() => !performance.getEntriesByType('resource').some(e => /\.task|\.wasm/.test(e.name)) && !document.querySelector('.td-stage video').srcObject), 'browsing never starts camera or model');
+  await page.locator('.launch-howto').click(); check((await page.locator('.sheet-content').textContent()).includes('おもちゃの一日'), 'how-to contains OpenTracks credit'); await page.keyboard.press('Escape');
+  check(await page.locator('.launch-howto').evaluate(e => document.activeElement === e), 'how-to returns focus');
+  await page.evaluate(async () => { const registry = await (await fetch('/src/platform/experiments.js')).text(); const path = registry.match(/import\("([^"]*\/toyDrum\/view\.js[^"]*)"\)/)[1]; const { ToyDrumView } = await import(path); const render = ToyDrumView.prototype.render; ToyDrumView.prototype.render = function (...args) { window.__tdView = this; return render.apply(this, args); }; });
+  await page.setViewportSize({ width: 390, height: 844 }); await page.clock.install(); await page.locator('.launch-demo').click(); await page.clock.runFor(300);
+  check(await page.evaluate(() => __tdView.game.phase === 'free'), 'practice starts with FREE PLAY');
+  check(await page.locator('canvas').evaluate(c => { const pixels = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let red = 0, blue = 0; for (let i = 0; i < pixels.length; i += 4) { if (pixels[i] > 180 && pixels[i+1] < 130 && pixels[i+2] < 140) red++; if (pixels[i+2] > 170 && pixels[i] < 130) blue++; } return red > 500 && blue > 500; }), 'canvas contains colorful generated drum sprites');
+  await page.keyboard.press('d'); await page.clock.runFor(80); await page.keyboard.press('f'); await page.clock.runFor(80);
+  check(await page.evaluate(() => __tdView.game.hits === 2 && __tdView.game.doubles === 1 && __tdView.game.score === 300), 'two keyboard hands produce DOUBLE +300');
+  await page.screenshot({ path: 'output/playwright/toy-drum-double-390.png' });
+  const hits = await page.evaluate(() => __tdView.game.hits);
+  await page.keyboard.down('d'); const heldHits = await page.evaluate(() => __tdView.game.hits); await page.clock.runFor(600); await page.keyboard.up('d');
+  check(await page.evaluate(() => __tdView.game.hits) === heldHits, 'repeat and cooldown do not turn a held key into rolls');
+  await page.clock.runFor(300); await page.locator('[data-drum="2"]').click();
+  check(await page.evaluate(() => __tdView.game.hits) === heldHits + 1, 'large drum touch control hits');
+  await page.locator('.td-pause').click(); const elapsed = await page.evaluate(() => __tdView.game.elapsed); await page.clock.runFor(900);
+  check(await page.evaluate(() => __tdView.game.elapsed) === elapsed, 'manual pause freezes active time'); await page.locator('.td-resume').click();
+  await page.locator('.td-sound').click(); check(await page.locator('.td-sound').getAttribute('aria-pressed') === 'false', 'effects mute works');
+  await page.locator('.game-music').click(); check(await page.locator('.game-music').getAttribute('aria-pressed') === 'false', 'BGM mute works'); await page.locator('.game-music').click();
+  await page.locator('.platform-locale').click(); check((await page.locator('.td-source').textContent()).includes('PRACTICE'), 'language switch preserves practice');
+  const runTo = async time => { const now = await page.evaluate(() => __tdView.game.elapsed); if (time > now) await page.clock.runFor((time - now) * 1000 + 20); };
+  await runTo(5.8); check(await page.evaluate(() => __tdView.game.phase === 'rhythm'), 'five-second FREE PLAY changes to RHYTHM');
+  await page.keyboard.press('d'); check(await page.evaluate(() => __tdView.game.perfects === 1), 'glowing single cue grades PERFECT');
+  await page.screenshot({ path: 'output/playwright/toy-drum-rhythm-390.png' });
+  await runTo(20.2); check(await page.evaluate(() => __tdView.snapshot().musicRate === 1.18), 'FEVER requests faster licensed BGM');
+  for (const key of ['d','f','j','k']) { await page.keyboard.press(key); await page.clock.runFor(210); }
+  await page.screenshot({ path: 'output/playwright/toy-drum-fever-390.png' });
+  await runTo(25.2); check(await page.locator('[data-big-hand="0"]').isVisible(), 'BIG DRUM presents both large hand targets');
+  await page.keyboard.press('d'); check(await page.evaluate(() => !__tdView.game.finishSuccess), 'one hand cannot complete BIG DRUM');
+  await page.keyboard.press('k'); check(await page.evaluate(() => __tdView.game.finishSuccess), 'both hands trigger BAAAN');
+  await page.screenshot({ path: 'output/playwright/toy-drum-finish-390.png' });
+  await runTo(30.2); await page.waitForSelector('.td-result');
+  check((await page.locator('.td-result').textContent()).includes('PRACTICE') && (await page.locator('.td-finale').textContent()).includes('BAAAN'), 'result retains actual practice and finale provenance');
+  check(await page.evaluate(() => __tdView.audio.context === null && !__tdView.input.running && !__tdView.video.srcObject), 'result releases audio and camera resources');
+  await page.screenshot({ path: 'output/playwright/toy-drum-result-390.png' });
+  await page.locator('[data-result-action="retry"]').click(); await page.clock.runFor(200);
+  check(await page.evaluate(() => __tdView.game.hits === 0 && __tdView.game.score === 0 && __tdView.source === 'demo'), 'RETRY resets score and preserves practice');
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.screenshot({ path: 'output/playwright/toy-drum-play-1440.png' });
+  await page.setViewportSize({ width: 320, height: 640 }); check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no play overflow at 320'); await page.screenshot({ path: 'output/playwright/toy-drum-play-320.png' });
+  await page.evaluate(() => window.dispatchEvent(new Event('blur'))); const paused = await page.evaluate(() => __tdView.game.elapsed); await page.clock.runFor(500); check(await page.evaluate(() => __tdView.game.elapsed) === paused, 'blur pauses round');
+  await page.locator('.game-back').click(); await page.clock.runFor(200);
+  check(await page.evaluate(() => !__tdView.active && __tdView.frameId === null && __tdView.audio.context === null), 'navigation releases loop and audio');
+  check(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgb(255, 243, 222)'), 'feed recovers its own theme');
+  check(errors.length === 0, 'no uncaught browser errors');
+  return { checks, errors };
+}

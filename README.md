@@ -4,6 +4,18 @@ Experimental web games where **your body is the controller**.
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 
+## EXP-047: TOY DRUM
+
+Swing your hands down into four colorful toy drums. Pop, squash, burst!
+Open `#/game/solo-toy-drum` or `#toy-drum`. The 30-second portrait round moves
+from five seconds of free play through forgiving light cues, two-hand DOUBLE,
+FEVER and a giant two-hand BAAAN finish. Includes JA/EN, camera-free touch or
+D/F/J/K practice, measured results, RETRY/NEXT/SHARE, pause and tracking recovery.
+Imagegen artwork and commercially licensed OpenTracks BGM are documented in
+[the asset manifest](docs/toy-drum-assets.json). See
+[implementation and verification](docs/TOY_DRUM_PROGRESS.md) and
+[the pending five-round human playtest](docs/TOY_DRUM_PLAYTEST.md).
+
 ## EXP-046: BODY WINGS
 
 Spread your arms and become the plane. Bank your shoulders left and right through
