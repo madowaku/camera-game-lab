@@ -33,6 +33,21 @@ commercially usable OpenTracks music and Kenney CC0 SE are recorded in
 [implementation and verification](docs/HUMAN_CLOCK_PROGRESS.md),
 [final input specification](docs/HUMAN_CLOCK_SPEC_V01.md) and
 [pending physical/human checks](docs/HUMAN_CLOCK_PLAYTEST.md).
+HUMAN CLOCK and COUNTER CAM share EXP-050 as a display number with distinct IDs.
+
+## EXP-050: COUNTER CAM
+
+Dodge the robot's fist with your body, then punch the yellow counter target.
+Open `#/game/solo-counter-cam` or `#counter-cam`. A 30-second portrait round
+with ROOKIE ROBOT, PUNCH / LEFT DODGE / RIGHT DODGE / GUARD, 900ms warnings,
+150ms dodge freeze, 10/40/80 damage and a charged MEGA PUNCH. Includes front
+camera calibration, distance checks, tracking recovery, JA/EN, touch/keyboard
+practice, RETRY/NEXT/SHARE and CREATOR's best seven seconds with
+ORIGINAL/EFFECT/HIDE and optional silent video saving. Imagegen robot/cover,
+OpenTracks BGM and shared Kenney CC0 impacts are documented in
+[the asset manifest](docs/counter-cam-assets.json). See
+[implementation and verification](docs/COUNTER_CAM_PROGRESS.md) and
+[pending physical-device and human checks](docs/COUNTER_CAM_PLAYTEST.md).
 
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 

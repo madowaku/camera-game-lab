@@ -12,6 +12,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-counter-cam": "finger",
   "solo-human-clock": "humanClock",
   "solo-wipe": "wipe", "duo-wipe": "wipe",
   "duo-palm-pong": "palmPong",

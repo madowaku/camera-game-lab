@@ -1,0 +1,53 @@
+{
+  "experiment": "EXP-050",
+  "id": "solo-counter-cam",
+  "verifiedAt": "2026-10-04",
+  "images": [
+    {
+      "asset": "src/counterCam/assets/rookie-v1.webp",
+      "source": "src/counterCam/assets/rookie-v1.png",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": true,
+      "use": "Waist-up gameplay robot and attacking glove crop",
+      "prompt": "Use case: stylized-concept\nAsset type: transparent gameplay sprite for EXP-050 COUNTER CAM, a front-camera counter-boxing game.\nPrimary request: A single friendly ROOKIE ROBOT boxer, waist-up, facing the viewer, ready to box. Rounded cream-white and charcoal mechanical body, red boxing gloves raised beside the chest, small cyan eyes, cheeky determined expression, exaggerated shoulder joints with red warning lamps. Readable chunky silhouette, polished cartoon toy 3D render with subtle ink outlines and warm highlights. Waist cut flat, no legs. Keep the head and torso compact; separated raised gloves on each side so the player behind remains visible.\nComposition: one character centered, entire gloves and shoulders within the image, ample transparent padding around all edges.\nConstraints: genuinely transparent background, no floor, no shadow outside character, no scenery, no text, no UI, no logo, no watermark, only one robot."
+    },
+    {
+      "asset": "src/counterCam/assets/cover-v1.webp",
+      "preview": "public/previews/counter-cam.webp",
+      "source": "src/counterCam/assets/cover-v1.png",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": false,
+      "use": "Entrance and feed cover",
+      "prompt": "Use case: stylized-concept\nAsset type: portrait 9:16 cover art for COUNTER CAM, a real body camera boxing game.\nPrimary request: A joyful young adult in casual charcoal sportswear, waist up, visibly swaying their head to the left as a giant red boxing glove from a friendly cream-white cartoon ROOKIE ROBOT rushes past on the right. Their real fist punches forward into a small golden impact burst on the robot. Robot occupies the lower right foreground, person face stays unobscured upper center. A clear visual dodge-then-counter story.\nStyle: vibrant editorial arcade poster, realistic candid human combined with polished chunky toy 3D robot. Cream robot, red gloves, cyan mechanical eyes. Warm black boxing gym background, subtle red ring ropes, punchy butter-yellow graphic streaks.\nComposition: vertical portrait, energetic diagonal composition, generous dark negative space across top quarter for later title overlay. Person and robot remain readable at phone size.\nConstraints: no letters, no text, no logos, no watermark, no UI, no extra people, no injury, no phone visible."
+    }
+  ],
+  "music": {
+    "title": "8-bit Aggressive1",
+    "creator": "もっぴーさうんど",
+    "sourceUrl": "https://opentracks.com/bgm/detail/1978",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/55",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "asset": "src/assets/music/finger-gun-theme.mp3",
+    "module": "src/assets/music/fingerGunTheme.js",
+    "selection": "Reuse existing project download; source and creator terms rechecked 2026-10-04",
+    "use": "Commercial game background music. Lazy ?inline import; no standalone audio in public or dist; no music redistribution or soundtrack in exported creator clips.",
+    "additionalConditions": "Creator follows site license; no additional restrictions listed."
+  },
+  "sfx": {
+    "sourceRoot": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds",
+    "creator": "Kenney",
+    "license": "CC0",
+    "licenseFile": "src/counterCam/assets/Kenney-LICENSE.txt",
+    "assets": [
+      {
+        "asset": "src/counterCam/assets/punch.ogg",
+        "source": "Audio/impactPunch_heavy_000.ogg"
+      },
+      {
+        "asset": "src/counterCam/assets/mega.ogg",
+        "source": "Audio/impactMetal_heavy_000.ogg"
+      }
+    ],
+    "procedural": "Original oscillator warning, dodge, guard and victory cues."
+  }
+}

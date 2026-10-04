@@ -1,0 +1,9 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "contextOptions": {
+      "serviceWorkers": "block",
+      "viewport": { "width": 390, "height": 844 }
+    }
+  }
+}

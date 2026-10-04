@@ -165,6 +165,16 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../wipe/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.mode === "duo" ? `P1 ${r.clean[0]}% / P2 ${r.clean[1]}%` : `${r.clean[0]}% CLEAN`}！${r.reason === "perfect" ? "PERFECT WINDOW! " : ""}${r.elapsed.toFixed(1)}秒でピカピカに。` : `${r.mode === "duo" ? `P1 ${r.clean[0]}% / P2 ${r.clean[1]}%` : `${r.clean[0]}% CLEAN`}! ${r.reason === "perfect" ? "PERFECT WINDOW! " : ""}${r.elapsed.toFixed(1)} seconds of shine.`),
     load: () => import("../wipe/view.js").then(m => m.createView) })),
+  define({ id: "solo-counter-cam", exp: "EXP-050", collection: "SOLO", category: "SOLO",
+    titleJa: "COUNTER CAM", titleEn: "COUNTER CAM", subtitleJa: "身体でよける。本当にパンチする。", subtitleEn: "Dodge with your body. Punch for real.",
+    input: ["BODY", "FACE"], duration: 30, accent: "#ffdb4a", tags: ["boxing", "counter", "dodge", "creator", "ボクシング", "回避"],
+    aliases: ["#counter-cam"], module: "counterCam", demo: true, motif: "body", previewType: "image", previewAsset: "/previews/counter-cam.webp",
+    launchReadyJa: "PLAYで準備。拳を一度出して、頭を左右へ。", launchReadyEn: "PLAY to get ready. Punch once, then move your head left and right.",
+    privacyJa: "インカメラで頭・肩・肘・手首を追跡します。マイクは使いません。映像と身体の位置は端末内で処理し、外部送信しません。PLAYは録画せず、CREATORは最高の約7秒を端末メモリに保持し、退出時に破棄します。動画の保存は自分で選べます。初回は認識モデルをダウンロードします。",
+    privacyEn: "Front camera tracks your head, shoulders, elbows and wrists. No microphone. Video and body positions stay on your device and are never uploaded. PLAY does not record. CREATOR keeps your best seven seconds in memory and discards them on exit. Saving a clip is optional. Models download on first use.",
+    loadPresentation: () => import("../counterCam/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + `COUNTER CAM · ${r.title} · ${r.rank} · ${(r.elapsed / 1000).toFixed(2)} SEC · PERFECT COUNTER ×${r.perfectCounters}`,
+    load: () => import("../counterCam/view.js").then(m => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];
