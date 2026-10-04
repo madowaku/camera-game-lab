@@ -1,9 +1,9 @@
 export const ROUND_SECONDS = 30;
 export const DRUMS = Object.freeze([
-  { id: 0, x: .27, y: .62, rx: .17, ry: .078, color: "#ff6659", name: "DON", shape: "star" },
-  { id: 1, x: .73, y: .62, rx: .17, ry: .078, color: "#ffc928", name: "PON", shape: "circle" },
-  { id: 2, x: .27, y: .83, rx: .17, ry: .078, color: "#4cbcff", name: "BOM", shape: "bubble" },
-  { id: 3, x: .73, y: .83, rx: .17, ry: .078, color: "#52d59b", name: "PA", shape: "confetti" },
+  { id: 0, x: .27, y: .38, rx: .17, ry: .078, color: "#ff6659", name: "DON", shape: "star" },
+  { id: 1, x: .73, y: .38, rx: .17, ry: .078, color: "#ffc928", name: "PON", shape: "circle" },
+  { id: 2, x: .27, y: .76, rx: .17, ry: .078, color: "#4cbcff", name: "BOM", shape: "bubble" },
+  { id: 3, x: .73, y: .76, rx: .17, ry: .078, color: "#52d59b", name: "PA", shape: "confetti" },
 ]);
 export const BIG_DRUM = Object.freeze({ id: 4, x: .5, y: .72, rx: .3, ry: .14, color: "#ffc928", name: "BIG DRUM" });
 export const PATTERN = Object.freeze([

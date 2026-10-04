@@ -13,7 +13,8 @@ async (page) => {
     const { ToyDrumView } = await import(path), { ToyDrumInput } = await import(inputPath), render = ToyDrumView.prototype.render, start = ToyDrumInput.prototype.start;
     ToyDrumView.prototype.render = function (...args) { window.__tdView = this; return render.apply(this, args); };
     ToyDrumInput.prototype.start = function () { Object.defineProperty(this.video, 'currentTime', { configurable: true, get: () => performance.now() / 1000 }); return start.call(this); };
-    window.__hands = [{ x: .27, y: .42 }, { x: .73, y: .42 }]; window.__requests = 0; window.__closes = 0; window.__tracks = []; window.__delegates = [];
+    const { DRUMS } = await import('/src/games/toyDrum.js'); window.__drums = DRUMS;
+    window.__hands = DRUMS.slice(0, 2).map(d => ({ x: d.x, y: d.y - d.ry - .08 })); window.__requests = 0; window.__closes = 0; window.__tracks = []; window.__delegates = [];
     vision.FilesetResolver.forVisionTasks = async () => ({});
     vision.HandLandmarker.createFromOptions = async (files, options) => {
       __delegates.push(options.baseOptions.delegate); window.__numHands = options.numHands;
@@ -29,14 +30,17 @@ async (page) => {
   check(await page.evaluate(() => __constraints.audio === false && __constraints.video.facingMode.exact === 'user'), 'front camera without microphone');
   check(await page.evaluate(() => __numHands === 2 && __delegates.slice(0,2).join() === 'GPU,CPU'), 'two-hand model with GPU to CPU fallback');
   check(await page.evaluate(() => __tdView.game.phase === 'free'), 'first visible hands start FREE PLAY');
-  await page.evaluate(() => { __hands.forEach(h => h.y = .63); }); await page.clock.runFor(60);
+  await page.evaluate(() => { __hands.forEach((h, i) => h.y = __drums[i].y); }); await page.clock.runFor(60);
   check(await page.evaluate(() => __tdView.game.hits === 2 && __tdView.game.doubles === 1), 'tracked downward palm entries trigger DOUBLE');
   await page.clock.runFor(500); check(await page.evaluate(() => __tdView.game.hits === 2), 'stationary camera palms do not roll');
   await page.keyboard.press('j'); check(await page.evaluate(() => __tdView.game.hits === 2), 'practice keys cannot score in camera mode');
   await page.evaluate(() => { __hands = []; }); await page.clock.runFor(750); const lostAt = await page.evaluate(() => __tdView.game.elapsed); await page.clock.runFor(500);
   check(await page.evaluate(() => __tdView.game.elapsed) === lostAt, 'tracking loss pauses active clock');
-  await page.evaluate(() => { __hands = [{ x:.27,y:.63 }, { x:.73,y:.63 }]; }); await page.clock.runFor(300);
+  await page.evaluate(() => { __hands = __drums.slice(0, 2).map(d => ({ x:d.x,y:d.y })); }); await page.clock.runFor(300);
   check(await page.evaluate(() => !__tdView.inputLost && __tdView.game.hits === 2), 'stable hand return resumes without phantom hits');
+  await page.evaluate(() => { __hands = __drums.slice(2).map(d => ({ x:d.x,y:d.y - d.ry - .08 })); }); await page.clock.runFor(60);
+  await page.evaluate(() => { __hands.forEach((h, i) => h.y = __drums[i + 2].y); }); await page.clock.runFor(60);
+  check(await page.evaluate(() => __tdView.game.hits === 4 && __tdView.game.doubles === 2), 'lower-row swings hit blue and green without retriggering upper drums');
   await page.evaluate(() => { __hands.reverse(); }); await page.clock.runFor(60); check(await page.evaluate(() => __tdView.input.tracker.slots[0].x < __tdView.input.tracker.slots[1].x), 'model array order never swaps palm slots');
   await page.screenshot({ path: 'output/playwright/toy-drum-camera-390.png' });
   await page.locator('.game-back').click(); await page.locator('.lab-feed').waitFor();

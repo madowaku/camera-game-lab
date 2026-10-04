@@ -11,32 +11,38 @@ const start = () => { const g = new ToyDrumGame(); g.start(); return g; };
 const landmarks = (x, y) => Array.from({ length: 21 }, () => ({ x: 1 - x, y }));
 
 test("downward swept entry catches low-FPS swings and chooses only the first drum", () => {
-  const d = new DrumHitDetector(); d.update([hand(.27, .48)], 1);
-  assert.deepEqual(d.update([hand(.27, .94)], 1.08).map(h => h.drum), [0]);
-  assert.equal(entryOnSegment(hand(.27, .5), hand(.27, .8), DRUMS[0]) != null, true);
+  const top = DRUMS[0], bottom = DRUMS[2], d = new DrumHitDetector();
+  d.update([hand(top.x, top.y - .14)], 1);
+  assert.deepEqual(d.update([hand(bottom.x, bottom.y + .11)], 1.08).map(h => h.drum), [top.id]);
+  assert.equal(entryOnSegment(hand(top.x, top.y - .12), hand(top.x, top.y + .18), top) != null, true);
 });
 test("resting, upward motion, slow approach and sideways motion never hit", () => {
-  for (const path of [[hand(.27, .62), hand(.27, .63)], [hand(.27, .72), hand(.27, .56)], [hand(.27, .535), hand(.27, .55)], [hand(.02, .62), hand(.27, .62)]]) {
-    const d = new DrumHitDetector(); d.update([path[0]], 0); assert.deepEqual(d.update([path[1]], .1), []);
+  for (const { x, y, rx, ry } of DRUMS) {
+    for (const path of [[hand(x, y), hand(x, y + .01)], [hand(x, y + .1), hand(x, y - .06)], [hand(x, y - ry - .007), hand(x, y - ry + .008)], [hand(x - rx - .06, y), hand(x, y)]]) {
+      const d = new DrumHitDetector(); d.update([path[0]], 0); assert.deepEqual(d.update([path[1]], .1), []);
+    }
+    const d = new DrumHitDetector(); d.update([hand(x, y - .12)], 0); assert.equal(d.update([hand(x, y)], .08).length, 1);
+    for (let i = 1; i <= 30; i++) assert.equal(d.update([hand(x, y + Math.sin(i) * .003)], .08 + i * .04).length, 0);
   }
-  const d = new DrumHitDetector(); d.update([hand(.27, .5)], 0); assert.equal(d.update([hand(.27, .62)], .08).length, 1);
-  for (let i = 1; i <= 30; i++) assert.equal(d.update([hand(.27, .62 + Math.sin(i) * .003)], .08 + i * .04).length, 0);
 });
 test("one drum has a 200ms cooldown shared by both hands; exiting rearms it", () => {
-  const d = new DrumHitDetector(); d.update([hand(.27, .5, 0), hand(.27, .49, 1)], 0);
-  assert.equal(d.update([hand(.27, .62, 0), hand(.27, .62, 1)], .06).length, 1);
-  d.update([hand(.27, .5)], .15); assert.equal(d.update([hand(.27, .62)], .2).length, 0);
-  d.update([hand(.27, .5)], .27); assert.equal(d.update([hand(.27, .62)], .34).length, 1);
+  const { x, y } = DRUMS[0], d = new DrumHitDetector(); d.update([hand(x, y - .12, 0), hand(x, y - .13, 1)], 0);
+  assert.equal(d.update([hand(x, y, 0), hand(x, y, 1)], .06).length, 1);
+  d.update([hand(x, y - .12)], .15); assert.equal(d.update([hand(x, y)], .2).length, 0);
+  d.update([hand(x, y - .12)], .27); assert.equal(d.update([hand(x, y)], .34).length, 1);
 });
 test("tracking gaps, stale frames and first-frame reacquisition cannot invent hits", () => {
-  const d = new DrumHitDetector(); d.update([hand(.27, .5)], 1); d.update([], 1.02);
-  assert.equal(d.update([hand(.27, .62)], 1.08).length, 0);
-  d.update([hand(.27, .5)], 1.15); assert.equal(d.update([hand(.27, .62)], 1.5).length, 0);
-  d.clearMotion(); assert.equal(d.update([hand(.27, .62)], 1.55).length, 0);
+  const { x, y } = DRUMS[0], d = new DrumHitDetector(); d.update([hand(x, y - .12)], 1); d.update([], 1.02);
+  assert.equal(d.update([hand(x, y)], 1.08).length, 0);
+  d.update([hand(x, y - .12)], 1.15); assert.equal(d.update([hand(x, y)], 1.5).length, 0);
+  d.clearMotion(); assert.equal(d.update([hand(x, y)], 1.55).length, 0);
 });
 test("simultaneous hands can strike two separate drums and BIG DRUM", () => {
-  const d = new DrumHitDetector(); d.update([hand(.27, .48), hand(.73, .48, 1)], 1);
-  assert.deepEqual(d.update([hand(.27, .62), hand(.73, .62, 1)], 1.08).map(h => h.drum), [0, 1]);
+  const d = new DrumHitDetector();
+  for (const row of [DRUMS.slice(0, 2), DRUMS.slice(2)]) {
+    d.clearMotion(); d.update(row.map((target, slot) => hand(target.x, target.y - .14, slot)), 1);
+    assert.deepEqual(d.update(row.map((target, slot) => hand(target.x, target.y, slot)), 1.08).map(h => h.drum), row.map(target => target.id));
+  }
   d.clearMotion(); d.update([hand(.4, .5), hand(.6, .5, 1)], 2, [BIG_DRUM]);
   assert.equal(d.update([hand(.4, .72), hand(.6, .72, 1)], 2.08, [BIG_DRUM]).length, 2);
 });

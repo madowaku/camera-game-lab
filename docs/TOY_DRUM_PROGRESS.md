@@ -8,6 +8,11 @@ on the mirrored live camera. MediaPipe HandLandmarker tracks two palm centers;
 no finger gesture or handedness label determines a hit. Geometric prediction
 maintains hand slots. Projection matches the rendered camera cover crop.
 
+The red/yellow drums sit in the upper row at 38% stage height; blue/green sit
+in the lower row at 76%. Both rows share their positions with camera hit
+ellipses and touch controls. The space between rows gives hands room to move;
+the practice silhouette and DOUBLE/PERFECT feedback occupy this middle space.
+
 Downward speed ≥0.35 stage-heights/s, a swept ellipse crossing, minimum movement,
 per-drum 200ms cooldown and leave-to-rearm prevent resting, slow, sideways,
 repeated or upward hits. Swept intersection also catches a swing crossing the
@@ -65,3 +70,14 @@ Verification, 2026-10-04:
 
 Physical mobile acceptance, intended-HIT recognition ≥90%, and five human
 playtests remain pending in [the playtest sheet](TOY_DRUM_PLAYTEST.md).
+
+Upper/lower layout revision, 2026-10-04:
+
+- All 15 TOY DRUM unit tests pass; downward/held/upward/slow/sideways coverage
+  now exercises all four drums at their actual positions.
+- 35 browser checks pass at 390×844, 1440×900 and 320×640; updated sprites,
+  central feedback and touch targets were inspected in screenshots.
+- 15 synthetic-camera checks pass, including separate strikes on the upper
+  and lower rows without retriggering the upper drums.
+- Production build and Wrangler dry run pass. All 15 production browser
+  checks pass, including real two-pointer strikes on both rows and the finale.

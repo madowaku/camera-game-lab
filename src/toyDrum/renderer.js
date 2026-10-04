@@ -31,7 +31,7 @@ export class ToyDrumRenderer {
       c.fillStyle = "#f9dbb5";
       for (let y = 40; y < H; y += 56) for (let x = 28; x < W; x += 56) { c.beginPath(); c.arc(x, y, 2, 0, Math.PI * 2); c.fill(); }
       c.fillStyle = "#f4bc82"; c.fillRect(0, H * .47, W, 4);
-      c.save(); c.translate(W / 2, H * .34); c.strokeStyle = "#d59665"; c.lineWidth = 12; c.lineCap = "round";
+      c.save(); c.translate(W / 2, H * .55); c.strokeStyle = "#d59665"; c.lineWidth = 12; c.lineCap = "round";
       c.beginPath(); c.arc(0, -58, 42, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(-106, 86); c.quadraticCurveTo(-102, 4, 0, 4); c.quadraticCurveTo(102, 4, 106, 86); c.stroke();
       c.font = "900 16px 'Trebuchet MS'"; c.fillStyle = "#996348"; c.textAlign = "center"; c.fillText("YOUR HANDS. YOUR LITTLE BAND.", 0, 138); c.restore();
     }
@@ -56,7 +56,7 @@ export class ToyDrumRenderer {
     }
     const f = this.feedback;
     if (f && now - f.at < (f.type === "finish" ? 2.4 : .75)) {
-      c.save(); c.textAlign = "center"; c.translate(W * .5, H * .46); c.rotate(-.04); c.font = `900 ${f.type === "finish" ? 87 : 52}px 'Trebuchet MS'`;
+      c.save(); c.textAlign = "center"; c.translate(W * .5, H * (f.type === "finish" ? .46 : .59)); c.rotate(-.04); c.font = `900 ${f.type === "finish" ? 87 : 52}px 'Trebuchet MS'`;
       c.lineWidth = 12; c.strokeStyle = "#fff5d7"; c.fillStyle = f.type === "perfect" ? "#d78b00" : "#ed594b";
       const label = f.type === "finish" ? "BAAAN!!" : f.type === "double" ? "DOUBLE!" : "PERFECT!"; c.strokeText(label, 0, 0); c.fillText(label, 0, 0); c.restore();
     }
