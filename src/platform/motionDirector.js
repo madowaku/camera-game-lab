@@ -1,7 +1,7 @@
 import { motionProfiles, motionSampleOf, motionCue } from './motionProfiles.js';
 
 const activePhases = new Set(['playing', 'locked', 'clear', 'stage-clear']);
-const artSelector = '.arcade-hero,.ss-hero,.ne-cover,.hp-cover,.bw-entry-hero,.pp-entry-art,.td-cover,.pw-cover,.wipe-cover,.hc-cover,.cc-cover,.tt-cover,.as-cover,.dl-cover';
+const artSelector = '.arcade-hero,.ss-hero,.ne-cover,.hp-cover,.bw-entry-hero,.pp-entry-art,.td-cover,.pw-cover,.wipe-cover,.hc-cover,.cc-cover,.tt-cover,.as-cover,.dl-cover,.hs-cover';
 
 // Native CSS timelines share the game's render loop. No extra RAF or sensor work.
 export class MotionDirector {

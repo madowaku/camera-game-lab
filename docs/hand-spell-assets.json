@@ -1,0 +1,58 @@
+{
+  "experiment": "EXP-056 HAND SPELL",
+  "verifiedOn": "2026-10-04",
+  "images": [
+    {
+      "source": "src/handSpell/assets/dragon-v1.png",
+      "asset": "src/handSpell/assets/dragon-v1.webp",
+      "preview": "public/previews/hand-spell.webp",
+      "generator": "built-in Imagegen, transparent_background=true",
+      "prompt": "docs/hand-spell-image-prompts.txt (DRAGON)",
+      "sourceSha256": "CE1860AEB28A4BE05663BBE372028883EA15F09D327707C72176454E7C1A2827",
+      "assetSha256": "246B63F4930561FA74524A1DD9C6AF094632CC07C617559B570364ECFE0CE4B6",
+      "processing": "Original PNG retained. Runtime WebP 768×768, quality 87, alpha retained. Preview 432×432, quality 82. No semantic edits."
+    },
+    {
+      "source": "src/handSpell/assets/enemy-v1.png",
+      "asset": "src/handSpell/assets/enemy-v1.webp",
+      "generator": "built-in Imagegen, transparent_background=true",
+      "prompt": "docs/hand-spell-image-prompts.txt (ENEMY)",
+      "sourceSha256": "BE51739F3F6A823B7198A9D9289DE76A7B5B3059D88966155F9FE019BA53DE6D",
+      "assetSha256": "8BE1F1D936458F37A4C240BE8FFF22F24618E25A7E915EBF352BD87765314011",
+      "processing": "Original PNG retained. Runtime WebP 768×768, quality 87, alpha retained. No semantic edits."
+    }
+  ],
+  "music": {
+    "title": "The maze of aqua",
+    "creator": "蒲鉾さちこ",
+    "trackUrl": "https://opentracks.com/bgm/detail/23061",
+    "downloadPage": "https://opentracks.com/bgm/detail/23061/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/418",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Commercial game background use permitted under the site license and creator conditions. Creator prohibits reposting, redistribution, AI training/AI modification and major song alterations. Credit and individual permission are optional. No music-player or audio download feature. Creator exports are silent.",
+    "acquisition": "User-selected track 1 downloaded through the official form (CSRF POST, track=1) on 2026-10-04. Original retained only in ignored output/music-sources/hand-spell/the-maze-of-aqua-track1.mp3. Track, site license, terms and creator conditions checked on that date.",
+    "sourceSha256": "8CEEF402F49F214ED4D0A13DCC66C12A292C51A135CDD7D35A4D90D4CDA85C2A",
+    "asset": "src/assets/music/hand-spell.mp3",
+    "assetSha256": "6E0F70FE17D5965B069D3CF37E40C9B749C7C4202EC9CE27C5F87BC1A380C2FD",
+    "processing": "Opening 30 seconds; stereo MP3, 96 kbit/s, 44.1kHz. Loudness target -20 LUFS / -2dB true peak, 50ms fade-in and 1s fade-out. Metadata/cover stripped. Original tempo, pitch and arrangement preserved.",
+    "delivery": "Dedicated lazy inline JavaScript module; shared MusicBed mute, pause, foreground, results and navigation lifecycle. Playback remains at 1x throughout all seals. Misfire reveal stops BGM. No standalone MP3 in public/dist; CREATOR exports remain silent."
+  },
+  "effects": {
+    "provider": "Kenney RPG Audio and Impact Sounds",
+    "sourceRoot": "C:/Dev/AssetsShared/Audio/SE",
+    "license": "CC0",
+    "localLicenses": ["src/handSpell/assets/sfx/RPG-LICENSE.txt", "src/handSpell/assets/sfx/IMPACT-LICENSE.txt"],
+    "files": [
+      {"source": "kenney_rpg-audio/Audio/metalClick.ogg", "asset": "src/handSpell/assets/sfx/lock.ogg", "use": "seal lock"},
+      {"source": "kenney_rpg-audio/Audio/knifeSlice.ogg", "asset": "src/handSpell/assets/sfx/release.ogg", "use": "shared charge swoosh"},
+      {"source": "kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg", "asset": "src/handSpell/assets/sfx/impact.ogg", "use": "perfect spell impact"}
+    ],
+    "procedural": "Original Web Audio rising rune tones, charge chord, filtered-noise explosion, chick chirps and descending misfire tones."
+  },
+  "motion": {
+    "engine": "GSAP 3 and Canvas 2D",
+    "composition": "Hand-following rune stacks, GSAP seal locks and charge, dragon zoom with 75ms visual hitstop, bounded camera shake, lightning bolts, ice crystals, enemy launch and distinct procedural misfires.",
+    "reducedMotion": "Live preference disables GSAP, shake, dragon movement, spinning/falling debris and ambient motion. Core phases and outcome remain visible."
+  }
+}

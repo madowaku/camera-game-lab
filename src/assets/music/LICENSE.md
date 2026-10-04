@@ -1,5 +1,28 @@
 # Game music assets
 
+## HAND SPELL (EXP-056)
+
+- Track: [The maze of aqua](https://opentracks.com/bgm/detail/23061), by 蒲鉾さちこ.
+- Official download form: https://opentracks.com/bgm/detail/23061/download,
+  track 1. Acquired 2026-10-04; original kept only in ignored
+  `output/music-sources/hand-spell/`.
+- [Site license](https://opentracks.com/help/articles/license/) and
+  [creator conditions](https://opentracks.com/creator/detail/418) checked
+  2026-10-04: commercial game background use permitted. The creator prohibits
+  reposting, redistribution, AI training/AI modification and major song
+  alterations. Individual permission and credit are optional.
+- Opening 30 seconds, 96 kbit/s stereo MP3, 44.1kHz, −20 LUFS / −2dB true
+  peak target, 50ms fade-in and 1s fade-out. Original tempo, pitch and arrangement
+  preserved, including throughout the three seal locks.
+- Source SHA-256: `8CEEF402F49F214ED4D0A13DCC66C12A292C51A135CDD7D35A4D90D4CDA85C2A`.
+- Bundled `hand-spell.mp3` SHA-256:
+  `6E0F70FE17D5965B069D3CF37E40C9B749C7C4202EC9CE27C5F87BC1A380C2FD`.
+- Dedicated lazy inline module, with BGM mute/pause/foreground/result/exit
+  lifecycle. No standalone audio in public/dist, listening player or audio
+  download. CREATOR exports are silent. Courtesy credit in the how-to sheet.
+
+Exact acquisition and processing: [manifest](../../../docs/hand-spell-assets.json).
+
 ## TILT TURBO (EXP-053)
 
 - Reuses the locally downloaded [8-bit Stage1 by もっぴーさうんど](https://opentracks.com/bgm/detail/1982).

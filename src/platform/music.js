@@ -1,6 +1,7 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  handSpell: { id: "handSpell", title: "The maze of aqua", creator: "蒲鉾さちこ", url: "https://opentracks.com/bgm/detail/23061", volume: .22, load: () => import("../assets/music/handSpell.js") },
   blinkSpooky: { id: "blinkSpooky", title: "不穏ROOM", creator: "MAKOOTO", url: "https://opentracks.com/bgm/detail/9957", volume: .07, load: () => import("../assets/music/uneasyRoom.js") },
   airSlash: { id: "airSlash", title: "イケイケな気分", creator: "ハヤシユウ", url: "https://opentracks.com/bgm/detail/11555", volume: .2, load: () => import("../assets/music/airSlash.js") },
   humanClock: { id: "humanClock", title: "The Swing of Time", creator: "ザイオン (zion)", url: "https://opentracks.com/bgm/detail/22437", volume: .2, load: () => import("../assets/music/humanClock.js") },
@@ -15,6 +16,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-hand-spell": "handSpell",
   "solo-air-slash": "airSlash",
   "solo-dont-laugh": "toyDrum",
   "solo-tilt-turbo": "stage",

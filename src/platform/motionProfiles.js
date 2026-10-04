@@ -3,6 +3,7 @@
 import { DRUMS, BIG_DRUM } from '../games/toyDrum.js';
 const profile = (family, stage, label, every = 5) => Object.freeze({ family, stage, label, every });
 export const motionProfiles = Object.freeze({
+  'solo-hand-spell': profile('orbit', '.hs-stage', 'LOCKED!', 3),
   'solo-hand-beat': profile('rhythm', '#stage', 'ON BEAT!'),
   'solo-finger-gun': profile('impact', '#stage', 'HIT!'),
   'solo-eat-dont-eat': profile('pop', '#stage', 'NICE!'),
@@ -44,6 +45,9 @@ export function motionSampleOf(instance, game, snapshot) {
   const g = instance.game ?? {}, module = game.module;
   let success = 0, combo = g.combo ?? 0, point = null, special = null;
   switch (module) {
+    case 'handSpell':
+      success = g.log?.filter(e => e.type === 'lock').length ?? 0;
+      break;
     case 'solo': success = snapshot.motion?.hits ?? 0; point = snapshot.motion?.point; break;
     case 'blink': success = g.safeBlinks ?? 0; if (g.stage === 'GO') special = { key: `go:${g.hides}`, label: 'GO!' }; break;
     case 'pinch': success = g.completed ?? 0; break;

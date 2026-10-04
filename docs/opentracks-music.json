@@ -1,5 +1,33 @@
 [
   {
+    "id": "23061",
+    "title": "The maze of aqua",
+    "creator": "蒲鉾さちこ",
+    "sourceUrl": "https://opentracks.com/bgm/detail/23061",
+    "downloadPage": "https://opentracks.com/bgm/detail/23061/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/418",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-04",
+    "creatorCondition": "Site license applies; prohibits reposting/redistribution, AI training/AI modification and major song alterations. Credit and individual permission optional.",
+    "use": "HAND SPELL game background music at original tempo and pitch; no music player, audio download or audio in CREATOR exports.",
+    "acquisition": "Official download form CSRF POST, track=1. Source retained only in ignored output/music-sources/hand-spell/.",
+    "sourceSha256": "8ceef402f49f214ed4d0a13dcc66c12a292c51a135cdd7d35a4d90d4cda85c2a",
+    "asset": "src/assets/music/hand-spell.mp3",
+    "assetSha256": "6e0f70fe17d5965b069d3cf37e40c9b749c7c4202ec9ce27c5f87bc1a380c2fd",
+    "edit": {
+      "start": 0,
+      "duration": 30,
+      "codec": "stereo MP3",
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 1
+    },
+    "delivery": "Lazy JS module with Vite ?inline audio import. No standalone music asset in public/ or dist/."
+  },
+  {
     "id": "1982",
     "title": "8-bit Stage1",
     "creator": "もっぴーさうんど",

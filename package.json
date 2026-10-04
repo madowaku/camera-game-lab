@@ -15,7 +15,8 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "1.0.1"
+    "@mediapipe/tasks-vision": "1.0.1",
+    "gsap": "3.15.0"
   },
   "devDependencies": {
     "vite": "8.3.1",

@@ -9,6 +9,15 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-hand-spell", exp: "EXP-056", collection: "SOLO", category: "SOLO",
+    titleJa: "HAND SPELL", titleEn: "HAND SPELL", subtitleJa: "指で印を結んで召喚せよ", subtitleEn: "Make the signs. Summon your magic.",
+    input: ["HAND"], duration: 15, accent: "#d5ff78", tags: ["magic", "memory", "creator", "魔法", "指印", "記憶"],
+    aliases: ["#hand-spell", "#handSpell"], module: "handSpell", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/hand-spell.webp",
+    privacyJa: "インカメラで両手の指印と顔の位置を追跡します。マイクは使いません。映像と位置は端末内で処理し、外部送信しません。PLAYは録画せず、CREATORだけが挑戦の映像を一時メモリに保持し、7秒のリプレイを作ります。退出時に破棄し、保存は自分で選べます。HIDEはカメラ映像を表示・記録しません。EFFECTは顔を仮面で覆い、顔が見つからない時は映像を隠します。初回は認識モデルをダウンロードします。魔法の図鑑とチュートリアル完了だけを端末に保存します。",
+    privacyEn: "Front camera tracks hand signs and face position. No microphone. Video and positions are processed on your device and never uploaded. PLAY does not record. Only CREATOR temporarily keeps challenge frames in memory for a seven-second replay. Frames are discarded on exit and saving is your choice. HIDE neither displays nor records camera images. EFFECT masks the detected face and hides video when no face is detected. Models download on first use. Only spell discoveries and tutorial completion persist locally.",
+    loadPresentation: () => import("../handSpell/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + `HAND SPELL · ${r.perfect ? "PERFECT!" : "UNEXPECTED MAGIC"} · ${(r.spell ?? "SAD_SMOKE").replaceAll("_", " ")}`,
+    load: () => import("../handSpell/view.js").then(m => m.createView) }),
   define({ id: "solo-hand-beat", exp: "EXP-001", collection: "SOLO", category: "SOLO",
     titleJa: "HAND BEAT", titleEn: "HAND BEAT", subtitleJa: "ビートに合わせて、手のカタチを変えよう。", subtitleEn: "Match the beat. Change the shape of your hand.",
     input: ["HAND"], duration: 15, featured: true, accent: "#d7ff3f", tags: ["rhythm"], previewType: "image", previewAsset: "/previews/hand-beat.webp",

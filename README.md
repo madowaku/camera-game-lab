@@ -1,8 +1,22 @@
 # Camera Game Lab 📷🎮
 
+## EXP-056: HAND SPELL
+
+Make the signs. Summon your magic. Open `#/game/solo-hand-spell`
+or `#hand-spell`. Remember a three-sign spell, make FIST/PALM/ONE/TWO/THREE,
+then push both open palms forward to RELEASE. Three perfect spells, seven
+collectible misfires, hand-following rune stacks, Imagegen dragon/enemy,
+GSAP locks/anticipation, lightning, freeze and distinct enemy reactions.
+Includes COPY THIS tutorial, tracking-loss recovery, JA/EN, camera-free
+1–5/R/buttons, BGM/SE and CREATOR's seven-second local silent replay/export.
+See [implemented specification](docs/HAND_SPELL_SPEC_V01.md),
+[verification](docs/HAND_SPELL_PROGRESS.md),
+[asset provenance](docs/hand-spell-assets.json) and
+[pending physical playtest](docs/HAND_SPELL_PLAYTEST.md).
+
 Experimental web games where **your body is the controller**.
 
-All 28 playable routes now have game-specific motion graphics: animated
+All 29 playable routes now have game-specific motion graphics: animated
 entrances, actual success bursts, combo/special cut-ins and staged result
 reveals. Eight motion identities match each game's palette and character.
 Pause, route cleanup and live reduced-motion preferences are supported.
