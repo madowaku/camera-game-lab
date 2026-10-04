@@ -2,6 +2,7 @@ import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
   humanClock: { id: "humanClock", title: "The Swing of Time", creator: "ザイオン (zion)", url: "https://opentracks.com/bgm/detail/22437", volume: .2, load: () => import("../assets/music/humanClock.js") },
+  wipe: { id: "wipe", title: "お掃除しましょ", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/12218", volume: .18, load: () => import("../assets/music/wipe.js") },
   palmPong: { id: "palmPong", title: "パステルハウス", creator: "かずち", url: "https://opentracks.com/bgm/detail/1021", volume: .18, load: () => import("../assets/music/palmPong.js") },
   toyDrum: { id: "toyDrum", title: "おもちゃの一日", creator: "いまたく", url: "https://opentracks.com/bgm/detail/7044", volume: .22, load: () => import("../assets/music/toyDrum.js") },
   handy: { id: "handy", title: "ぷかぷか", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/11821", volume: .25, load: () => import("../assets/music/handyPals.js") },
@@ -12,6 +13,7 @@ export const tracks = Object.freeze({
 });
 const themes = {
   "solo-human-clock": "humanClock",
+  "solo-wipe": "wipe", "duo-wipe": "wipe",
   "duo-palm-pong": "palmPong",
   "solo-toy-drum": "toyDrum",
   "solo-body-wings": "stage",

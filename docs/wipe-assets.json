@@ -1,0 +1,56 @@
+{
+  "experiment": "EXP-049 WIPE! / SOLO + DUO",
+  "verifiedOn": "2026-10-04",
+  "images": [
+    {
+      "source": "src/wipe/assets/cover-v1.png",
+      "asset": "src/wipe/assets/cover-v1.webp",
+      "preview": "public/previews/wipe.webp",
+      "generator": "built-in Imagegen",
+      "prompt": "docs/wipe-image-prompts.txt (COVER)",
+      "description": "Morning window with condensation, a sweeping clean trail and yellow sponge. Used on the entrance and discovery feed.",
+      "sourceSha256": "D8E5A239FBD207D042C131F12FE5B740EC68512E56C196FDA035F7389CAB67AE",
+      "assetSha256": "7EFEA6F7F0B58DE267CA480C88416FB7A322AC554316CCA1B0DB604A3BE7DC3C",
+      "processing": "Source PNG retained; 720px-wide WebP quality 85; 432px-wide feed preview quality 82."
+    },
+    {
+      "source": "src/wipe/assets/clean-v1.png",
+      "asset": "src/wipe/assets/clean-v1.webp",
+      "generator": "built-in Imagegen (edit of cover)",
+      "prompt": "docs/wipe-image-prompts.txt (CLEAN BACKGROUND)",
+      "description": "The same morning window with every fog, drop, bubble and sponge removed. Revealed under the interactive dirt mask in practice and HIDE. HIDE never renders a raw camera frame.",
+      "sourceSha256": "BFC3F2156C9C05B6A38EF87F187F30A0F3B1FCB790717D47AFA3FAC07F3E130D",
+      "assetSha256": "89B021890D72609049A3A5D171723DC7A95CB1D491EC2ADB191AAF2AABEAE21F",
+      "processing": "Source PNG retained; 540x960 WebP quality 85."
+    }
+  ],
+  "music": {
+    "title": "お掃除しましょ",
+    "creator": "ゆうり (Yuli Audio Craft)",
+    "trackUrl": "https://opentracks.com/bgm/detail/12218",
+    "downloadPage": "https://opentracks.com/bgm/detail/12218/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/204",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Creator follows the site license. Commercial game background use and editing are permitted within those terms. Music is used as an accompaniment to the game, not as a listening feature or downloadable audio. No BGM is supplied in user-created exports.",
+    "acquisition": "Official download form GET + CSRF POST, track 1. Site license, site terms and creator conditions checked on 2026-10-04.",
+    "sourceDownload": "output/music-sources/wipe/cleaning-source.mp3 (ignored local source)",
+    "sourceSha256": "42361D518F89203194AF86AE5A6F94920DC387E29B4124F3747856385888E01A",
+    "asset": "src/assets/music/wipe.mp3",
+    "assetSha256": "00581ABD2E75F01934DEA0B27B109FD2C8D8A54209D4A486FF68A3732E025F86",
+    "processing": "Opening 48 seconds; loudnorm -20 LUFS, -2 dB true peak, 50ms fade-in, final two-second fade-out; stereo MP3 96 kbit/s, 44.1kHz.",
+    "delivery": "Vite inline MP3 inside a lazy JS music module. Shared BGM mute/pause/foreground/result/exit lifecycle. Never fetched on entrance or feed."
+  },
+  "effects": {
+    "provider": "Kenney Interface Sounds 1.0",
+    "sourceRoot": "C:/Dev/AssetsShared/Audio/SE/kenney_interface-sounds",
+    "license": "CC0",
+    "localLicense": "src/wipe/assets/sfx/LICENSE.txt",
+    "files": [
+      { "source": "Audio/scratch_004.ogg", "asset": "src/wipe/assets/sfx/wipe.ogg", "use": "soft wiping squeak, rate-limited to 140ms" },
+      { "source": "Audio/drop_002.ogg", "asset": "src/wipe/assets/sfx/drop.ogg", "use": "dirt pop and splash" },
+      { "source": "Audio/glass_005.ogg", "asset": "src/wipe/assets/sfx/shine.ogg", "use": "area milestone and perfect shine" }
+    ],
+    "procedural": "Original Web Audio readiness tones and rising four-note PERFECT chord. No microphone. Exported replay is silent."
+  }
+}

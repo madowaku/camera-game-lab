@@ -156,6 +156,15 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../humanClock/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `30秒で${r.score}個の時計をつくった！ ${r.difficulty.toUpperCase()} · 最大コンボ×${r.bestCombo} HUMAN CLOCK` : `${r.score} clocks made in 30 seconds! ${r.difficulty.toUpperCase()} · Best combo ×${r.bestCombo} HUMAN CLOCK`),
     load: () => import("../humanClock/view.js").then(m => m.createView) }),
+  ...["solo", "duo"].map(mode => define({ id: `${mode}-wipe`, exp: "EXP-049", collection: mode.toUpperCase(), category: mode.toUpperCase(),
+    titleJa: "WIPE!", titleEn: "WIPE!", subtitleJa: mode === "duo" ? "ふたりでゴシゴシ。泡を消して、水しぶき！" : "曇った画面を、自分の手でピカピカに。", subtitleEn: mode === "duo" ? "Two sponges. One race. A little splash!" : "Wave your hand. Wipe the fog. Reveal a smile.",
+    input: ["HAND"], players: mode === "duo" ? 2 : 1, duration: mode === "duo" ? 45 : 30, orientation: "portrait", accent: "#f3ce69", tags: ["wipe", "clean", "creator", "掃除", "窓", "手のひら", ...(mode === "duo" ? ["versus", "対戦"] : [])],
+    aliases: mode === "solo" ? ["#wipe", "#wipe-solo"] : ["#wipe-duo"], module: "wipe", mode, demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/wipe.webp",
+    privacyJa: "手のひらの位置をインカメラで追跡します。マイクは使いません。PLAYは録画しません。CREATORは7秒の映像を端末内で作り、退出時に破棄します。保存・共有を選ぶまで外部へ送信しません。HIDEはイラスト背景です。初回は手の認識モデルをダウンロードします。練習ではカメラもモデルも不要です。",
+    privacyEn: "Front camera tracks palm positions. No microphone. PLAY does not record. CREATOR makes a 7-second clip on your device and discards it on exit. Nothing is sent until you choose to share. HIDE uses an illustrated background. The hand model downloads on first use. Practice needs neither camera nor models.",
+    loadPresentation: () => import("../wipe/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.mode === "duo" ? `P1 ${r.clean[0]}% / P2 ${r.clean[1]}%` : `${r.clean[0]}% CLEAN`}！${r.reason === "perfect" ? "PERFECT WINDOW! " : ""}${r.elapsed.toFixed(1)}秒でピカピカに。` : `${r.mode === "duo" ? `P1 ${r.clean[0]}% / P2 ${r.clean[1]}%` : `${r.clean[0]}% CLEAN`}! ${r.reason === "perfect" ? "PERFECT WINDOW! " : ""}${r.elapsed.toFixed(1)} seconds of shine.`),
+    load: () => import("../wipe/view.js").then(m => m.createView) })),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];

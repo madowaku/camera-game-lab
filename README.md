@@ -2,6 +2,21 @@
 
 Experimental web games where **your body is the controller**.
 
+## EXP-049: WIPE! (SOLO / DUO)
+
+Wave your palm to wipe a foggy window clean. Open `#/game/solo-wipe` / `#wipe`
+or `#/game/duo-wipe` / `#wipe-duo`. Portrait 30-second SOLO and 45-second DUO,
+four dirt visuals, measured CLEAN area, glowing last spots and a full-screen
+PERFECT reveal. DUO's BIG BUBBLE sends new droplets to the other half, with
+small-drop protection above 90% clean. Includes camera-free drag / multi-touch,
+JA/EN, tracking-loss recovery, pause, RETRY/NEXT/SHARE, and CREATOR's seven-second
+Before → After replay with ORIGINAL / EFFECT / HIDE and optional video export.
+Imagegen cover and clean window, commercially usable OpenTracks music and
+shared Kenney CC0 effects are documented in [the asset manifest](docs/wipe-assets.json),
+with the [exact generation prompts](docs/wipe-image-prompts.txt). See
+[implementation and verification](docs/WIPE_PROGRESS.md) and the
+[pending five-round device playtest](docs/WIPE_PLAYTEST.md).
+
 ## EXP-050: HUMAN CLOCK
 
 Make time with your hands. Your left index finger is hour; your right is minute.

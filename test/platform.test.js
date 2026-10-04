@@ -79,7 +79,7 @@ test("feed ordering is pure, deterministic, diverse and preference-aware", () =>
   assert.equal(orderFeed([{ ...experiments[0], status: "planned" }]).length, 0);
 });
 test("share adapters carry game, score, summary and canonical URL", () => {
-  const game = experiments[0], payload = resultPayload(game, { score: 850, summary: "Great rhythm!" }, "en", "https://example.test/lab/?v=1#duo");
+  const game = experiments.find(g => g.id === "solo-hand-beat"), payload = resultPayload(game, { score: 850, summary: "Great rhythm!" }, "en", "https://example.test/lab/?v=1#duo");
   assert.equal(payload.url, "https://example.test/lab/?v=1#/game/solo-hand-beat");
   assert.match(payload.text, /HAND BEAT · 850 pts · Great rhythm!/);
   assert.equal(gameUrl(experiments.find((entry) => entry.id === "duo-tiny-bot-duel"), "https://example.test"), "https://example.test/#/game/duo-tiny-bot-duel");

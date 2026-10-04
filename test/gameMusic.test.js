@@ -25,7 +25,7 @@ test("catalog and silent modes never create or load audio", () => {
   const voice = experiments.find(g => g.requiresMicrophone);
   assert.equal(trackForGame(voice, "camera"), null);
   assert.ok(trackForGame(voice, "demo"));
-  assert.equal(trackForGame(experiments[0], "camera"), null);
+  assert.equal(trackForGame(experiments.find(g => g.id === "solo-hand-beat"), "camera"), null);
 });
 test("permission wait, pause, mute and loss of focus silence the one round owner", async () => {
   const f = fixture(); f.bed.arm(f.track); await flush();
