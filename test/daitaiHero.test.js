@@ -75,16 +75,22 @@ test("mirrored coordinates, configurable threshold and hysteresis match the disp
   assert.equal(wider.update([0.63], 100).zone, "CENTER");
 });
 
-test("neutral never submits; deliberate center excursion and 180ms return hold does", () => {
+test("neutral and sideways returns never submit; a fresh completed nod selects center once", () => {
   const game = round("FACE");
   advance(game, 1500);
   assert.equal(game.logs.length, 0);
   advance(game, 60, zone("CENTER"));
-  advance(game, 180);
+  advance(game, 600);
   assert.equal(game.logs.length, 0);
-  advance(game, 60);
+  const startedAt = game.lastAt;
+  advance(game, 180, { ...neutral, neutral: false, nodProgress: 0.6 });
+  assert.equal(game.candidate, 1);
+  assert.equal(game.logs.length, 0);
+  advance(game, 60, { ...neutral, nodId: 1, nodStartedAt: startedAt });
   assert.equal(game.logs.length, 1);
   assert.equal(game.logs[0].selectedIndex, 1);
+  advance(game, 1500, { ...neutral, nodId: 1, nodStartedAt: startedAt });
+  assert.equal(game.logs.length, 1);
 });
 
 test("a side answer holds 180ms, locks until neutral and cannot leak into the next question", () => {
@@ -147,7 +153,11 @@ test("all 12 questions are playable; ten consecutive face answers remain stable"
   const game = round("FACE");
   for (let i = 0; i < 12; i++) {
     const correctIndex = game.question.correctIndex;
-    if (correctIndex === 1) { advance(game, 60, zone("CENTER")); advance(game, 240); }
+    if (correctIndex === 1) {
+      const startedAt = game.lastAt;
+      advance(game, 180, { ...neutral, neutral: false, nodProgress: 0.7 });
+      advance(game, 60, { ...neutral, nodId: i + 1, nodStartedAt: startedAt });
+    }
     else advance(game, 240, zone(correctIndex === 0 ? "LEFT" : "RIGHT"));
     assert.equal(game.logs.length, i + 1);
     assert.equal(game.logs[i].correct, true);

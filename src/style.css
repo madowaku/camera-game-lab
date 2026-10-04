@@ -431,7 +431,7 @@ h1 {
 
 .finger-aim--armed {
   border-color: #ffbc64;
-  background: conic-gradient(#ffbc64 var(--lock-angle, 0deg), rgb(0 13 13 / 0.16) 0);
+  background: conic-gradient(#ffbc64 var(--aim-angle, 0deg), rgb(0 13 13 / 0.16) 0);
   box-shadow: 0 0 22px rgb(255 184 77 / 0.58);
 }
 

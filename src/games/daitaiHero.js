@@ -26,6 +26,8 @@ export class DaitaiHeroGame {
     this.clearChoice();
     this.neutralMs = 0;
     this.paused = false;
+    this.lastNodId = null;
+    this.choiceReadyAt = null;
   }
 
   start(control = "TAP", timestamp = 0) {
@@ -45,7 +47,7 @@ export class DaitaiHeroGame {
     }
   }
 
-  clearChoice() { this.candidate = null; this.holdMs = 0; this.centerArmed = false; this.outerVisited = false; }
+  clearChoice() { this.candidate = null; this.holdMs = 0; }
 
   nextQuestion() {
     if (!this.deck.length) this.deck = createQuestionDeck(this.random, this.logs.slice(-2).map((l) => l.category));
@@ -54,6 +56,7 @@ export class DaitaiHeroGame {
     this.answerState = "READY";
     this.feedback = null;
     this.clearChoice();
+    this.choiceReadyAt = this.lastAt;
   }
 
   tick(timestamp, face = MANUAL, suspended = false) {
@@ -61,6 +64,11 @@ export class DaitaiHeroGame {
     this.lastAt = timestamp;
     if (!["COUNTDOWN", "PLAYING"].includes(this.phase)) return;
     const input = this.control === "FACE" ? face : MANUAL;
+    // Samples are also read by rendering. Consume each nod sequence only once,
+    // including nods seen during countdown, feedback, pause and recovery.
+    const nodId = input.nodId ?? 0;
+    const freshNod = this.lastNodId !== null && nodId > this.lastNodId;
+    this.lastNodId = nodId;
     this.paused = suspended || !input.ready;
     if (this.paused) {
       this.clearChoice();
@@ -92,19 +100,22 @@ export class DaitaiHeroGame {
     }
     if (this.answerState === "WAITING_FOR_CENTER") {
       this.neutralMs = input.neutral ? this.neutralMs + dt : 0;
-      if (this.neutralMs >= this.rules.neutralHoldMs) { this.answerState = "READY"; this.clearChoice(); }
+      if (this.neutralMs >= this.rules.neutralHoldMs) { this.answerState = "READY"; this.clearChoice(); this.choiceReadyAt = timestamp; }
       return;
     }
     if (this.control !== "FACE") return;
-    // CENTER needs a fresh small sideways excursion and return. Staying at
-    // neutral, or returning after a submitted answer, never submits CENTER.
-    if (input.zone === "LEFT" || input.zone === "RIGHT") {
-      this.outerVisited = true;
-      this.centerArmed = false;
-    } else if (input.zone === "CENTER" && !this.outerVisited) this.centerArmed = true;
-    else if (input.neutral && this.outerVisited) { this.outerVisited = false; this.centerArmed = false; }
+    if (freshNod && input.neutral && Number.isFinite(input.nodStartedAt) && input.nodStartedAt >= this.choiceReadyAt) {
+      this.submitAnswer(1, "FACE");
+      return;
+    }
+    if (input.zone === "NEUTRAL" && input.nodProgress > 0) {
+      this.candidate = 1;
+      this.holdMs = input.nodProgress * this.rules.answerHoldMs;
+      this.answerState = "CHOOSING";
+      return;
+    }
     const candidate = input.zone === "LEFT" ? 0 : input.zone === "RIGHT" ? 2
-      : input.neutral && this.centerArmed ? 1 : null;
+      : null;
     if (candidate === null) {
       this.candidate = null; this.holdMs = 0; this.answerState = "READY";
       return;

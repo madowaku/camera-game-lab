@@ -309,6 +309,8 @@ export class DuoArcade {
     const immersive = underway || this.phase === "result";
     this.root.classList.toggle("duo--immersive", immersive);
     this.root.classList.toggle("duo--fallback", fallback);
+    this.root.classList.toggle("duo--camera-live", !fallback && this.input.running);
+    this.root.classList.toggle("duo--calibrating", !fallback && this.phase === "calibrating");
     this.root.closest(".lab")?.classList.toggle("lab--duo-playing", immersive);
     this.$(".duo-exit-button").hidden = !immersive;
     this.$(".duo-source").textContent = this.t(fallback ? "sourceFallback" : "sourceCamera");

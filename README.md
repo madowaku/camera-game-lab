@@ -62,7 +62,7 @@ Existing links such as `/#duo`, `/#guardian`, `/#note-blaster`, `/#daitai` and
 metrics remain in the existing modules. New compatible games need one registry
 entry to appear in discovery.
 
-Camera input now follows the [Reliability Matrix, Input Law and first-use gates](docs/CAMERA_INPUT_RELIABILITY_V01.md). P0 input v0.2 replaces small finger triggers with a target lock, palm/fist manipulation and four distinct canned gestures. SOFT SERVE previews attachment immediately and confirms it with a short hold ring. Human Input Gates A–E remain pending.
+Camera input now follows the [Reliability Matrix, Input Law and first-use gates](docs/CAMERA_INPUT_RELIABILITY_V01.md). FINGER GUN uses index-finger aim and a closed-to-open mouth trigger; palm/fist manipulation and four distinct canned gestures replace smaller finger inputs elsewhere. SOFT SERVE previews attachment immediately and confirms it with a short hold ring. Human Input Gates A–E remain pending.
 
 See [architecture, registry schema, compatibility and QA](docs/PLATFORM_V01.md)
 and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
@@ -149,7 +149,7 @@ The first goal is not a full game. It is to test whether camera input feels imme
 
 ## EXP-002: FINGER GUN
 
-A 15-second target-shooting spike. Point with your index finger and hold the reticle on a target for 0.25 seconds to auto-fire. The lock ring shows progress; your thumb can stay relaxed. The reticle follows the projected index-finger direction; hits score 100 points.
+A 15-second target-shooting spike. Show your face and index finger, then close your mouth for a short calibration. Point to aim and open your mouth: BAN! Close, then open for each new shot; holding your mouth open never repeats fire. Off-target shots count as misses, and hits score 100 points. Hand and face recognition share one front-camera stream; no microphone is needed. After tracking loss, close your mouth with both inputs visible before firing again.
 
 The round plays a 15-second excerpt of [8-bit Aggressive1 by もっぴーさうんど](https://opentracks.com/bgm/detail/1978) as background music. Its source, license, checksum, and edit details are recorded in [`src/assets/music/LICENSE.md`](src/assets/music/LICENSE.md). Vite inlines the encoded audio into the game bundle, so deployment does not expose a standalone MP3 asset.
 
@@ -253,7 +253,7 @@ See [specification](docs/specs/EXP-020_GUARDIAN_SPIRIT_SPEC_v0.1.md) and
 
 Open `/#daitai` for a 30-second estimation battle with 12 fixed questions in
 Japanese and English. Move your face left / right and hold briefly to answer.
-For the center choice, move a little sideways and return to neutral. After an
+For the center choice, nod down and look ahead again. After an
 answer, return to center before the next question. One-face calibration takes
 three seconds; lost or multiple faces pause play. Tap, mouse and 1 / 2 / 3 keys
 work without camera permission.

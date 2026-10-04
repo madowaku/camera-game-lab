@@ -5,6 +5,7 @@ async (page) => {
   page.on('pageerror', error => errors.push(error.message));
   page.on('requestfailed', request => failures.push(request.url()));
   await page.addInitScript(() => { if (!localStorage.getItem('camera-game-lab-locale')) localStorage.setItem('camera-game-lab-locale', 'en'); });
+  await page.evaluate(() => localStorage.setItem('camera-game-lab-locale', 'en'));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + '/?qa=input-reliability#/game/solo-finger-gun');
   await page.waitForFunction(() => document.querySelector('.launch-camera')?.disabled === false);
@@ -28,7 +29,7 @@ async (page) => {
       return start.call(this);
     };
     FingerGunInput.prototype.processResult = function (...args) { window.__gun = this; return process.apply(this, args); };
-    window.__signal = { mode: 'gun', present: true, x: .03, y: .03, gesture: 'Open_Palm' };
+    window.__signal = { mode: 'gun', present: true, facePresent: false, mouthOpen: false, x: .03, y: .03, gesture: 'Open_Palm' };
     window.__tracks = []; window.__models = 0; window.__closes = 0;
     vision.FilesetResolver.forVisionTasks = async () => ({});
     vision.GestureRecognizer.createFromOptions = async () => {
@@ -40,10 +41,21 @@ async (page) => {
         if (__signal.mode === 'gun') {
           points[0] = { x, y: y + .2 }; points[9] = { x, y: y + .12 };
           [5, 6, 7, 8].forEach((i, n) => { points[i] = { x, y: y + .14 - n * .0283 }; });
-          // Thumb never changes during a lock or a shot.
+          // Pointing stays independent of the mouth trigger.
           points[4] = { x, y: y + .1 };
         }
         return { landmarks: [points], gestures: [[{ categoryName: __signal.gesture, score: .95 }]] };
+      } };
+    };
+    vision.FaceLandmarker.createFromOptions = async () => {
+      __models++;
+      return { close: () => __closes++, detectForVideo: () => {
+        if (!__signal.facePresent) return { faceLandmarks: [] };
+        const video = document.querySelector('#camera'), aspect = video.videoWidth / video.videoHeight;
+        const points = [];
+        points[61] = { x: .4, y: .5 }; points[291] = { x: .6, y: .5 };
+        points[13] = { x: .5, y: .5 }; points[14] = { x: .5, y: .5 + (__signal.mouthOpen ? .12 : .01) * aspect };
+        return { faceLandmarks: [points] };
       } };
     };
     navigator.mediaDevices.getUserMedia = async () => {
@@ -55,29 +67,45 @@ async (page) => {
   await page.locator('.launch-camera').click();
   await page.waitForFunction(() => document.querySelector('#camera')?.srcObject);
   await page.clock.runFor(100);
-  check((await page.locator('#hits').textContent()).startsWith('0 /'), 'off-target pointing does not fire');
+  check(await page.locator('#play-button').isDisabled(), 'missing face delays start before the timed round');
+  check((await page.locator('#detected').textContent()).toLowerCase().includes('face'), 'missing face gives preparation guidance');
+  await page.evaluate(() => { __signal.facePresent = true; });
+  await page.clock.runFor(950);
+  check(await page.locator('#stage').evaluate(e => e.classList.contains('stage--playing')), 'closed-mouth calibration starts the round automatically');
   await page.evaluate(() => { const target = __gun.getTarget(); Object.assign(__signal, { x: target.x, y: target.y }); });
-  await page.clock.runFor(150);
-  check(await page.locator('#finger-aim').evaluate(e => e.classList.contains('finger-aim--armed')), 'target overlap immediately shows the lock ring');
-  check((await page.locator('#detected').textContent()).includes('LOCK'), 'partial lock is readable before firing');
-  await page.screenshot({ path: 'output/playwright/input-gun-lock-390.png' });
-  await page.clock.runFor(250);
-  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'unchanged thumb auto-fires after a quarter-second lock');
-  await page.clock.runFor(400);
-  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'old target position cannot repeat a shot');
+  await page.clock.runFor(600);
+  check(await page.locator('#finger-aim').evaluate(e => e.classList.contains('finger-aim--armed')), 'target overlap shows ready aim without a hold timer');
+  check((await page.locator('#hits').textContent()).startsWith('0 / 0'), 'holding aim on target never auto-fires');
+  check((await page.locator('#finger-prompt').textContent()).includes('BAN'), 'live prompt teaches mouth firing');
+  await page.screenshot({ path: 'output/playwright/input-gun-mouth-ready-390.png' });
+  await page.evaluate(() => { __signal.mouthOpen = true; }); await page.clock.runFor(300);
+  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'opening the mouth fires at the current finger aim');
+  check((await page.locator('#finger-feedback').textContent()).includes('BAN'), 'shot feedback says BAN');
+  await page.clock.runFor(700);
+  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'held-open mouth cannot repeat a shot');
   await page.evaluate(() => { const target = __gun.getTarget(); Object.assign(__signal, { x: target.x, y: target.y }); });
-  await page.clock.runFor(130);
+  await page.clock.runFor(300);
+  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'new target under a held-open mouth cannot repeat fire');
   await page.evaluate(() => { __signal.present = false; }); await page.clock.runFor(100);
   check(await page.locator('#finger-aim').isHidden(), 'tracking loss hides and resets the reticle');
   check((await page.locator('#detected').textContent()).includes('frame'), 'missing hand gives a visible recovery action');
-  await page.evaluate(() => { __signal.present = true; }); await page.clock.runFor(130);
-  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'returning hand must fill a new lock');
-  await page.clock.runFor(180);
-  check((await page.locator('#hits').textContent()).startsWith('2 / 2'), 'recovered pointing resumes automatically');
+  await page.evaluate(() => { __signal.present = true; }); await page.clock.runFor(400);
+  check((await page.locator('#hits').textContent()).startsWith('1 / 1'), 'returning hand with an open mouth does not fire');
+  await page.evaluate(() => { __signal.mouthOpen = false; }); await page.clock.runFor(300);
+  await page.evaluate(() => { __signal.mouthOpen = true; }); await page.clock.runFor(300);
+  check((await page.locator('#hits').textContent()).startsWith('2 / 2'), 'closing then opening rearms recovered pointing');
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.evaluate(() => { const target = __gun.getTarget(); Object.assign(__signal, { x: target.x, y: target.y }); });
-  await page.clock.runFor(450);
-  check((await page.locator('#hits').textContent()).startsWith('3 / 3'), 'desktop framing retains target alignment and auto-fire');
+  await page.evaluate(() => { const target = __gun.getTarget(); Object.assign(__signal, { x: target.x, y: target.y, mouthOpen: false }); });
+  await page.clock.runFor(400);
+  await page.evaluate(() => { __signal.mouthOpen = true; }); await page.clock.runFor(300);
+  check((await page.locator('#hits').textContent()).startsWith('3 / 3'), 'desktop framing retains finger aim and mouth firing');
+  await page.evaluate(() => { __signal.facePresent = false; }); await page.clock.runFor(150);
+  check((await page.locator('#detected').textContent()).toLowerCase().includes('face'), 'face loss gives a visible recovery action');
+  await page.evaluate(() => { __signal.facePresent = true; }); await page.clock.runFor(400);
+  check((await page.locator('#hits').textContent()).startsWith('3 / 3'), 'returning face with an open mouth does not fire');
+  await page.evaluate(() => { __signal.mouthOpen = false; __signal.x = .03; __signal.y = .03; }); await page.clock.runFor(400);
+  await page.evaluate(() => { __signal.mouthOpen = true; }); await page.clock.runFor(300);
+  check((await page.locator('#hits').textContent()).startsWith('3 / 4'), 'off-target mouth shot counts as a miss');
   await page.screenshot({ path: 'output/playwright/input-gun-desktop.png' });
   await page.setViewportSize({ width: 360, height: 500 }); await page.clock.runFor(100);
   check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'short phone gun scene fits width and scrolls');
@@ -114,6 +142,8 @@ async (page) => {
   await page.screenshot({ path: 'output/playwright/input-soft-click-390.png' });
   await page.locator('.game-back').click();
 
+  // Navigation readiness uses rAF polling; resume the clock before new pages.
+  await page.clock.resume();
   for (const size of [{ width: 390, height: 844 }, { width: 360, height: 500 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(size);
     for (const id of ['solo-hand-beat', 'solo-finger-gun', 'solo-pinch-world', 'solo-soft-serve']) {

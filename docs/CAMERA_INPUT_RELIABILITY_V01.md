@@ -21,7 +21,7 @@ EXP番号はcollection内の表示番号。重複するEXP-020はcanonical IDで
 | 判定 | EXP / GAME（canonical ID） | v0.1の入力 / 難易度 / リスク | 対応方針 |
 | --- | --- | --- | --- |
 | 🔴 | EXP-001 HAND BEAT (`solo-hand-beat`) | OPEN / FIST / PEACE / PINCH · C–D · 高 | PINCH廃止。標準分類のTHUMB UPに置換（今回実装） |
-| 🔴 | EXP-002 FINGER GUN (`solo-finger-gun`) | 指方向＋親指の曲げ伸ばし · D · 高 | 人差し指照準 → 0.25秒LOCK → 自動FIRE（今回実装） |
+| 🟡 | EXP-002 FINGER GUN (`solo-finger-gun`) | 指方向＋口OPEN/CLOSE · B–C · 中 | 人差し指で照準、口を閉じる→開けると一発。2026-10-04更新 |
 | 🟢 | EXP-003 EAT / DON'T EAT (`solo-eat-dont-eat`) | 顔＋口OPEN/CLOSE · A–B · 低～中 | 基本維持。OPEN保持とCLOSE復帰で再入力できることを検証 |
 | 🟡 | EXP-004 BLINK HORROR (`solo-blink-horror`) | 両目OPEN/CLOSED · B–C · 中 | 開始時校正。短い自然瞬きを無視し、閉眼保持を使う |
 | 🔴 | EXP-005 PINCH WORLD (`solo-pinch-world`) | 親指＋人差し指PINCH · D · 高 | 手中心XY＋Closed Fistで掴む / Open Palmで離す（今回実装）。磁石吸着は比較候補 |
@@ -32,7 +32,7 @@ EXP番号はcollection内の表示番号。重複するEXP-020はcanonical IDで
 | 🟡 | EXP-021 WATERMELON GUIDE (`outcam-watermelon-guide`) | 高速な下方向ハンドスイング · B · 中 | 手首または腕全体の高速な判定線通過を使う |
 | 🟢 | EXP-025 FALSE BRIDGE (`outcam-false-bridge`) | カメラ構図＋LOCKタップ · S · 低 | ML認識不要の方向を維持 |
 | 🟢 | EXP-035 FRAME SMUGGLER (`outcam-frame-smuggler`) | 手のフレームIN/OUT · A–B · 中 | ジェスチャー不要。端での消失に猶予を設ける |
-| 🟢 | EXP-018 DAITAI HERO (`solo-daitai-hero`) | 顔LEFT / CENTER / RIGHT · S–A · 低 | 中央復帰を含めて維持 |
+| 🟡 | EXP-018 DAITAI HERO (`solo-daitai-hero`) | 顔LEFT / RIGHT＋うなずき · B · 中 | 中央は頭を下げて正面へ戻す一回のうなずき。2026-10-04更新 |
 | 🟢 | EXP-043 THE CAMERA IS IT (`outcam-the-camera-is-it`) | スマホ姿勢・画角 · S–A · 低 | 画像認識を使わない方向を維持 |
 | 🟡 | EXP-044 SOFT SERVE (`solo-soft-serve`) | 手中心XY＋口 · A–B · 中 | PINCH不要を明示。即時の薄い追従 → 保持リング → 成功確認（今回実装） |
 
@@ -87,7 +87,17 @@ Dを主操作に使う案は製品候補へ進めない。PINCH研究を行う�
 | 4 | 未実施 | 未実施 | 未実施 | 未実施 | 未実施 | |
 | 5 | 未実施 | 未実施 | 未実施 | 未実施 | 未実施 | |
 
-## P0入力 v0.2 — 実装
+## FINGER GUN — 2026-10-04 操作変更
+
+現行は「指で照準、口を開けてBAN!」。以下のv0.2の自動発射方式を置き換えた。
+手と顔を同じインカメラ映像から認識し、最初に口を閉じて700ms校正する。
+口OPENは保持・ヒステリシスを通して確定し、CLOSE→OPENで一発だけ発射。
+開けたままでは連射しない。的外れの照準で口を開ければMISSとして計上する。
+手・顔ロスト、推論の長い間隔、画面離脱後は、両入力が見える状態でCLOSEに
+戻るまで再発射しない。照準の色は的との重なりを示し、保持時間を要求しない。
+マイクは不使用。人間のInput Gates A–Eはこの変更でも未検証。
+
+## P0入力 v0.2 — 実装（FINGER GUNの旧方式）
 
 - **FINGER GUN:** 親指の閾値・曲げ伸ばし発射を削除。人差し指の投影を使う。
   rawと平滑化後の照準が同じ的に連続250ms重なると一発だけ発射する。

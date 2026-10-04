@@ -9,8 +9,8 @@ export const gameGuides = {
     en: ['Can your hands keep the beat?', ['Show one hand','Keep it inside the frame'], ['Match the shape','Open, fist, peace or thumbs up'], ['Catch the beat','16 chances to get it right']],
   },
   'solo-finger-gun': {
-    ja: ['指先ひとつで、何発当てる？', ['指でねらう','人差し指を的に向ける'], ['照準を合わせる','リングが満ちるまで0.25秒'], ['自動で発射！','次の的へ、指でねらおう']],
-    en: ['One finger. How many hits?', ['Point at the target','Aim with your index finger'], ['Hold on target','Fill the ring in 0.25 seconds'], ['Auto-fire!','Point at the next target']],
+    ja: ['指でねらって、口でBAN!', ['顔と指を映す','最初は口を閉じて準備'], ['指で照準を合わせる','人差し指を的に向けよう'], ['口を開けてBAN!','閉じてから開けると、次の一発']],
+    en: ['Aim with your finger. BAN with your mouth!', ['Show your face and finger','Start with your mouth closed'], ['Point at the target','Aim with your index finger'], ['Open your mouth: BAN!','Close, then open for the next shot']],
   },
   'solo-eat-dont-eat': {
     ja: ['食べる？ それとも、ガマン？', ['口を閉じて準備','いつもの口の形を覚える'], ['食べ物はパクッ','口を開けて食べよう'], ['ほかは口を閉じる','15秒で12個を見分ける']],
@@ -53,8 +53,8 @@ export const gameGuides = {
     en: ['Frame it. Hide it. Get away with it.', ['Choose operator and smuggler','Choose a camera, then show one hand'], ['Hide only during inspections','Otherwise keep the gem in frame'], ['Bring it back to deliver','Four inspections in 30 seconds']],
   },
   'solo-daitai-hero': {
-    ja: ['だいたい合ってれば、勇者。', ['顔を中央で3秒静止','ひとりの顔で準備しよう'], ['左右へ動いて答える','真ん中は少し動いて戻る'], ['中央に戻って次へ','30秒間、だいたいを当てよう']],
-    en: ['A good guess makes a great hero.', ['Hold your face still for 3s','One face, centered in the frame'], ['Lean to choose an answer','For the middle, move away and back'], ['Return to center for the next','30 seconds of heroic estimation']],
+    ja: ['だいたい合ってれば、勇者。', ['顔を中央で3秒静止','ひとりの顔で準備しよう'], ['左右へ動いて答える','真ん中は軽くうなずく'], ['中央に戻って次へ','30秒間、だいたいを当てよう']],
+    en: ['A good guess makes a great hero.', ['Hold your face still for 3s','One face, centered in the frame'], ['Lean left or right to answer','Nod for the middle choice'], ['Return to center for the next','30 seconds of heroic estimation']],
   },
   'outcam-the-camera-is-it': {
     ja: ['映せば、そこに道ができる。', ['スマホで行き先を映す','フレームの中だけに足場が出現'], ['彼の足元も忘れずに','進むのは彼、道を作るのはあなた'], ['5つの出口へ導く','各ステージ15〜30秒']],

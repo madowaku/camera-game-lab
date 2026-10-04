@@ -41,18 +41,21 @@ test("leaving, tracking loss, a stale frame and a target change reset lock progr
     assert.equal(output.fire, false); assert.ok(output.progress <= .2);
   }
 });
-test("the real finger input auto-fires with an unchanged thumb and ignores thumb folding", () => {
+test("pointing at a target or folding the thumb alone never fires the finger gun", () => {
   const video = { videoWidth: 100, videoHeight: 100, clientWidth: 100, clientHeight: 100 };
   const result = hand(); const p = result.landmarks[0];
   p[0] = { x: .5, y: .8 }; p[9] = { x: .5, y: .55 };
   [5,6,7,8].forEach((i,n) => { p[i] = { x: .5, y: .55 - n * .1 }; });
   let shots = 0, latest;
   const input = new FingerGunInput(video, { getTarget: () => ({ ...target, y: .055 }), onShot: () => shots++, onAim: value => latest = value });
-  for (let at = 0; at <= 500; at += 50) input.processResult(result, at);
-  assert.equal(shots, 1); assert.equal(latest.lockProgress, 1);
-  for (let at = 550; at < 1000; at += 50) { p[4] = { x: at % 100 ? .5 : .8, y: .5 }; input.processResult(result, at); }
-  assert.equal(shots, 1);
-  input.processResult({}, 1000); assert.equal(latest.visible, false); assert.equal(latest.lockProgress, 0);
+  const lips = []; lips[61] = { x: .4, y: .6 }; lips[291] = { x: .6, y: .6 };
+  lips[13] = { x: .5, y: .6 }; lips[14] = { x: .5, y: .61 };
+  const face = { faceLandmarks: [lips] };
+  for (let at = 0; at <= 1000; at += 50) input.processResult({ hand: result, face }, at);
+  assert.equal(shots, 0); assert.equal(latest.onTarget, true); assert.equal(input.mouthInput.currentMouth.ready, true);
+  for (let at = 1050; at < 1500; at += 50) { p[4] = { x: at % 100 ? .5 : .8, y: .5 }; input.processResult({ hand: result, face }, at); }
+  assert.equal(shots, 0);
+  input.processResult({ face }, 1500); assert.equal(latest.visible, false); assert.equal(latest.onTarget, false);
 });
 test("HAND BEAT uses the four canned gestures and never a fingertip-distance override", () => {
   const mapped = ["Open_Palm", "Closed_Fist", "Victory", "Thumb_Up"].map(name => normalizeGesture(hand(name)));

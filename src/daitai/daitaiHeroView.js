@@ -169,7 +169,7 @@ export class DaitaiHeroView {
       game.answerState, game.paused, game.score, game.combo, game.logs.length, game.question?.id,
       game.candidate, Math.floor(game.holdMs / 30), Math.ceil((game.rules.roundMs - game.elapsedMs) / 1000),
       Math.floor(game.countdownMs / 100), Math.floor(face.calibrationProgress * 30), face.visible,
-      face.zone, Math.round((face.dx ?? 0) * 100)].join("|");
+      face.zone, face.nodPhase, Math.round((face.dx ?? 0) * 100)].join("|");
     // Keep input sampling at frame rate while avoiding identical DOM/live-region
     // writes on every frame, especially on Android and on the result screen.
     if (renderKey === this.lastRenderKey) return;
@@ -210,8 +210,13 @@ export class DaitaiHeroView {
     }
     this.$(".dh-position").hidden = this.control !== "FACE";
     this.$(".dh-position-track b").style.left = `${50 + Math.max(-1, Math.min(1, (face.dx ?? 0) / 0.24)) * 45}%`;
-    const statusKey = game.paused ? "dhRecover" : game.answerState === "WAITING_FOR_CENTER" || feedback ? "dhReturn" : game.candidate !== null ? "dhHold" : "dhMove";
+    const statusKey = game.paused ? "dhRecover" : game.answerState === "WAITING_FOR_CENTER" || feedback ? "dhReturn"
+      : game.candidate === 1 ? face.nodPhase === "RETURN" ? "dhNodReturn" : "dhNodDown"
+        : game.candidate !== null ? "dhHold" : "dhMove";
     this.$(".dh-input-status").textContent = this.t(statusKey);
+    const centerButton = this.$('[data-answer="1"]');
+    centerButton.querySelector('.dh-direction span').textContent = this.t(this.control === "FACE" ? "dhNod" : "dhCenter");
+    centerButton.querySelector('.dh-direction i').textContent = this.control === "FACE" ? "↕" : "·";
     for (const button of this.root.querySelectorAll("[data-answer]")) {
       const index = Number(button.dataset.answer);
       button.querySelector(".dh-choice").textContent = playing && question ? question[`choices${suffix}`][index] : "—";

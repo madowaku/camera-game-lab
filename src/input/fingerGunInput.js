@@ -1,5 +1,5 @@
 import { BodyInput } from "./bodyInput.js";
-import { AimLock } from "./aimLock.js";
+import { FaceInput } from "./faceInput.js";
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
 const distance = (a, b) =>
@@ -60,53 +60,94 @@ function projectAim(landmarks, video) {
 }
 
 export class FingerGunInput extends BodyInput {
-  constructor(video, { onStatus, onAim, onShot, getTarget } = {}) {
+  constructor(video, { onStatus, onAim, onMouth, onShot, getTarget } = {}) {
     super(video, { onStatus });
     this.onAim = onAim ?? (() => {});
     this.onShot = onShot ?? (() => {});
+    this.onMouth = onMouth ?? (() => {});
     this.getTarget = getTarget ?? (() => null);
-    this.lock = new AimLock();
-    this.currentAim = { x: 0.5, y: 0.5, visible: false, lockProgress: 0 };
+    // FaceInput processes mouth signals only; this owner opens one camera for
+    // both models and closes both recognizers on cancellation or failure.
+    this.mouthInput = new FaceInput(video, { onMouth: (mouth) => this.processMouth(mouth) });
+    this.mouthArmed = false;
+    this.currentAim = { x: 0.5, y: 0.5, visible: false, onTarget: false };
     this.lastFrameAt = null;
+    this.lastInferenceAt = -Infinity;
+  }
+
+  async createRecognizer(vision, delegate) {
+    const hand = await super.createRecognizer(vision, delegate);
+    try {
+      const face = await this.mouthInput.createRecognizer(vision, delegate);
+      return {
+        recognizeForVideo: (video, timestamp) => ({
+          hand: hand.recognizeForVideo(video, timestamp),
+          face: face.detectForVideo(video, timestamp)
+        }),
+        close: () => { try { hand.close(); } finally { face.close(); } }
+      };
+    } catch (error) {
+      hand.close();
+      throw error;
+    }
+  }
+
+  inferFrame(timestamp) {
+    if (timestamp - this.lastInferenceAt < 50) return null;
+    this.lastInferenceAt = timestamp;
+    return super.inferFrame(timestamp);
   }
 
   processResult(result, timestamp) {
+    if (!result) return;
     const elapsed = this.lastFrameAt === null ? Infinity : timestamp - this.lastFrameAt;
     this.lastFrameAt = timestamp;
-    if (elapsed > 250) this.resetTracking();
-
-    const pose = getPose(result, this.video);
-    if (!pose) {
+    if (elapsed > 250 || elapsed < 0) {
       this.resetTracking();
-      this.onAim({ ...this.currentAim });
-      return;
+      this.mouthInput.resetTracking();
     }
 
-    const aim = projectAim(pose.landmarks, this.video);
-    const blend = this.currentAim.visible ? 1 - Math.exp(-elapsed / 55) : 1;
-    this.currentAim.x += (aim.x - this.currentAim.x) * blend;
-    this.currentAim.y += (aim.y - this.currentAim.y) * blend;
-    this.currentAim.visible = true;
-
-    const target = this.getTarget();
-    // Both raw and smoothed aim must overlap: a fast sweep cannot charge a lock.
-    const rawInside = target && Math.hypot(aim.x - target.x, aim.y - target.y) <= target.radius;
-    const { progress, fire } = this.lock.update({ ...this.currentAim, visible: !!rawInside }, target, timestamp);
-    this.currentAim.lockProgress = progress;
+    const pose = getPose(result.hand, this.video);
+    if (!pose) {
+      this.resetTracking();
+    } else {
+      const aim = projectAim(pose.landmarks, this.video);
+      const blend = this.currentAim.visible ? 1 - Math.exp(-elapsed / 55) : 1;
+      this.currentAim.x += (aim.x - this.currentAim.x) * blend;
+      this.currentAim.y += (aim.y - this.currentAim.y) * blend;
+      this.currentAim.visible = true;
+      const target = this.getTarget();
+      this.currentAim.onTarget = Boolean(target && Math.hypot(this.currentAim.x - target.x, this.currentAim.y - target.y) <= target.radius);
+    }
+    // Update pointing first so the mouth edge uses this frame's aim. Off-target
+    // shots still count as misses; only missing inputs suppress a shot.
+    this.mouthInput.processResult(result.face, timestamp);
     this.onAim({ ...this.currentAim });
-    if (fire) this.onShot({ x: this.currentAim.x, y: this.currentAim.y });
+  }
+
+  processMouth(mouth) {
+    const available = mouth.ready && this.currentAim.visible && this.getTarget();
+    if (!available) this.mouthArmed = false;
+    else if (!mouth.open) this.mouthArmed = true;
+    else if (this.mouthArmed) {
+      this.mouthArmed = false;
+      this.onShot({ x: this.currentAim.x, y: this.currentAim.y });
+    }
+    this.onMouth({ ...mouth });
   }
 
   resetTracking() {
-    this.lock.reset();
+    this.mouthArmed = false;
     this.currentAim.visible = false;
-    this.currentAim.lockProgress = 0;
+    this.currentAim.onTarget = false;
   }
 
   stop() {
     super.stop();
     this.resetTracking();
     this.lastFrameAt = null;
+    this.lastInferenceAt = -Infinity;
+    this.mouthInput.stop();
     this.onAim({ ...this.currentAim });
   }
 }

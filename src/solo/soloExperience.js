@@ -190,6 +190,7 @@ const state = {
   },
   finger: {
     aim: null,
+    mouth: { visible: false, ready: false, calibrated: false, open: false, openness: 0, progress: 0 },
     target: null,
     feedback: null,
     progress: 0,
@@ -266,6 +267,14 @@ const fingerGunInput = new FingerGunInput(video, {
   onAim(aim) {
     state.finger.aim = aim;
     if (state.mode === "fingerGun") renderFingerAim();
+  },
+  onMouth(mouth) {
+    state.finger.mouth = mouth;
+    if (state.mode === "fingerGun") {
+      renderFingerAim();
+      renderFingerPrompt();
+      renderPlayButton();
+    }
   },
   onShot(aim) {
     if (state.mode === "fingerGun" && state.sessionActive) {
@@ -496,7 +505,8 @@ function hasResult() {
 }
 
 function renderPlayButton() {
-  const waitingForFace = state.mode === "eatDontEat" && state.cameraReady && !state.eat.mouth.ready;
+  const waitingForFace = state.cameraReady && (state.mode === "eatDontEat" && !state.eat.mouth.ready ||
+    state.mode === "fingerGun" && (!state.finger.mouth.ready || state.finger.mouth.open));
   const startKey = {
     handBeat: "handBeatStart",
     fingerGun: "fingerGunStart",
@@ -505,7 +515,7 @@ function renderPlayButton() {
   playButton.textContent = t(state.sessionActive
     ? "playing"
     : waitingForFace
-      ? "eatDontEatWait"
+      ? state.mode === "fingerGun" ? "fingerGunWait" : "eatDontEatWait"
       : hasResult()
         ? "playAgain"
         : startKey);
@@ -532,8 +542,10 @@ function renderReadout() {
   }
 
   const aim = state.finger.aim;
-  detected.textContent = !aim?.visible ? t("noHand") : aim.lockProgress > 0 ? `LOCK ${Math.round(aim.lockProgress * 100)}%` : t("aiming");
-  detected.classList.toggle("detected--armed", Boolean(aim?.visible && aim?.lockProgress > 0));
+  const mouth = state.finger.mouth;
+  detected.textContent = !mouth.visible ? t("noFace") : !mouth.ready ? t("calibratingFace") :
+    !aim?.visible ? t("noHand") : mouth.open ? t("fingerCloseMouth") : t(aim.onTarget ? "armed" : "aiming");
+  detected.classList.toggle("detected--armed", Boolean(aim?.onTarget && mouth.ready && !mouth.open));
 }
 
 function renderHandBeat() {
@@ -576,7 +588,9 @@ function renderFingerPrompt() {
   if (state.finger.result) {
     fingerPrompt.textContent = t(state.finger.result.accuracy >= 50 ? "fingerResultHigh" : "fingerResultLow");
   } else if (state.sessionActive) {
-    fingerPrompt.textContent = t("holdToAim");
+    const mouth = state.finger.mouth;
+    fingerPrompt.textContent = t(!mouth.visible ? "noFace" : !mouth.ready ? "calibratingFace" :
+      !state.finger.aim?.visible ? "noHand" : mouth.open ? "fingerCloseMouth" : "holdToAim");
   } else {
     fingerPrompt.textContent = t(state.cameraReady ? "fingerGunPrompt" : "cameraPrompt");
   }
@@ -660,8 +674,9 @@ function renderFingerAim() {
     fingerAim.style.left = `${Math.max(0, Math.min(aim.x, 1)) * 100}%`;
     fingerAim.style.top = `${Math.max(0, Math.min(aim.y, 1)) * 100}%`;
   }
-  fingerAim.classList.toggle("finger-aim--armed", Boolean(aim?.lockProgress > 0));
-  fingerAim.style.setProperty("--lock-angle", `${(aim?.lockProgress ?? 0) * 360}deg`);
+  const armed = Boolean(aim?.onTarget && state.finger.mouth.ready && !state.finger.mouth.open);
+  fingerAim.classList.toggle("finger-aim--armed", armed);
+  fingerAim.style.setProperty("--aim-angle", armed ? "360deg" : "0deg");
   renderReadout();
 }
 
@@ -749,6 +764,7 @@ function resetSessionState() {
   state.hand.total = 16;
   state.hand.result = null;
   state.finger.aim = null;
+  state.finger.mouth = { visible: false, ready: false, calibrated: false, open: false, openness: 0, progress: 0 };
   state.finger.target = null;
   state.finger.feedback = null;
   state.finger.progress = 0;
@@ -778,6 +794,7 @@ function resetSessionState() {
 
 async function startGame() {
   if (!active || !state.cameraReady || state.sessionActive) return;
+  if (state.mode === "fingerGun" && (!state.finger.mouth.ready || state.finger.mouth.open)) return;
   const request = generation;
 
   state.sessionActive = true;
