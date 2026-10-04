@@ -214,6 +214,9 @@ export function mountPlatform(app) {
     const noteEaterTheme = route.view === "game" && route.experiment?.module === "noteEater";
     app.classList.toggle("platform--note-eater", noteEaterTheme);
     document.body.classList.toggle("note-eater-page", noteEaterTheme);
+    const handyPalsTheme = route.view === "game" && route.experiment?.module === "handyPals";
+    app.classList.toggle("platform--handy-pals", handyPalsTheme);
+    document.body.classList.toggle("handy-pals-page", handyPalsTheme);
     app.classList.toggle("platform--arcade", route.view === "game" && !customTheme);
     result.classList.remove("arcade-result");
     panel.hidden = false; cacheRoot.hidden = true; cacheRoot.classList.remove("platform-has-result");

@@ -1,0 +1,54 @@
+{
+  "experiment": "EXP-045 HANDY PALS",
+  "generatedWith": "Built-in image_gen.imagegen (no CLI or API key)",
+  "generatedAt": "2026-10-03",
+  "images": [
+    {
+      "kind": "transparent two-character sprite atlas",
+      "prompt": "Use case: stylized-concept. Asset type: production transparent game sprite atlas for HANDY PALS, two columns and one row, no text. Primary request: two irresistibly cute tiny dancing toy companions, a honey-peach teddy bear in the LEFT half, a creamy white bunny in the RIGHT half. Both are full body, facing front, standing in a cheerful neutral dance-ready pose, short arms slightly out to sides, stubby distinct legs, enormous expressive heads, 1.7 heads tall. Bear has round ears, tiny black bead eyes, small smiling muzzle, rosy cheeks, a little coral bow tie. Bunny has two tall soft ears with pink inside, tiny black bead eyes, small smile and rosy cheeks, a mint bow tie. Style/medium: beautifully rendered soft plush-clay collectible toys, subtle tactile velvety texture, clean rounded silhouettes, soft warm studio illumination, strong readable forms at small screen sizes. Composition/framing: wide horizontal transparent canvas split into two equal columns. Bear centered exactly at x=25% and bunny at x=75%; both feet at y=87%; bunny including ears fits entirely within y=10%-87%. Each character confined entirely to its own half, 12% transparent outer padding, generous fully transparent gap between characters. Both isolated, separate, no contact, no overlaps. Background must be genuinely transparent alpha. Constraints: exactly these two characters, all limbs and ears fully visible, no props, no floor, no shadows outside character, no environment, no letters, no watermark, no UI. Cute happy toy companions for a bright pastel hand-camera game.",
+      "original": "C:/Users/hiro/.codex/generated_images/01a1022d-663c-7691-ab6d-4646d604635d/exec-a5b3e763-e135-4b48-b000-db903dea4d54.png",
+      "outputs": [
+        "src/handy/assets/bear-v1.webp",
+        "src/handy/assets/bunny-v1.webp"
+      ],
+      "processing": "Split at column boundary, trim transparent margins, normalize to 560px height with 8px transparent padding; WebP quality 90, alpha quality 100. Original alpha preserved."
+    },
+    {
+      "kind": "portrait key artwork",
+      "prompt": "Use case: illustration-story. Asset type: portrait 9:16 game cover artwork for HANDY PALS. Scene: an airy pale butter-cream and peach toy stage with a mint floor, confetti hearts and tiny sparkle motifs. Subjects: two incredibly cute 1.7-heads-tall velvety plush toy characters, a honey-peach teddy bear with round ears and coral bow tie, and a cream white bunny with tall pink inner ears and mint bow tie. Big glossy bead eyes, cheerful tiny smiles, blush cheeks, short chubby limbs. They are joyfully dancing together, each balanced on a separate softly illustrated open human palm emerging subtly from the bottom; the bear leans toward the bunny for a friendly high-five, bunny a little shy. Full bodies and ears visible. Beautiful tactile collectible toy 3D render with sophisticated illustrated pastel surroundings, soft warm studio lighting, affectionate playful mood. Composition: portrait, characters occupy the middle 65% of image, clean bright space at top 15% for web UI, plenty of breathing room around silhouettes. Avoid: any writing or letters, logo, watermark, dark background, dense details, extra characters, extra fingers.",
+      "original": "C:/Users/hiro/.codex/generated_images/01a1022d-663c-7691-ab6d-4646d604635d/exec-1fb3b2e8-ac49-4e34-a9c1-186ceb68f5f4.png",
+      "outputs": [
+        "src/handy/assets/cover-v1.webp",
+        "public/previews/handy-pals.webp"
+      ],
+      "processing": "Resize to 720px width, WebP quality 85."
+    }
+  ],
+  "music": {
+    "title": "ぷかぷか",
+    "creator": "ゆうり (Yuli Audio Craft)",
+    "bpm": 120,
+    "sourceUrl": "https://opentracks.com/bgm/detail/11821",
+    "downloadPage": "https://opentracks.com/bgm/detail/11821/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/204#terms-of-use",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-03",
+    "creatorConditions": "Site-conforming; no additional creator restrictions listed.",
+    "sourceSha256": "AD6F181AA136764C4D9D864A7546621520F17584A1C6584882643B0D203C0C9B",
+    "asset": "src/assets/music/handy-pals.mp3",
+    "assetSha256": "025D394036181B45A61F545DB55708E37CDD0B6042454BD3748648D6B4305140",
+    "edit": {
+      "start": 0,
+      "duration": 30,
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 1
+    },
+    "delivery": "Vite ?inline import in a lazy game BGM module; no standalone audio file in public or dist. Used only as game background music. Saving/sharing exports a still PNG with no audio.",
+    "commercialUse": "Commercial game BGM and editing permitted under the verified source and creator license. No separate music player, music export or audio download is provided."
+  }
+}

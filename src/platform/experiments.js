@@ -110,6 +110,15 @@ export const experiments = Object.freeze([
       return practice + (locale === "ja" ? `${r.maxSwirls}段${r.outcome === "clean" ? "完食" : "つくった"}！君は何段いける？` : `${r.maxSwirls} swirls ${r.outcome === "clean" ? "eaten" : "made"}! How high can you go?`);
     },
     load: () => import("../softServe/view.js").then(m => m.createView) }),
+  define({ id: "solo-handy-pals", exp: "EXP-045", collection: "SOLO", category: "SOLO",
+    titleJa: "HANDY PALS", titleEn: "HANDY PALS", subtitleJa: "両手が、ふたりのダンサーになる。", subtitleEn: "Your hands become two tiny dancers.",
+    input: ["HAND"], duration: 30, accent: "#e4bd88", tags: ["dance", "toy", "bear", "bunny", "ハイタッチ", "くま", "うさぎ"],
+    aliases: ["#handy-pals"], module: "handyPals", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/handy-pals.webp",
+    privacyJa: "両手をインカメラで追跡します。マイク・録画・外部送信はありません。最後の写真は端末メモリだけに保持し、保存・共有は自分で選べます。退出時に破棄します。初回は認識モデルをダウンロードします。",
+    privacyEn: "Front camera tracks both hands. No microphone, recording or uploads. The final photo stays in device memory; saving and sharing are your choice. It is discarded on exit. Models download on first use.",
+    loadPresentation: () => import("../handy/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `今日のふたり：${r.titleJa}。両手が、小さなダンサーになった！` : `Today's duo: ${r.titleEn}. My hands became two tiny dancers!`),
+    load: () => import("../handy/view.js").then(m => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];

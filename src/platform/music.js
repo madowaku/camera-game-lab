@@ -1,12 +1,14 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  handy: { id: "handy", title: "ぷかぷか", creator: "ゆうり (Yuli Audio Craft)", url: "https://opentracks.com/bgm/detail/11821", volume: .25, load: () => import("../assets/music/handyPals.js") },
   stage: { id: "stage", title: "8-bit Stage1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1982", volume: .16, load: () => import("../assets/music/stageOne.js") },
   cozy: { id: "cozy", title: "みるくぷりん", creator: "キュス", url: "https://opentracks.com/bgm/detail/16072", volume: .22, load: () => import("../assets/music/milkPudding.js") },
   spooky: { id: "spooky", title: "不穏ROOM", creator: "MAKOOTO", url: "https://opentracks.com/bgm/detail/9957", volume: .2, load: () => import("../assets/music/uneasyRoom.js") },
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-handy-pals": "handy",
   "solo-finger-gun": "finger", "solo-eat-dont-eat": "cozy", "solo-blink-horror": "spooky",
   "solo-pinch-world": "cozy", "solo-ghost-trail": "spooky", "voice-note-blaster": "stage",
   "duo-tiny-bot-duel": "stage", "guardian-spirit": "stage", "outcam-watermelon-guide": "stage",

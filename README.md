@@ -35,6 +35,18 @@ and the [design system](DESIGN.md). Run `npm test`, `npm run build`, then
 The [Expansion Blitz report](docs/EXPANSION_BLITZ_V01.md) records the two added
 experiments, 138 tests, browser evidence and the remaining spec/human gates.
 
+## EXP-045: HANDY PALS
+
+Your hands become two tiny dancers. Show both palms for an automatic pop and
+high-five, move freely for six broad dance reactions, bring hands together for
+a high-five or hug, then finish the 30-second toy with a pose and souvenir PNG.
+Choose bear or bunny independently for each hand; no scoring or penalties.
+Open `#/game/solo-handy-pals` or `#handy-pals`. Camera-free mouse/touch drag,
+WASD/arrow keys, JA/EN, photo save/share, RETRY/NEXT and pause are supported.
+Characters and cover were generated with Imagegen. Licensed OpenTracks BGM is
+120 BPM. See [implementation and verification](docs/HANDY_PALS_PROGRESS.md)
+and [pending device/human checks](docs/HANDY_PALS_PLAYTEST.md).
+
 ## EXP-016: NOTE EATER
 
 Eat a note and make a tune. Move your face to choose among five pentatonic

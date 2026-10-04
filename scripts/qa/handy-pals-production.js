@@ -1,0 +1,42 @@
+// Built bundle, public controls only; two simultaneous touchscreen pointers.
+async (page) => {
+  await page.clock.resume();
+  const base = new URL(page.url()).origin, checks = [], errors = [];
+  const check = (ok, name) => { if (!ok) throw Error(name); checks.push(name); };
+  page.on('pageerror', e => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('camera-game-lab-locale', 'en'));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(base + '/?qa=handy-production#/game/solo-handy-pals');
+  await page.clock.resume();
+  await page.waitForFunction(() => document.querySelector('.hp-entry .launch-demo')?.disabled === false);
+  check(await page.locator('.hp-cover img').evaluate(i => i.complete && i.naturalWidth), 'built generated cover loads');
+  check(await page.evaluate(() => !performance.getEntriesByType('resource').some(e => /\.task|\.wasm/.test(e.name))), 'built entry does not request models');
+  await page.locator('[data-pal-slot="right"][data-species="bear"]').click();
+  await page.clock.install({ time: new Date('2026-10-03T15:30:00Z') });
+  await page.locator('.launch-demo').click(); await page.clock.runFor(3300);
+  check((await page.locator('.hp-cue strong').textContent()) === 'FREE DANCE', 'built round reaches free dance');
+  const cdp = await page.context().newCDPSession(page), b = await page.locator('.hp-stage').boundingBox();
+  await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true });
+  const touches = (a, c) => [{ x: b.x + b.width * a, y: b.y + b.height * .72, id: 1 }, { x: b.x + b.width * c, y: b.y + b.height * .72, id: 2 }];
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: touches(.28, .72) });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: touches(.4, .6) }); await page.clock.runFor(200);
+  check(await page.locator('[data-hand="0"]').evaluate(e => Math.abs(parseFloat(e.style.left) - 40) < 1), 'first touch independently moves left hand');
+  check(await page.locator('[data-hand="1"]').evaluate(e => Math.abs(parseFloat(e.style.left) - 60) < 1), 'second touch independently moves right hand');
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.clock.runFor(1800); await page.locator('[data-move="spin"]').click(); await page.clock.runFor(1700);
+  await page.screenshot({ path: 'output/playwright/handy-pals-production-playing.png' });
+  await page.locator('.hp-pause').click(); const time = await page.locator('.hp-timer').textContent(); await page.clock.runFor(1000);
+  check((await page.locator('.hp-timer').textContent()) === time, 'built pause freezes countdown');
+  await page.locator('.hp-resume').click(); await page.clock.runFor(31000); await page.locator('.hp-result').waitFor();
+  check((await page.locator('.hp-result').textContent()).includes('PRACTICE'), 'built result labels practice');
+  check(await page.locator('.hp-result-photo').evaluate(i => i.complete && i.naturalWidth === 720), 'built photo captures final pose');
+  const downloadPromise = page.waitForEvent('download'); await page.locator('.hp-save').click();
+  const download = await downloadPromise; check(download.suggestedFilename().endsWith('.png'), 'built photo downloads');
+  await page.screenshot({ path: 'output/playwright/handy-pals-production-result.png' });
+  await page.locator('[data-result-action="retry"]').click(); await page.clock.runFor(350);
+  check((await page.locator('.hp-source').textContent()).includes('PRACTICE'), 'built retry preserves practice');
+  await page.setViewportSize({ width: 1440, height: 900 }); await page.clock.runFor(3300);
+  check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'built desktop has no overflow');
+  await page.goto(base + '/#/'); check(errors.length === 0, 'no unhandled production browser errors');
+  return { checks, errors };
+}
