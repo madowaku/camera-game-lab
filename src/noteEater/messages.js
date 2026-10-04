@@ -8,7 +8,7 @@ export const messages = {
     board: "顔で音符を選び、口を開けて食べる演奏スペース", notes: "食べた音符", unique: "出会った音", result: "あなたの音が、曲になった。", empty: "次は、ひとくちから。",
     melody: "YOUR MELODY", melodyEmpty: "次のラウンドで、あなたのメロディをつくろう。", playMelody: "▶ PLAY", stopMelody: "■ STOP", again: "RETRY", next: "NEXT", share: "SHARE",
     faceChoice: "顔の映し方を選んで、スタート", original: "そのまま", effect: "音のヘッドホン", hide: "顔を隠す", creatorNotice: "7秒のリプレイは端末のメモリだけに保存。退出すると消えます。", replay: "あなたのハイライト", replayButton: "↻ REPLAY",
-    layers: ["キック", "+ ベース", "+ ハイハット", "+ コード", "+ きらめき"],
+    layers: ["キック ＋ シェイカー", "+ はずむベース", "+ クラップ", "+ ふわっとコード", "+ アルペジオ ♪"],
     howtoSteps: [["顔を動かして選ぶ", "口の近くで光る音符が、食べられる合図。"], ["口を開けて、パクッ", "ひとくちごとに口を閉じよう。好きな音を選んでOK。"], ["30秒で、あなただけの曲", "取り逃しても大丈夫。結果のPLAYで、食べた順番に聴けるよ。"]],
   },
   en: {
@@ -20,7 +20,7 @@ export const messages = {
     board: "Move to choose a note and open your mouth to eat it", notes: "NOTES EATEN", unique: "SOUNDS FOUND", result: "That little tune? You made it.", empty: "Next time, start with a little bite.",
     melody: "YOUR MELODY", melodyEmpty: "Make your first melody in the next round.", playMelody: "▶ PLAY", stopMelody: "■ STOP", again: "RETRY", next: "NEXT", share: "SHARE",
     faceChoice: "Choose your face mode to start", original: "Just you", effect: "Musical headphones", hide: "Mask your face", creatorNotice: "A 7-second replay stays in device memory and disappears when you leave.", replay: "Your highlight", replayButton: "↻ REPLAY",
-    layers: ["Kick", "+ Bass", "+ Hi-hat", "+ Chords", "+ Sparkle"],
+    layers: ["Kick + shaker", "+ Bouncy bass", "+ Claps", "+ Warm chords", "+ Arpeggio ♪"],
     howtoSteps: [["Move your face to choose", "A glowing note near your mouth is ready to eat."], ["Open wide. Take a bite", "Close your mouth between bites. Choose any note you like."], ["30 seconds. Your own little tune", "Letting notes pass is fine. PLAY on the result hears them in your order."]],
   },
 };

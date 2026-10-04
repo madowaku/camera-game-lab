@@ -1,9 +1,14 @@
 # EXP-016 NOTE EATER v0.2
 
 Implemented locally on 2026-10-03 from the [provided specification](specs/EXP-016_NOTE_EATER_SPEC_v0.2.md).
+Expanded on 2026-10-04 following Hiro's request for richer sound, more notes
+and bigger celebrations. This direction increases the original note density;
+the supplied v0.2 specification is retained as the original brief.
 Open the built preview at `http://127.0.0.1:4173/#/game/solo-note-eater`
 or the dev view at `http://127.0.0.1:5173/#/game/solo-note-eater` (`#note-eater` also works).
-It also appears in Feed and Explore. No deployment was performed.
+It also appears in Feed and Explore. Publishing uses the existing
+`camera-game-lab` Cloudflare Workers Static Assets target in `wrangler.jsonc`
+through `npm run deploy`.
 
 ## Playable implementation
 
@@ -15,19 +20,31 @@ It also appears in Feed and Explore. No deployment was performed.
   counts as CLOSED. Returning closed re-arms automatically.
 - A single forgiving first note, a bite with immediate sound, 3/2/1, then
   exactly 30 active seconds. The tutorial note is excluded from round metrics.
-- Three independent moving choices, five colored shapes mapped to C/D/E/G/A.
+- Eight visible opening choices, growing to twelve as max GROOVE crosses
+  20/40/60/80. Each wave includes all five colored shapes mapped to C/D/E/G/A;
+  one opening choice starts within reach. Density stays at the attained level
+  when groove decays, and eaten/passed notes are replenished immediately.
   Radius is mouth width ×2.25 with practical bounds; wider magnet assistance
   pulls nearby notes, adds a halo and enlarges them. Each eat takes the nearest
   eligible choice and requires another CLOSE before the next eat.
-- Bite sound uses AudioContext.currentTime, without beat quantization. The
-  shape accelerates into the mouth, shrinks, vanishes and emits waves/particles.
+- Bite sound starts four marimba/bell layers at AudioContext.currentTime,
+  without beat quantization, followed by two short stereo echoes. The shape
+  accelerates into the mouth, shrinks, vanishes and emits double waves,
+  18–30 colorful confetti pieces and a floating PAK! label.
   Passed notes sound quietly; no MISS, punishment, ranks or combo resets.
-- GROOVE 0–100 rises with bites and decays gradually. At 104 BPM, kick, bass,
-  hi-hat, chord and sparkle layers join at thresholds 0/20/40/60/80. Fixed
+- GROOVE 0–100 rises with bites and decays gradually. At 110 BPM, kick/shaker,
+  bouncy bass, noise hi-hat/clap, warm pentatonic chords and an arpeggio join
+  at thresholds 0/20/40/60/80. A compressor provides mix headroom. Fixed
   soundtrack integration is explicitly excluded through `audioStrategy`.
+- Note trails, drifting musical symbols and soft colored light fill the scene.
+  First-time groove stage increases launch side confetti and one clear title;
+  groove 80 adds a rainbow meter and party frame. Recent visual effects are
+  capped at eight. Reduced motion uses static rings and labels, without
+  decorative trails, flying confetti, rotating rays or drifting symbols.
 - Result records notes eaten, max groove, unique types and the complete
   ordered melody. YOUR MELODY waits for audio activation, replays in the same
-  order, and can stop. RETRY, NEXT, SHARE and JA/EN use the shared shell.
+  order with the same layered instrument, and can stop. RETRY, NEXT, SHARE
+  and JA/EN use the shared shell.
 - Camera-free drag/arrows to aim, tap/Space to bite; held Space cannot keep
   eating. Practice provenance follows the result and sharing.
 - Permission recovery, pause, background interruption, mute and resource
@@ -52,18 +69,32 @@ or uploaded. Creator frames are memory-only.
 
 ## Verification
 
-- `npm test`: 249/249 pass, including 15 NOTE EATER rule/input/audio checks.
+- `npm test`: 359/359 pass on 2026-10-04, including 19 NOTE EATER
+  rule/input/audio checks. Covers full density, reachable choices, one bite
+  per opening, ordered replay, unquantized attack and cancellation of echoes.
 - `npm run build`: Vite/PWA builds; game and presentation remain lazy-loaded.
-- `scripts/qa/note-eater.js`: 37 browser assertions across 390×844, 360×800,
+- `scripts/qa/note-eater.js`: 43 browser assertions across 390×844, 360×800,
   360×500 and 1440×900, including actual public practice controls, pixel
   evidence, full round, exact melody ordering through Web Audio, pause,
-  sound, locale, receipts, retry and discovery.
+  sound, locale, receipts, retry and discovery. High-groove scenes are checked
+  at mobile and desktop sizes; twelve-note density and party styling are verified.
 - `scripts/qa/note-eater-camera.js`: 35 assertions; actual browser-owned camera tracks with
   synthetic landmarks exercise the real input/controller lifecycle, recovery,
   ambiguous faces, permission failure, retry and all Creator face modes.
 - `scripts/qa/note-eater-production.js`: 10 assertions through the built bundle,
   including CDP touch drag/bite, round completion, melody, retry and desktop layout.
+- `scripts/qa/note-eater-party.js`: 10 assertions using the actual Web Audio
+  graph in OfflineAudioContext plus the reduced-motion practice view. In the
+  sampled dense mix, peak amplitude was about 0.32 with no clipped/non-finite
+  samples; high groove added energy and high-frequency detail. Stopping before
+  playback canceled all scheduled sound. This is waveform evidence, not a
+  human listening or physical device latency test.
 - Screenshots are in `output/playwright/note-eater-*.png` (ignored QA output).
+
+The mix uses the browser's
+[DynamicsCompressorNode](https://developer.mozilla.org/en-US/docs/Web/API/DynamicsCompressorNode).
+Stereo echoes are separately tracked voices so pause, result, mute and exit
+can silence them along with the lead and percussion.
 
 The [Face Landmarker web guide](https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/web_js)
 was checked for VIDEO mode, configuration and inference behavior. Inference

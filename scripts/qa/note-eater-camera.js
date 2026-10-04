@@ -4,7 +4,7 @@ async (page) => {
   const check = (ok,name) => {if(!ok)throw Error(name);checks.push(name);};
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>localStorage.setItem('camera-game-lab-locale','ja'));
-  await page.setViewportSize({width:390,height:844});await page.goto(base+'/?qa=note-camera#/game/solo-note-eater');
+  await page.setViewportSize({width:390,height:844});await page.goto(base+'/?qa=note-camera&run='+Date.now()+'#/game/solo-note-eater');
   await page.waitForFunction(()=>document.querySelector('.launch-camera')?.disabled===false);
   await page.clock.install({time:new Date('2026-10-03T00:00:00Z')});
   await page.evaluate(async()=>{
@@ -89,7 +89,7 @@ async (page) => {
     check(await page.locator('.creator-replay-canvas').evaluate(c=>{const p=c.getContext('2d').getImageData(0,0,c.width,c.height).data;return p.some((n,i)=>i%4===3&&n>0);}),'replay paints in '+mode);
     await page.screenshot({path:'output/playwright/note-eater-creator-result-'+mode+'.png'});
   }
-  await page.goto(base+'/#/game/solo-note-eater');await page.waitForFunction(()=>document.querySelector('.launch-camera')?.disabled===false);
+  await page.goto(base+'/?qa=note-camera-denied&run='+Date.now()+'#/game/solo-note-eater');await page.waitForFunction(()=>document.querySelector('.launch-camera')?.disabled===false);
   // Reinstall a lightweight denied input to check user-visible recovery.
   await page.evaluate(async()=>{const {NoteEaterInput}=await import('/src/input/noteEaterInput.js');NoteEaterInput.prototype.start=async function(){throw new DOMException('QA denied','NotAllowedError');};});
   await page.locator('.launch-camera').click();await page.locator('.ne-practice').waitFor();check((await page.locator('.ne-overlay').textContent()).includes('許可'),'permission rejection offers retry or practice');

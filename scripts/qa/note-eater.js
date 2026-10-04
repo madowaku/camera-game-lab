@@ -15,7 +15,7 @@ async (page) => {
     await page.screenshot({ path: 'output/playwright/note-eater-launch-' + size.width + '-' + size.height + '.png' });
   }
   await page.setViewportSize({width:390,height:844});
-  await page.goto(base + '/?qa=note-practice#/game/solo-note-eater'); await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
+  await page.goto(base + '/?qa=note-practice&run=' + Date.now() + '#/game/solo-note-eater'); await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
   check(await page.evaluate(() => !document.querySelector('.ne-stage video').srcObject && !performance.getEntriesByType('resource').some(e=>/\.task|\.wasm/.test(e.name))), 'browsing has no camera stream or inference download');
   await page.evaluate(async () => {
     const source = await (await fetch('/src/noteEater/view.js')).text();
@@ -23,10 +23,9 @@ async (page) => {
     const step = NoteEaterGame.prototype.step;
     NoteEaterGame.prototype.step = function(...args) { window.__noteGame = this; return step.apply(this,args); };
     const { NoteEaterAudio } = await import(source.match(/from "([^"]*\/noteEater\/audio\.js[^"]*|[^\"]*\/audio\.js[^\"]*)"/)[1]);
-    const note = NoteEaterAudio.prototype.note, tone = NoteEaterAudio.prototype.tone;
+    const note = NoteEaterAudio.prototype.note;
     window.__noteTimes=[]; window.__melodyTones=[];
-    NoteEaterAudio.prototype.note=function(...args){ __noteTimes.push({midi:args[0],quiet:!!args[1],at:this.context?.currentTime}); return note.apply(this,args); };
-    NoteEaterAudio.prototype.tone=function(midi,options){ if(window.__recordMelody)__melodyTones.push(midi); return tone.call(this,midi,options); };
+    NoteEaterAudio.prototype.note=function(...args){ window.__noteAudio=this; __noteTimes.push({midi:args[0],quiet:!!args[1],at:this.context?.currentTime}); if(window.__recordMelody)__melodyTones.push(args[0]); return note.apply(this,args); };
   });
   await page.clock.install({ time: new Date('2026-10-03T00:00:00Z') });
   await page.locator('.launch-demo').click(); await page.clock.runFor(150);
@@ -36,7 +35,8 @@ async (page) => {
   check(await page.evaluate(()=>__noteGame.phase==='countdown'&&__noteTimes.some(n=>!n.quiet)), 'first bite sounds immediately and begins countdown');
   check(await page.locator('.ne-cue').textContent()==='3','countdown begins at 3');
   await page.clock.runFor(3100);
-  check(await page.evaluate(()=>__noteGame.phase==='playing'&&__noteGame.eaten===0&&__noteGame.notes.length===3),'round starts with three choices; tutorial excluded');
+  check(await page.evaluate(()=>__noteGame.phase==='playing'&&__noteGame.eaten===0&&__noteGame.notes.length===8),'round starts with eight choices; tutorial excluded');
+  check(await page.evaluate(()=>new Set(__noteGame.notes.map(n=>n.type)).size===5),'all five pitches are available at the start');
   const bounds = await page.locator('.ne-stage').boundingBox();
   const aim = async () => {
     let p;
@@ -52,10 +52,18 @@ async (page) => {
   await page.keyboard.up('Space'); await page.clock.runFor(90);
   for(let i=0;i<8;i++){await aim();await page.locator('.ne-bite').click();await page.clock.runFor(180);}
   check(await page.evaluate(()=>__noteGame.eaten>=7&&__noteGame.maxGroove>=80),'practice bites build groove above 80');
+  check(await page.evaluate(()=>__noteGame.notes.length===12),'high groove brings twelve playable notes');
+  check(await page.locator('.ne-view').evaluate(e=>e.classList.contains('is-party')),'high groove turns on the party frame');
   check(await page.locator('.ne-canvas').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=0;i<d.length;i+=4)if(d[i]>160&&d[i]<250&&d[i+1]<150&&d[i+2]<150)n++;return n>100;}),'playable canvas has colored pixel evidence');
   await page.screenshot({path:'output/playwright/note-eater-playing-390.png'});
+  await page.setViewportSize({width:1440,height:900});await page.clock.runFor(32);
+  check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'desktop party scene has no horizontal overflow');
+  check(await page.locator('.ne-stage').evaluate(e=>Math.abs(e.getBoundingClientRect().width/e.getBoundingClientRect().height-9/16)<.01),'desktop party scene retains portrait framing');
+  await page.screenshot({path:'output/playwright/note-eater-playing-1440.png'});
+  await page.setViewportSize({width:390,height:844});await page.clock.runFor(32);
   await page.locator('.ne-pause').click(); const before=await page.evaluate(()=>__noteGame.elapsed); await page.clock.runFor(2200);
-  check(await page.evaluate(()=>__noteGame.elapsed)===before,'pause freezes round timer'); await page.locator('.ne-pause').click();
+  check(await page.evaluate(()=>__noteGame.elapsed)===before,'pause freezes round timer');
+  check(await page.evaluate(()=>__noteAudio.voices.size===0&&__noteAudio.master.gain.value===0),'pause silences percussion and all stereo echoes'); await page.locator('.ne-pause').click();
   await page.locator('.ne-sound').click(); check(await page.locator('.ne-sound').getAttribute('aria-pressed')==='false','sound can be muted');
   await page.locator('.platform-locale').click(); check((await page.locator('.ne-source').textContent()).includes('practice'),'language switch keeps the round');
   await page.evaluate(()=>window.dispatchEvent(new Event('blur'))); const blurred=await page.evaluate(()=>__noteGame.elapsed); await page.clock.runFor(1200);

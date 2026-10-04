@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { NoteEaterGame, NOTE_TYPES, grooveStage } from "../src/games/noteEater.js";
+import { NoteEaterGame, NOTE_TYPES, grooveStage, NOTE_EATER_BASE_NOTES, NOTE_EATER_MAX_NOTES } from "../src/games/noteEater.js";
 import { MouthState, noteEaterSignal } from "../src/noteEater/signals.js";
 import { selectNoteEaterHighlight } from "../src/noteEater/creatorProfile.js";
 import { experiments } from "../src/platform/experiments.js";
@@ -10,7 +10,7 @@ const mouth = { x: .5, y: .5, width: .08 };
 const sample = state => ({ state, mouth });
 function playing() { const g = new NoteEaterGame({ random: () => .5 }); g.reset("camera");
   g.step(16, sample("CLOSED")); g.step(16, sample("OPEN")); g.step(3000, sample("CLOSED")); return g; }
-function bite(g, type = 0) { g.notes[0] = { ...g.spawn(), x: .5, y: .5, vx: 0, vy: 0, type }; g.notes = g.notes.slice(0, 3);
+function bite(g, type = 0) { const n = g.spawn(); g.notes.pop(); g.notes[0] = { ...n, x: .5, y: .5, vx: 0, vy: 0, type };
   g.step(70, sample("CLOSED")); g.step(50, sample("OPEN")); }
 
 test("NOTE EATER has one lazy 30-second face/mouth route with procedural audio and no microphone", () => {
@@ -44,7 +44,21 @@ test("the first bite is one safe choice, then a 3-2-1 countdown; it is excluded 
   const g = new NoteEaterGame(); g.step(16, sample("OPEN")); assert.equal(g.phase, "tutorial"); assert.equal(g.notes.length, 1);
   g.step(16, sample("CLOSED")); g.step(16, sample("OPEN")); assert.equal(g.phase, "countdown"); assert.equal(g.effects[0].type, "eat");
   assert.equal(g.eaten, 0); g.step(2999, sample("CLOSED")); assert.equal(g.phase, "countdown");
-  g.step(1, sample("CLOSED")); assert.equal(g.phase, "playing"); assert.equal(g.elapsed, 0); assert.equal(g.notes.length, 3);
+  g.step(1, sample("CLOSED")); assert.equal(g.phase, "playing"); assert.equal(g.elapsed, 0); assert.equal(g.notes.length, NOTE_EATER_BASE_NOTES);
+});
+test("the opening offers eight visible choices, every pitch and an immediately reachable bite", () => {
+  const g = playing();
+  assert.equal(g.notes.length, 8); assert.equal(new Set(g.notes.map(n => n.type)).size, 5);
+  assert.ok(g.notes.every(n => n.x > .1 && n.x < .9 && n.y > .1 && n.y < .9));
+  assert.equal(new Set(g.notes.map(n => `${n.x},${n.y}`)).size, 8);
+  assert.ok(g.notes.some(n => g.distance(n, g.mouth) < g.eatRadius));
+});
+test("groove expands the field to twelve without losing choices when groove decays", () => {
+  const g = playing();
+  for (let i = 0; i < 8; i++) { bite(g, i % 5); assert.ok(g.notes.length <= NOTE_EATER_MAX_NOTES); }
+  assert.equal(g.notes.length, 12); assert.equal(g.noteTarget, 12);
+  for (let i = 0; i < 250; i++) { g.step(100, sample("CLOSED")); assert.equal(g.notes.length, 12); }
+  assert.ok(g.groove < 80); assert.equal(g.eaten, 8);
 });
 test("one open mouth eats only the nearest note and must close before the next bite", () => {
   const g = playing(); g.notes.forEach(n => { n.x = .5; n.y = .5; }); g.step(16, sample("OPEN")); assert.equal(g.eaten, 1);
@@ -65,14 +79,15 @@ test("forgiving radius scales with mouth width and magnet pulls only nearby choi
   const n = { ...g.notes[0], x: .75, y: .5, vx: 0, vy: 0 }; g.notes = [n]; g.step(100, sample("CLOSED"));
   assert.ok(n.magnet); assert.ok(n.x < .75); assert.ok(g.magnetRadius > g.eatRadius);
 });
-test("passed choices softly sound without penalties or a groove reset, and replenish to three", () => {
+test("passed choices softly sound without penalties or a groove reset, and replenish to eight", () => {
   const g = playing(); g.groove = 50; g.notes.forEach(n => { n.age = 20000; }); g.step(100, sample("CLOSED"));
-  assert.equal(g.effects.filter(e => e.type === "pass").length, 3); assert.equal(g.notes.length, 3); assert.ok(g.groove > 49);
+  assert.equal(g.effects.filter(e => e.type === "pass").length, 8); assert.equal(g.notes.length, 8); assert.ok(g.groove > 49);
 });
 test("groove grows through five backing stages, emits highlight hooks and preserves the melody order", () => {
-  const g = playing(), order = [4, 0, 4, 2, 1, 3, 2, 0]; let fast = false;
-  order.forEach(type => { bite(g, type); fast ||= g.events.some(e => e.type === "FAST_3_EATS" && e.data.priority === 100); });
+  const g = playing(), order = [4, 0, 4, 2, 1, 3, 2, 0]; let fast = false, celebrations = 0;
+  order.forEach(type => { bite(g, type); fast ||= g.events.some(e => e.type === "FAST_3_EATS" && e.data.priority === 100); celebrations += g.effects.filter(e => e.stageUp).length; });
   assert.ok(fast); assert.equal(grooveStage(g.groove), 4); assert.deepEqual(g.melody.map(n => n.type), order);
+  assert.equal(celebrations, 4); assert.equal(g.effects.find(e => e.type === "eat").groove, g.groove);
   g.step(30000, sample("CLOSED")); assert.equal(g.result.notesEaten, order.length); assert.equal(g.result.uniqueNotes, 5);
   assert.deepEqual(g.result.melody.map(n => n.midi), order.map(i => NOTE_TYPES[i].midi)); assert.equal(g.result.durationMs, 30000);
   assert.equal(g.events.find(e => e.type === "FINAL_EAT").at, g.lastBiteEvent.at);

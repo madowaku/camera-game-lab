@@ -109,10 +109,10 @@ export class NoteEaterView {
     this.currentSample = this.sample(now, this.game.paused ? 0 : dt);
     this.game.step(dt, this.currentSample); this.phase = this.game.phase;
     for (const effect of this.game.effects) {
-      this.audio.note(NOTE_TYPES[effect.note.type].midi, effect.type === "pass");
+      this.audio.note(NOTE_TYPES[effect.note.type].midi, effect.type === "pass", { color: effect.note.type, groove: this.game.groove });
       if (effect.type === "eat") this.effects.push(effect);
     }
-    this.effects = this.effects.filter(e => this.game.time - e.at < 650);
+    this.effects = this.effects.filter(e => this.game.time - e.at < (e.stageUp ? 1500 : 900)).slice(-8);
     for (const event of this.game.events) {
       this.highlights.push(event); this.creator?.highlight(event.type, event.at, event.data);
     }
@@ -147,6 +147,7 @@ export class NoteEaterView {
     if ($(".ne-count").innerHTML !== count) $(".ne-count").innerHTML = count;
     if ($(".ne-time").innerHTML !== time) $(".ne-time").innerHTML = time;
     text(".ne-groove-value", Math.round(g.groove)); $("progress").value = g.groove; text(".ne-layer", t.layers[grooveStage(g.groove)]);
+    $(".ne-view").classList.toggle("is-party", g.phase === "playing" && g.groove >= 80);
     const unknown = this.source === "camera" && (!this.currentSample || this.currentSample.state === "UNKNOWN");
     const overlay = this.phase === "error" ? t.error : this.phase === "loading" ? t[this.status === "REQUESTING_CAMERA" ? "requesting" : "loading"]
       : g.paused ? t[this.userPaused ? "paused" : "background"] : unknown ? t[this.raw?.faces > 1 ? "multiple" : this.raw?.mouth ? "unknown" : "missing"] : "";

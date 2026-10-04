@@ -7,6 +7,9 @@ export const NOTE_TYPES = Object.freeze([
 ]);
 export const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 export const grooveStage = groove => Math.min(4, Math.floor(clamp(groove, 0, 100) / 20));
+export const NOTE_EATER_BPM = 110;
+export const NOTE_EATER_BASE_NOTES = 8;
+export const NOTE_EATER_MAX_NOTES = 12;
 
 export class NoteEaterGame {
   constructor({ random = Math.random } = {}) { this.random = random; this.reset(); }
@@ -19,13 +22,18 @@ export class NoteEaterGame {
   distance(a, b) { return Math.hypot(a.x - b.x, (a.y - b.y) * this.aspect); }
   get eatRadius() { return clamp(this.mouth.width * 2.25, .11, .27); }
   get magnetRadius() { return this.eatRadius * 1.65; }
+  get noteTarget() { return Math.min(NOTE_EATER_MAX_NOTES, NOTE_EATER_BASE_NOTES + grooveStage(this.maxGroove)); }
   setPaused(paused) { this.paused = !!paused; if (paused) { this.armed = false; this.mouthState = "UNKNOWN"; } }
   highlight(type, data = {}) { this.events.push({ type, at: this.time, data }); }
-  spawn(tutorial = false) {
-    const type = tutorial ? 2 : (this.nextType++ + Math.floor(this.random() * 3)) % 5;
+  spawn(tutorial = false, openingIndex = -1) {
+    // Each wave includes every pitch, so a busy field still offers a choice.
+    const type = tutorial ? 2 : this.nextType++ % NOTE_TYPES.length;
     const side = this.nextId % 4, lane = .2 + this.random() * .6;
     const starts = [{ x: .025, y: lane }, { x: .975, y: lane }, { x: lane, y: .03 }, { x: lane, y: .97 }];
-    const start = tutorial ? { x: this.mouth.x + .07, y: this.mouth.y - .08 } : starts[side];
+    const opening = [{ x: .22, y: .22 }, { x: .72, y: .18 },
+      { x: clamp(this.mouth.x + .08, .12, .88), y: clamp(this.mouth.y - .025, .14, .84) },
+      { x: .82, y: .43 }, { x: .18, y: .55 }, { x: .62, y: .67 }, { x: .32, y: .81 }, { x: .8, y: .78 }];
+    const start = tutorial ? { x: this.mouth.x + .07, y: this.mouth.y - .08 } : opening[openingIndex] ?? starts[side];
     const target = { x: .15 + this.random() * .7, y: .25 + this.random() * .5 };
     const length = Math.hypot(target.x - start.x, (target.y - start.y) * this.aspect) || 1;
     const speed = .085 + this.random() * .035;
@@ -50,14 +58,14 @@ export class NoteEaterGame {
       if (n) { const k = 1 - Math.exp(-dt / 180); n.x += (this.mouth.x + .04 - n.x) * k; n.y += (this.mouth.y - .04 - n.y) * k; }
     } else if (this.phase === "countdown") {
       this.countdown += dt;
-      if (this.countdown >= 3000) { this.phase = "playing"; this.armed = state === "CLOSED"; for (let i = 0; i < 3; i++) this.spawn(); }
+      if (this.countdown >= 3000) { this.phase = "playing"; this.armed = state === "CLOSED"; for (let i = 0; i < this.noteTarget; i++) this.spawn(false, i); }
       return;
     } else {
       const activeDt = Math.min(dt, 30000 - this.elapsed);
       this.elapsed += activeDt;
       this.groove = Math.max(0, this.groove - activeDt / 1000 * 2.4);
       this.moveNotes(activeDt, state !== "UNKNOWN");
-      while (this.notes.length < 3) this.spawn();
+      while (this.notes.length < this.noteTarget) this.spawn();
     }
     if (state === "OPEN" && this.armed) {
       const candidate = this.notes.filter(n => this.distance(n, this.mouth) <= this.eatRadius)
@@ -85,13 +93,17 @@ export class NoteEaterGame {
   }
   eat(note) {
     this.armed = false; this.notes = this.notes.filter(n => n !== note);
-    this.effects.push({ type: "eat", note: { ...note }, mouth: { ...this.mouth }, at: this.time });
+    const effect = { type: "eat", note: { ...note }, mouth: { ...this.mouth }, at: this.time, groove: this.groove, stageUp: false };
+    this.effects.push(effect);
     if (this.phase === "tutorial") { this.phase = "countdown"; this.countdown = 0; this.highlight("FIRST_EAT"); return; }
     this.eaten++; this.melody.push({ type: note.type, midi: NOTE_TYPES[note.type].midi, at: this.elapsed });
     this.lastBiteEvent = { at: this.time, data: { point: { x: note.x, y: note.y }, type: note.type } };
     const interval = this.elapsed - this.lastEat;
+    const previousStage = grooveStage(this.maxGroove);
     this.groove = clamp(this.groove + (interval <= 1700 ? 16 : 10), 0, 100);
     this.maxGroove = Math.max(this.maxGroove, this.groove); this.lastEat = this.elapsed;
+    effect.groove = this.groove; effect.stageUp = grooveStage(this.maxGroove) > previousStage;
+    while (this.notes.length < this.noteTarget) this.spawn();
     this.recentEats.push(this.elapsed); this.recentEats = this.recentEats.filter(t => this.elapsed - t < 2600);
     if (this.eaten === 1) this.highlight("FIRST_EAT");
     if (this.recentEats.length >= 3) this.highlight("FAST_3_EATS", { priority: this.groove >= 80 ? 100 : 20 });
