@@ -2,6 +2,23 @@
 
 Experimental web games where **your body is the controller**.
 
+## EXP-050: HUMAN CLOCK
+
+Make time with your hands. Your left index finger is hour; your right is minute.
+Open `#/game/solo-human-clock` or `#human-clock`. The **direction of each index
+finger itself**, from knuckle to tip, is judged with the real interpolated hour
+angle: ±12 degrees held for 400ms, over a 30-second score attack. EASY/NORMAL
+five-minute decks, fingertip glow, TICK and five-combo TIME RUSH are included.
+Upper-body Hands/Pose tracking uses one front-camera stream, with paused loss
+and stable recovery. Camera-free drag/tap/sliders and A/D + arrows, JA/EN,
+RETRY/NEXT/SHARE and BGM/SFX toggles are supported. Imagegen finger-focused art,
+commercially usable OpenTracks music and Kenney CC0 SE are recorded in
+[the asset manifest](docs/human-clock-assets.json) and
+[exact generation prompt](docs/human-clock-image-prompt.txt). See
+[implementation and verification](docs/HUMAN_CLOCK_PROGRESS.md),
+[final input specification](docs/HUMAN_CLOCK_SPEC_V01.md) and
+[pending physical/human checks](docs/HUMAN_CLOCK_PLAYTEST.md).
+
 The lab is a shared input playground for camera-native game ideas: hand gestures, pinching, blinking, mouth input, body poses, rhythm actions, and more.
 
 ## EXP-048: PALM PONG

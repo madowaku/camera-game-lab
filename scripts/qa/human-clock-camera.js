@@ -1,0 +1,71 @@
+// Synthetic finger landmarks with real MediaStream teardown, not human accuracy.
+async (page) => {
+  await page.clock.resume();const base=new URL(page.url()).origin,checks=[],errors=[];
+  const check=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};page.on('pageerror',e=>errors.push(e.message));
+  await page.setViewportSize({width:390,height:844});await page.goto(base+'/?qa=hc-camera-'+Date.now()+'#/game/solo-human-clock');
+  await page.waitForFunction(()=>document.querySelector('.hc-entry .launch-camera')?.disabled===false);
+  await page.evaluate(async()=>{
+    const registry=await(await fetch('/src/platform/experiments.js')).text(),viewPath=registry.match(/import\("([^"]*humanClock\/view\.js[^"]*)"\)/)[1];
+    const viewText=await(await fetch(viewPath)).text(),inputPath=viewText.match(/from ["']([^"']*input\/humanClockInput\.js[^"']*)["']/)[1];
+    const inputText=await(await fetch(inputPath)).text(),vision=await import(inputText.match(/from ["']([^"']*mediapipe[^"']*)["']/)[1]);
+    const {HumanClockView}=await import(viewPath),{HumanClockInput}=await import(inputPath),render=HumanClockView.prototype.render,start=HumanClockInput.prototype.start;
+    HumanClockView.prototype.render=function(...args){window.__hc=this;return render.apply(this,args);};
+    HumanClockInput.prototype.start=function(){Object.defineProperty(this.video,'currentTime',{configurable:true,get:()=>performance.now()/1000});return start.call(this);};
+    window.__core=await import('/src/humanClock/core.js');
+    window.__pose=Array.from({length:33},()=>({x:.5,y:.8,visibility:1,presence:1}));
+    __pose[0]={x:.5,y:.28,visibility:1};__pose[11]={x:.7,y:.55,visibility:1};__pose[12]={x:.3,y:.55,visibility:1};
+    __pose[15]={x:.66,y:.4,visibility:1};__pose[16]={x:.34,y:.63,visibility:1};
+    window.__handFor=(side,angle)=>{
+      const wrist=__pose[15+side],p=Array.from({length:21},()=>({...wrist})),dx=-Math.cos(angle*Math.PI/180)*.09/.75,dy=Math.sin(angle*Math.PI/180)*.09;
+      for(let i=5;i<=8;i++){const t=(i-5)/3;p[i]={x:wrist.x+dx*t,y:wrist.y+dy*t};}return p;
+    };
+    window.__setAngles=(hour,minute)=>{__hands=[__handFor(0,hour),__handFor(1,minute)];};__setAngles(45,225);
+    window.__tracks=[];window.__closed={hand:0,pose:0};window.__options=[];window.__requests=0;window.__failPoseGPU=true;
+    vision.FilesetResolver.forVisionTasks=async()=>({});
+    vision.HandLandmarker.createFromOptions=async(_,options)=>{__options.push({kind:'hand',...options});return{close:()=>__closed.hand++,detectForVideo:()=>({landmarks:__hands??[]})};};
+    vision.PoseLandmarker.createFromOptions=async(_,options)=>{__options.push({kind:'pose',...options});if(window.__failPoseGPU&&options.baseOptions.delegate==='GPU'){__failPoseGPU=false;throw Error('QA pose GPU fallback');}return{close:()=>__closed.pose++,detectForVideo:()=>({landmarks:__pose?[__pose]:[]})};};
+    const board=document.createElement('canvas');board.width=720;board.height=960;const c=board.getContext('2d');
+    c.fillStyle='#344c44';c.fillRect(0,0,720,960);c.fillStyle='#dbba92';c.beginPath();c.arc(360,270,62,0,Math.PI*2);c.fill();c.fillStyle='#658c7a';c.fillRect(230,440,260,520);
+    window.__paint=setInterval(()=>{c.fillStyle='#344c44';c.fillRect(0,0,10,10);},50);
+    const stream=()=>{const s=board.captureStream(30);__tracks.push(...s.getTracks());return s;};
+    navigator.mediaDevices.getUserMedia=async constraints=>{__requests++;window.__constraints=constraints;if(window.__deny)throw new DOMException('QA denial','NotAllowedError');if(window.__delay)return new Promise(resolve=>{window.__grant=()=>resolve(stream());});return stream();};
+  });
+  await page.locator('.launch-camera').click();await page.waitForFunction(()=>window.__hc?.input.running);await page.clock.install();await page.clock.runFor(1000);
+  check(await page.evaluate(()=>__hc.phase==='running'),'two straight fingers and upper body pass readiness');
+  check(await page.evaluate(()=>__constraints.audio===false&&__constraints.video.facingMode.exact==='user'),'front camera only, no microphone');
+  check(await page.evaluate(()=>__options.map(o=>o.baseOptions.delegate).join()==='GPU,GPU,CPU,CPU'&&__closed.hand===1),'failed second model closes first before CPU fallback');
+  check(await page.evaluate(()=>__options.filter(o=>o.kind==='hand').every(o=>o.numHands===2)&&__options.filter(o=>o.kind==='pose').every(o=>o.numPoses===1&&!o.outputSegmentationMasks)),'two Hands and one lightweight Pose');
+  const before=await page.evaluate(()=>JSON.stringify(__hc.sample));await page.keyboard.press('d');
+  check(await page.evaluate(old=>JSON.stringify(__hc.sample)===old,before),'keyboard cannot spoof camera fingers');
+  await page.evaluate(()=>{const a=__core.clockAngles(__hc.game.target.hour,__hc.game.target.minute);__setAngles(a.hour,a.minute);});await page.clock.runFor(350);
+  check(await page.evaluate(()=>__hc.game.score===0&&__hc.game.hold>0),'camera begins a hold using finger direction');
+  await page.evaluate(()=>{__hands=[__hands[1]];});await page.clock.runFor(100);
+  const lostAt=await page.evaluate(()=>__hc.game.elapsed);await page.clock.runFor(500);
+  check(await page.evaluate(at=>__hc.inputLost&&__hc.game.elapsed===at&&__hc.game.hold===0,lostAt),'one lost finger immediately resets hold and freezes timer');
+  check(await page.locator('.hc-overlay').isVisible(),'tracking loss has recovery instructions');
+  await page.evaluate(()=>{const a=__core.clockAngles(__hc.game.target.hour,__hc.game.target.minute);__setAngles(a.hour,a.minute);});await page.clock.runFor(400);
+  check(await page.evaluate(()=>!__hc.inputLost&&__hc.game.score===0),'stable reacquisition resumes but needs a fresh hold');
+  await page.clock.runFor(350);check(await page.evaluate(()=>__hc.game.score===1),'finger direction completes a tracked clock');
+  await page.screenshot({path:'output/playwright/human-clock-camera-390.png',fullPage:true});
+  await page.clock.runFor(600);await page.evaluate(()=>{__setAngles(45,225);__pose[11].visibility=0;});await page.clock.runFor(100);const shoulderAt=await page.evaluate(()=>__hc.game.elapsed);await page.clock.runFor(300);
+  check(await page.evaluate(at=>__hc.inputLost&&__hc.game.elapsed===at,shoulderAt),'shoulder loss freezes the round');
+  await page.evaluate(()=>{__pose[11].visibility=1;});await page.clock.runFor(400);
+  check(await page.evaluate(()=>!__hc.inputLost),'shoulders recover');
+  // A folded finger has no usable root-to-tip direction.
+  await page.evaluate(()=>{__hands[0][8]={...__hands[0][5]};});await page.clock.runFor(120);
+  check(await page.evaluate(()=>__hc.inputLost&&!__hc.sample.hands.hour),'curled finger does not score');
+  await page.evaluate(()=>__setAngles(45,225));await page.clock.runFor(400);
+  const elapsed=await page.evaluate(()=>__hc.game.elapsed);await page.clock.runFor(Math.ceil((30.1-elapsed)*1000));await page.locator('.hc-result').waitFor();
+  check(await page.evaluate(()=>__hc.game.result.source==='camera'&&__tracks.every(t=>t.readyState==='ended')&&__closed.hand===2&&__closed.pose===1&&!__hc.video.srcObject),'result closes both recognizers and all stream tracks');
+  await page.clock.resume();await page.locator('.game-back').click();await page.locator('.lab-feed').waitFor();
+  await page.evaluate(()=>{__delay=true;location.hash='#/game/solo-human-clock';});await page.waitForFunction(()=>document.querySelector('.launch-camera')?.disabled===false);
+  await page.locator('.launch-camera').click();await page.waitForFunction(()=>typeof __grant==='function');await page.locator('.game-back').click();await page.locator('.lab-feed').waitFor();
+  await page.evaluate(()=>{__grant();__delay=false;});await page.waitForFunction(()=>__tracks.every(t=>t.readyState==='ended'));
+  check(await page.evaluate(()=>!__hc.active&&!__hc.video.srcObject&&__closed.hand===3&&__closed.pose===2),'permission granted after exit cannot revive camera');
+  await page.evaluate(()=>{__deny=true;location.hash='#/game/solo-human-clock';});await page.waitForFunction(()=>document.querySelector('.launch-camera')?.disabled===false);await page.locator('.launch-camera').click();await page.locator('.hc-demo').waitFor();
+  check(await page.evaluate(()=>__hc.phase==='error'),'permission denial shows recoverable error');
+  await page.locator('.hc-demo').click();await page.clock.install();await page.clock.runFor(700);
+  check(await page.evaluate(()=>__hc.source==='demo'&&__hc.phase==='running'&&__tracks.every(t=>t.readyState==='ended')),'permission denial recovers to practice');
+  await page.locator('.game-back').click();await page.locator('.lab-feed').waitFor();await page.clock.resume();
+  check(errors.length===0,'no browser exceptions');return{checks,errors};
+}

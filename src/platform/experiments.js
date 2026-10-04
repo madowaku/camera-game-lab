@@ -147,6 +147,15 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../toyDrum/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.hits}回ポコン！ ${r.score}点、最大コンボ×${r.bestCombo}${r.finishSuccess ? "。最後はBAAAN!!" : ""}` : `${r.hits} pops! ${r.score} points. Best combo ×${r.bestCombo}${r.finishSuccess ? ". BAAAN!!" : ""}`),
     load: () => import("../toyDrum/view.js").then(m => m.createView) }),
+  define({ id: "solo-human-clock", exp: "EXP-050", collection: "SOLO", category: "SOLO",
+    titleJa: "HUMAN CLOCK", titleEn: "HUMAN CLOCK", subtitleJa: "左は短針、右は長針。その指で時間をつくろう。", subtitleEn: "Left is hour. Right is minute. Make time with your hands.",
+    input: ["HAND", "BODY"], duration: 30, orientation: "portrait", accent: "#98e4bb", tags: ["clock", "time", "puzzle", "時計", "両手", "上半身"],
+    aliases: ["#human-clock", "#clock"], module: "humanClock", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/human-clock.webp",
+    privacyJa: "インカメラで顔・肩・手首と両人差し指を追跡します。映像と位置は端末内で処理し、録画・外部送信はありません。マイクは使いません。初回は手と姿勢のモデルをダウンロードします。カメラなしの練習ではモデルも不要です。",
+    privacyEn: "Front camera tracks your face, shoulders, wrists and both index fingertips. Video and positions stay on your device, without recording or uploads. No microphone. Hand and pose models download on first use. Camera-free practice needs no models.",
+    loadPresentation: () => import("../humanClock/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `30秒で${r.score}個の時計をつくった！ ${r.difficulty.toUpperCase()} · 最大コンボ×${r.bestCombo} HUMAN CLOCK` : `${r.score} clocks made in 30 seconds! ${r.difficulty.toUpperCase()} · Best combo ×${r.bestCombo} HUMAN CLOCK`),
+    load: () => import("../humanClock/view.js").then(m => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];

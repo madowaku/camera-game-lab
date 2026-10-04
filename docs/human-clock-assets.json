@@ -1,0 +1,49 @@
+{
+  "experiment": "EXP-050 HUMAN CLOCK",
+  "gameId": "solo-human-clock",
+  "verifiedOn": "2026-10-04",
+  "images": [{
+    "generator": "built-in Imagegen",
+    "asset": "src/humanClock/assets/cover-v3.webp",
+    "preview": "public/previews/human-clock.webp",
+    "prompt": "docs/human-clock-image-prompt.txt",
+    "original": "output/human-clock/cover-v3.png",
+    "description": "Two natural pointing hands inside an ivory clock dial. The index fingers themselves are the short coral hour and long mint minute hands. Based on Hiro's hand-drawn composition. The first crossed-arm portrait was rejected; the final runtime uses finger-focused version 3.",
+    "processing": "Imagegen source 1024x1536 inspected. ffmpeg/libwebp resized to 768x1152 quality 86 for game art and 512x768 quality 82 for discovery. No paint-over or AI image edits outside Imagegen.",
+    "sourceSha256": "6C607195EE2242F72A640B6CA089B19C287B37C02F1FA31FE83F038C95AF2530",
+    "assetSha256": "714BFDF15510F6C3A6A5A31122EC41099127824DF9A8D110010E93A25859E6C0",
+    "assetBytes": 28286,
+    "previewSha256": "4CE3EF2FC0191C02ECD620CE3538E179CE3CF013AB3D15DCB3CB0B56EE2FCB0E",
+    "previewBytes": 14440
+  }],
+  "music": {
+    "title": "The Swing of Time",
+    "creator": "ザイオン (zion)",
+    "trackUrl": "https://opentracks.com/bgm/detail/22437",
+    "downloadPage": "https://opentracks.com/bgm/detail/22437/download",
+    "creatorConditions": "https://opentracks.com/creator/detail/338",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "The creator follows the site license. Commercial game background music and editing are permitted. No standalone audio distribution or listening feature. No secondary creator-tool provision of the music.",
+    "acquisition": "Downloaded track 1 from the official download form using its supplied session/CSRF token on 2026-10-04. Track description, creator conditions, site license and terms reviewed. No message or usage report was sent to the creator.",
+    "source": "output/music-sources/human-clock/swing-of-time-source.mp3",
+    "sourceSha256": "5254110DC9AE9358FB54987100CEC4DE7F4AAD114FA30FE123BE4007F9F0ABDE",
+    "asset": "src/assets/music/human-clock.mp3",
+    "module": "src/assets/music/humanClock.js",
+    "assetSha256": "4FD5D32CE07A197AB549A345484D06511BA91249BAAED93598631EA865DF6E53",
+    "durationSeconds": 30,
+    "assetBytes": 360848,
+    "processing": "Opening 30 seconds, audio stream only; source embedded picture and metadata removed. Stereo 44.1kHz MP3 at 96kbit/s. loudnorm I=-23:TP=-2:LRA=11; 50ms fade-in and 29–30s fade-out.",
+    "delivery": "Vite ?inline import in a lazy music JS chunk. Shared BGM ON/OFF, pause, loss of focus, tracking recovery, result and exit lifecycle. No standalone MP3 in public/dist, music player, recordings or creator export."
+  },
+  "effects": [{
+    "title": "tick_002.ogg",
+    "creator": "Kenney",
+    "license": "CC0",
+    "source": "C:/Dev/AssetsShared/Audio/SE/kenney_interface-sounds/Audio/tick_002.ogg",
+    "asset": "src/humanClock/assets/tick.ogg",
+    "licenseCopy": "src/humanClock/assets/Kenney-License.txt",
+    "sha256": "869442F54214BE902EC7437F79E400DC91C1BFD90D18A6DD2D5B7E41FFBF457B",
+    "use": "TICK on clock completion. Additional short success/rush chimes are original procedural Web Audio. SFX preference is separate from BGM."
+  }]
+}
