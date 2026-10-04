@@ -101,3 +101,16 @@ Creator clips are silent and use 8fps source frames. Distance checks are
 framing heuristics and do not measure physical arm reach. Browser simulation
 does not establish human acceptance. These checks describe pre-publication
 validation; publishing requires an explicit deployment operation.
+
+## Publication
+
+Published on 2026-10-04 from implementation commit `b5d482d` using its isolated,
+verified build and the existing Workers Static Assets configuration.
+
+- URL: https://camera-game-lab.cacao-ixora-coccinea.workers.dev/#/game/solo-counter-cam
+- Initial Cloudflare version: `dcf8e013-0605-4e5d-849c-0441f46f43c4`.
+- All 12 production browser checks passed at the live HTTPS URL, with no
+  browser exceptions. The feed image check waits for decoding so normal
+  network latency does not cause an early assertion.
+- Published `index.html`, `sw.js` and `previews/counter-cam.webp` returned
+  HTTP 200 and matched the verified build byte for byte.

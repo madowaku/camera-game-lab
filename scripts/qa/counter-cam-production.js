@@ -21,6 +21,6 @@ async (page) => {
   await page.locator('[data-result-action="retry"]').click();await page.clock.runFor(750);
   check((await page.locator('.cc-hint').textContent()).includes('拳'),'production RETRY returns to clean calibration');
   await page.locator('.game-back').click();await page.locator('.lab-feed').waitFor();
-  check(await page.locator('.feed-card[data-id="solo-counter-cam"] .game-preview img').evaluate(i=>i.complete&&i.naturalWidth>0),'production feed preview loads');
+  check(await page.locator('.feed-card[data-id="solo-counter-cam"] .game-preview img').evaluate(async i=>{await i.decode();return i.complete&&i.naturalWidth>0;}),'production feed preview loads');
   await page.clock.resume();check(errors.length===0,'no production browser exceptions');return {checks,errors};
 }
