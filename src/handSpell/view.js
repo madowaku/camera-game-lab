@@ -137,7 +137,8 @@ export class HandSpellView {
     this.phase = g.phase;
     const t = copy(this.locale), release = ['tutorial-release', 'release'].includes(g.scene) || g.signs.length >= 3 && g.scene === 'input';
     const coach = g.paused ? t[g.pauseReason === 'tracking' ? 'lost' : 'paused'] : g.released && ['input', 'release'].includes(g.scene) ? t.armed : release ? t.release : g.scene === 'memorize' ? t.memory : g.scene === 'tutorial' ? t.tutorial : g.scene === 'input' ? this.source === 'demo' ? t.demoHint : !this.primary ? t.lost : this.primary.reason === 'small' ? t.small : !this.primary.sign ? t.coach : this.signGate.blocked === this.primary.sign ? t.neutral : t.hold : '';
-    this.renderer.draw(g, { video: this.video, source: this.source, faceMode: this.options.faceMode, face: this.input.face, hands, now, reducedMotion: this.reducedMotion, coach, lock: now < this.lockUntil ? this.lock : '', gateProgress: this.signGate.progress, tutorialLabel: `${g.tutorialStep + 1} / 3` });\n    this.threeScene?.update({ game: g, hands, now, dt, reducedMotion: this.reducedMotion });
+    this.renderer.draw(g, { video: this.video, source: this.source, faceMode: this.options.faceMode, face: this.input.face, hands, now, reducedMotion: this.reducedMotion, coach, lock: now < this.lockUntil ? this.lock : '', gateProgress: this.signGate.progress, tutorialLabel: `${g.tutorialStep + 1} / 3` });
+    this.threeScene?.update({ game: g, hands, now, dt, reducedMotion: this.reducedMotion });
     if (this.replay && g.phase !== 'tutorial' && !g.paused) this.replay.capture(this.canvas, g.elapsed, g.scene);
     if (this.phase === 'result') {
       const d = discover(g.outcome); Object.assign(g.result, { book: d.book, isNew: d.isNew, creator: this.options.creator ? this.replay.snapshot(this.options.faceMode, this.source) : null, inferenceFps: this.source === 'camera' ? Math.round(this.input.fps) : null });
