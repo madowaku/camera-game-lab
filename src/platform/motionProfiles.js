@@ -3,6 +3,7 @@
 import { DRUMS, BIG_DRUM } from '../games/toyDrum.js';
 const profile = (family, stage, label, every = 5) => Object.freeze({ family, stage, label, every });
 export const motionProfiles = Object.freeze({
+  'solo-sonic-ink': profile('orbit', '.si-stage', 'LOOP!', 0),
   'solo-hand-spell': profile('orbit', '.hs-stage', 'LOCKED!', 3),
   'solo-hand-beat': profile('rhythm', '#stage', 'ON BEAT!'),
   'solo-finger-gun': profile('impact', '#stage', 'HIT!'),
@@ -45,6 +46,7 @@ export function motionSampleOf(instance, game, snapshot) {
   const g = instance.game ?? {}, module = game.module;
   let success = 0, combo = g.combo ?? 0, point = null, special = null;
   switch (module) {
+    case 'sonicInk': point = instance.tip; break; // Game owns its loop and note cues.
     case 'handSpell':
       success = g.log?.filter(e => e.type === 'lock').length ?? 0;
       break;
@@ -98,8 +100,8 @@ export function motionSampleOf(instance, game, snapshot) {
 export function motionCue(previous, current, profile) {
   if (!previous || current.paused) return null;
   if (current.special && current.special.key !== previous.special?.key) return { kind: 'special', label: current.special.label };
-  const milestone = Math.floor(current.combo / profile.every);
-  if (milestone > Math.floor(previous.combo / profile.every)) return { kind: 'combo', label: `${current.combo} COMBO!` };
+  const milestone = profile.every > 0 ? Math.floor(current.combo / profile.every) : 0;
+  if (profile.every > 0 && milestone > Math.floor(previous.combo / profile.every)) return { kind: 'combo', label: `${current.combo} COMBO!` };
   if (current.success > previous.success) return { kind: 'hit', label: profile.label };
   return null;
 }

@@ -9,6 +9,16 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-sonic-ink", exp: "EXP-057", collection: "SOLO", category: "SOLO",
+    titleJa: "SONIC INK", titleEn: "SONIC INK", subtitleJa: "その線が、メロディになる。", subtitleEn: "Draw in the air. Hear what you made.",
+    input: ["HAND"], duration: 15, accent: "#edb6d2", tags: ["drawing", "3D", "music", "お絵描き", "音楽", "空間"],
+    aliases: ["#sonic-ink", "#air-atelier", "#/game/solo-air-atelier"], legacyIds: ["solo-air-atelier"], module: "sonicInk", demo: true, motif: "sonic", visual: "three", audioStrategy: "procedural",
+    launchReasonJa: "親指と人差し指をつまんで、光の線を描こう。最初のひと筆から15秒、最大3本。上は高い音、下は低い音。左右で音が広がり、手の前後で音色が変わります。指を離すと光が線をたどって演奏。輪を閉じるとループします。",
+    launchReasonEn: "Pinch your thumb and index finger to draw with light. 15 seconds from your first stroke, up to 3 strokes. Height sets pitch, left/right sets stereo position, and hand depth changes tone. Release to hear a light travel along your line. Closed shapes loop.",
+    privacyJa: "インカメラの映像と手の位置は端末内で処理し、送信・録画しません。初回に認識モデルをダウンロードします。奥行きは手の大きさから相対推定します。画像保存は操作した時だけで、カメラ映像は含みません。作品は退出すると消えます。",
+    privacyEn: "Camera frames and hand positions are processed locally, never uploaded or recorded. The hand model downloads on first use. Depth is relative, estimated from hand size. Saving exports only the artwork, without camera imagery. Drawing data is cleared when you leave.",
+    loadPresentation: () => import("../sonicInk/presentation.js"),
+    load: () => import("../sonicInk/view.js").then(m => m.createView) }),
   define({ id: "solo-hand-spell", exp: "EXP-056", collection: "SOLO", category: "SOLO",
     titleJa: "HAND SPELL", titleEn: "HAND SPELL", subtitleJa: "指で印を結んで召喚せよ", subtitleEn: "Make the signs. Summon your magic.",
     input: ["HAND"], duration: 15, accent: "#d5ff78", tags: ["magic", "memory", "creator", "魔法", "指印", "記憶"],

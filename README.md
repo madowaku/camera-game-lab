@@ -1,5 +1,16 @@
 # Camera Game Lab 📷🎮
 
+## EXP-057: SONIC INK
+
+Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or
+`#sonic-ink` (AIR ATELIER links still work). A 15-second FREE DRAW sound toy:
+up to three glowing Three.js strokes, pentatonic notes by height, stereo by
+position, timbre by relative depth, spark notes on corners. Release to hear
+a play head follow the line; closed shapes loop. Front camera stays visible
+with your finished sculpture. Mouse/touch practice, undo/clear, JA/EN,
+mute/pause and a WebGL fallback are included. No score or background music.
+See [implementation and verification](docs/SONIC_INK_V01.md).
+
 ## EXP-056: HAND SPELL
 
 Make the signs. Summon your magic. Open `#/game/solo-hand-spell`

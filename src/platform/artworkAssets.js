@@ -1,4 +1,5 @@
 export const artworkAssets = Object.freeze({
+  "solo-sonic-ink": "/artwork/sonic-ink-title-v1.webp",
   "solo-hand-beat": "/artwork/hand-beat-v1.webp",
   "solo-finger-gun": "/artwork/finger-gun-v1.webp",
   "solo-eat-dont-eat": "/artwork/eat-dont-eat-v1.webp",

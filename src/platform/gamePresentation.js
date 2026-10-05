@@ -4,6 +4,10 @@ import { artworkMarkup } from './gameArtwork.js';
 
 // Each entrance teaches the actual rules, including calibration and fresh edges.
 export const gameGuides = {
+  'solo-sonic-ink': {
+    ja: ['その線が、メロディになる。', ['つまんで、空に描く','親指と人差し指をつまもう。最初のひと筆から15秒、3本まで'], ['離すと、音が走る','上は高い音、下は低い音。光の粒が線をたどって演奏する'], ['輪を閉じて、ループ！','ハートや丸をひと筆で。完成した音の彫刻とポーズもどうぞ']],
+    en: ['Your doodle. Your melody.', ['Pinch and draw','Pinch thumb and index finger. 15 seconds from your first stroke, up to 3 strokes'], ['Release and listen','Height sets pitch. A little light follows your line and plays it'], ['Close a shape. Make a loop!','Draw a heart or circle in one stroke. Pose with your sound sculpture']],
+  },
   'solo-hand-beat': {
     ja: ['その手、ビートに乗れる？', ['手を映す','片手をカメラの中へ'], ['カタチを合わせる','開く・握る・ピース・サムズアップ'], ['ビートで決める','光るタイミングで16回']],
     en: ['Can your hands keep the beat?', ['Show one hand','Keep it inside the frame'], ['Match the shape','Open, fist, peace or thumbs up'], ['Catch the beat','16 chances to get it right']],
@@ -66,7 +70,7 @@ export function guideFor(game, locale) { return gameGuides[game.id]?.[locale ===
 const sourceLabel = (source,locale) => locale === 'ja' ? source === 'demo' ? '練習 · カメラなし' : source === 'voice' ? 'カメラ + 声' : 'カメラプレイ' : source === 'demo' ? 'PRACTICE · NO CAMERA' : source === 'voice' ? 'CAMERA + VOICE' : 'CAMERA PLAY';
 export function launchMarkup(game, locale) {
   const ja = locale === 'ja', guide = guideFor(game,locale);
-  return `<section class="arcade-entry"><div class="arcade-edition"><span>${esc(game.exp)} / ${esc(game.collection)}</span><span>${game.players}${copy(locale,'players')} · ${copy(locale,'seconds',{n:game.duration})}</span></div>
+  return `<section class="arcade-entry"><div class="arcade-edition"><span>${esc(game.exp)} / ${esc(game.collection)}</span><span>${game.players}${copy(locale,'players')} · ${game.untimed ? (ja ? '時間制限なし' : 'NO TIME LIMIT') : copy(locale,'seconds',{n:game.duration})}</span></div>
     <h1>${esc(titleOf(game,locale))}</h1><p class="arcade-hook">${esc(guide?.[0] ?? subtitleOf(game,locale))}</p>
     <div class="arcade-hero preview-active">${artworkMarkup(game)}<span class="arcade-input">${game.input.map(i=>esc(inputLabel(i,locale))).join(' + ')}</span></div>
     <ol class="arcade-steps">${(guide?.slice(1) ?? []).map(([title],i)=>`<li><b aria-hidden="true">0${i+1}</b><span>${esc(title)}</span></li>`).join('')}</ol>

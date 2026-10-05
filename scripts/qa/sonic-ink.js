@@ -1,0 +1,90 @@
+async page => {
+  const errors=[], checks=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const check=(ok,label)=>{if(!ok)throw Error(label);checks.push(label);};
+  const state=()=>page.evaluate(()=>{const v=window.__sonic;return {phase:v.phase,paused:v.game.paused,elapsed:v.game.elapsed,strokes:v.game.strokes.length,closed:v.game.strokes.filter(s=>s.closed).length,playing:!!v.game.playback,voices:v.audio.voices.size,source:v.source,renderer:v.fallback?'canvas':'three'};});
+  const capture=async suffix=>page.screenshot({path:`output/playwright/sonic-ink-${suffix}.png`,fullPage:true});
+  await page.goto('http://localhost:5173/#/game/solo-sonic-ink');
+  await page.evaluate(()=>localStorage.setItem('camera-game-lab-locale','ja'));await page.reload();
+  await page.locator('.launch-demo').waitFor();
+  await page.locator('.launch-demo').waitFor({state:'visible'});await page.waitForFunction(()=>!document.querySelector('.launch-demo').disabled);
+  await page.evaluate(async()=>{const url=performance.getEntriesByType('resource').map(r=>r.name).find(n=>n.includes('/sonicInk/view.js'));const {SonicInkView}=await import(url);const original=SonicInkView.prototype.setup;SonicInkView.prototype.setup=function(...args){original.apply(this,args);window.__sonic=this;};});
+  await page.setViewportSize({width:1440,height:1000});await capture('entry-desktop');
+  await page.locator('.launch-demo').click();await page.locator('.si-stage[data-phase=ready]').waitFor();
+  for(const width of [1440,390,360]){
+    await page.setViewportSize({width,height:900});
+    check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow '+width);
+    const box=await page.locator('.si-stage').boundingBox();check(Math.abs(box.width/box.height-9/16)<.01,'portrait stage '+width);
+    await capture('empty-'+width);
+  }
+  await page.setViewportSize({width:1440,height:1000});
+  const draw=async(fn,count=70)=>{
+    const stage=page.locator('.si-stage');await stage.scrollIntoViewIfNeeded();const b=await stage.boundingBox();
+    for(let i=0;i<=count;i++){const p=fn(i/count);await page.mouse.move(b.x+b.width*p.x,b.y+b.height*p.y);if(i===0)await page.mouse.down();}await page.mouse.up();
+  };
+  await draw(t=>{const a=t*Math.PI*2;return {x:.5+Math.sin(a)**3*.29,y:.49-(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))*.012};});
+  check((await state()).strokes===1,'one continuous drag is one stroke');
+  check((await state()).closed===1&&(await state()).playing,'heart closes and loops on release');
+  check((await state()).renderer==='three','WebGL tube renderer active');
+  check(await page.evaluate(()=>window.__sonic.scene.visual.renderer.info.render.triangles>100),'3D tube contains rendered triangles');
+  await capture('heart-desktop');
+  const energy=()=>page.evaluate(()=>{const a=window.__sonic.audio;const samples=new Float32Array(a.analyser.fftSize);a.analyser.getFloatTimeDomainData(samples);return Math.max(...samples.map(Math.abs));});
+  await page.waitForTimeout(120);check(await energy()>.00001,'Web Audio outputs measurable sound');
+  await page.locator('[data-action=pause]').click();const paused=await state();await page.waitForTimeout(250);
+  check((await state()).elapsed===paused.elapsed&&(await state()).voices===0,'pause freezes time and ends voices');
+  check(await energy()<.00001,'pause also silences delay output');
+  await page.locator('[data-action=resume]').click();
+  await page.locator('[data-action=sound]').click();await page.waitForTimeout(100);check(await energy()<.00001,'sound toggle mutes real output');
+  await page.locator('[data-action=sound]').click();
+  await page.locator('[data-action=undo]').click();check((await state()).strokes===0&&!(await state()).playing,'undo removes the line and its playback');
+  await draw(t=>({x:.2+t*.6,y:.35+t*.15}));await page.locator('[data-action=clear]').click();check((await state()).strokes===0,'clear removes drawing');
+  await page.evaluate(()=>window.__sonic.setup('demo'));
+  await draw(t=>{const a=t*Math.PI*2;return {x:.5+Math.sin(a)**3*.29,y:.49-(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a))*.012};});
+  await page.locator('.si-depth input').fill('0.35');
+  await draw(t=>{const a=t*Math.PI*2;const r=.13+.025*Math.cos(5*a);return{x:.5+Math.cos(a)*r,y:.24+Math.sin(a)*r*.6};});
+  await draw(t=>({x:.18+t*.66,y:.76+Math.sin(t*Math.PI*3)*.06}));
+  check((await state()).phase==='review'&&(await state()).strokes===3,'three strokes finish the round and replay the sculpture');
+  check(await page.locator('.platform-result').count()===0||!await page.locator('.platform-result').isVisible(),'game stays on the sculpture instead of a score sheet');
+  await capture('sculpture-desktop');await page.setViewportSize({width:390,height:844});await capture('sculpture-mobile');
+  await page.locator('.si-orbit input').fill('45');await capture('sculpture-rotated');
+  await page.locator('[data-action=replay]').click();check((await state()).playing,'replay works in review');
+  const download=page.waitForEvent('download');await page.locator('[data-action=save]').click();const file=await download;
+  check(file.suggestedFilename()==='sonic-ink.png','artwork PNG export');await file.saveAs('output/playwright/sonic-ink-export.png');
+  await page.locator('.platform-locale').click();check((await page.locator('.si-status').textContent()).includes('sound sculpture'),'English UI');
+  await page.locator('[data-action=retry]').click();check((await state()).phase==='ready'&&(await state()).strokes===0,'new round resets to ready');
+  // Test elapsed limit without making the browser workflow wait 15 seconds.
+  await draw(t=>({x:.2+t*.6,y:.55}));await page.evaluate(()=>{window.__sonic.game.elapsed=14980;});
+  await page.locator('.si-stage[data-phase=review]').waitFor();check((await state()).strokes===1,'timer can finish with one stroke');
+  // Browser lifecycle and input integration with a synthetic portrait camera.
+  await page.evaluate(async()=>{
+    window.__sonic.input.constructor.prototype.start=async function(){const c=document.createElement('canvas');c.width=540;c.height=960;const ctx=c.getContext('2d');ctx.fillStyle='#b5c4ce';ctx.fillRect(0,0,540,960);ctx.fillStyle='#8c91aa';ctx.fillRect(150,250,240,420);const stream=c.captureStream(15);window.__fakeTracks=stream.getTracks();this.session={stream,recognizer:{close(){}}};this.video.srcObject=stream;await this.video.play();this.running=true;};
+    window.__sonic.setup('camera');await window.__sonic.resumeCamera();
+    window.__hand=(closed,x=.5,y=.4)=>{const ps=Array.from({length:21},()=>({x:.5,y:.5}));ps[0]={x:.5,y:.7};ps[9]={x:.5,y:.55};ps[8]={x:1-x,y};ps[4]={x:1-x+(closed?.02:.2),y};return {landmarks:[ps]};};
+    const v=window.__sonic,t=performance.now();for(let i=0;i<3;i++)v.onHand(window.__hand(true,.4+i*.025),t+i*40);
+    for(let i=3;i<15;i++)v.onHand(window.__hand(true,.4+i*.018,.4+i*.009),t+i*40);
+    for(let i=15;i<18;i++)v.onHand(window.__hand(false,.65,.54),t+i*40);
+  });
+  check((await state()).strokes===1,'stable front-camera pinch creates a stroke');
+  await page.evaluate(()=>{const v=window.__sonic,t=v.tracker.lastPresent;v.onHand({},t+600);});
+  check((await state()).paused,'long tracking loss pauses the timer');
+  await page.evaluate(()=>{const v=window.__sonic,t=performance.now();for(let i=0;i<7;i++)v.onHand(window.__hand(false),t+i*40);});
+  check(!(await state()).paused,'stable open hand recovers tracking');
+  await page.evaluate(()=>{const v=window.__sonic;v.game.finish();v.flush();v.render();});
+  check(await page.evaluate(()=>!window.__sonic.video.hidden&&window.__fakeTracks.every(t=>t.readyState==='live')&&!window.__sonic.input.trackingEnabled),'camera stays live for finished-sculpture poses without hand inference');
+  await capture('camera-review');
+  await page.goto('http://localhost:5173/#/feed/solo-air-atelier');await page.locator('#title-solo-sonic-ink').waitFor();
+  check(await page.evaluate(()=>window.__fakeTracks.every(t=>t.readyState==='ended')&&window.__sonic.audio.context===null&&window.__sonic.scene===null&&window.__sonic.frameId===null),'navigation releases camera, audio, WebGL and frame loop');
+  check((await page.title()).includes('CAMERA GAME LAB'),'legacy feed link resolves');
+  await page.goto('http://localhost:5173/#/game/solo-air-atelier');await page.locator('.launch-demo').waitFor();
+  check((await page.locator('.si-entry h1').textContent()).includes('SONIC INK'),'legacy game link resolves to new title');
+  await page.locator('.launch-demo').click();
+  await page.evaluate(()=>{const gl=window.__sonic.scene.visual.renderer.getContext();gl.getExtension('WEBGL_lose_context').loseContext();});
+  await page.locator('.si-stage[data-renderer=canvas]').waitFor();check((await state()).renderer==='canvas','context loss switches to a usable canvas fallback');
+  await draw(t=>({x:.2+t*.6,y:.55}));check((await state()).strokes===1&&(await state()).playing,'fallback still draws and plays');await capture('fallback');
+  await page.goto('http://localhost:5173/#/game/solo-sonic-ink');await page.reload();await page.route('**/*wasm*',r=>r.abort());
+  await page.locator('.launch-camera').click();await page.locator('[data-action=camera]').waitFor({state:'visible'});
+  check((await page.locator('.si-overlay h2').textContent()).includes('Camera unavailable'),'model failure offers camera retry');
+  await page.locator('[data-action=practice]').click();check((await page.locator('.si-stage').getAttribute('data-source'))==='demo','model failure offers camera-free recovery');await page.unroute('**/*wasm*');
+  check(errors.length===0,'no uncaught browser errors');
+  return {checks,errors};
+}
