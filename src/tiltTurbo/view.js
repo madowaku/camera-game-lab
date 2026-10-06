@@ -5,6 +5,7 @@ import { TiltTurboRenderer, W, H } from './renderer.js';
 import { TiltTurboAudio } from './audio.js';
 import { CreatorMode } from '../creator/CreatorMode.js';
 import { copy } from './messages.js';
+import { cameraInputDebug } from '../input/debugStore.js';
 import './tiltTurbo.css';
 export const createView = (root, locale) => new TiltTurboView(root, locale);
 export class TiltTurboView {
@@ -17,7 +18,17 @@ export class TiltTurboView {
       <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><div class="tt-live" aria-live="polite" role="status"></div></section>`;
     this.$=s=>root.querySelector(s);this.video=this.$('video');this.canvas=this.$('.tt-canvas');this.capture=this.$('.tt-capture');this.renderer=new TiltTurboRenderer(this.canvas);
     this.input=new TiltTurboInput(this.video,{onResult:packet=>{
-      if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
+      if(!this.active||this.source!=='camera')return;
+      this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
+      cameraInputDebug.metric("TILT TURBO","rawRoll",packet.raw,packet.at);
+      cameraInputDebug.metric("TILT TURBO","filteredRoll",this.motion.roll,packet.at);
+      cameraInputDebug.metric("TILT TURBO","steering",this.motion.steering,packet.at);
+      cameraInputDebug.metric("TILT TURBO","neutral",this.signal.neutral,packet.at);
+      cameraInputDebug.metric("TILT TURBO","calibration",Math.round((this.motion.progress??0)*100)+"%",packet.at);
+      if(this.motion.tracked!==this.debugTracked){
+        cameraInputDebug.event("TILT TURBO",this.motion.tracked?"TRACK_FOUND":"TRACK_LOST",{},packet.at);
+        this.debugTracked=this.motion.tracked;
+      }
     },onStatus:(status,error)=>{
       if(!this.active||this.source!=='camera')return;this.status=status;
       if(status==='ERROR'&&this.phase==='playing'){this.packet=null;this.motion={tracked:false,ready:true,roll:0,steering:0};this.render();}
@@ -33,7 +44,7 @@ export class TiltTurboView {
   activate(){this.active=true;this.phase='idle';this.render();}
   setup(source){
     this.releaseInputs();this.active=true;this.source=source;this.phase='loading';this.game.reset();this.signal.reset();this.creatorResult=null;this.packet=null;this.motion={tracked:false,ready:false};this.manualPause=false;this.prep=0;this.countdown=0;this.ending=0;
-    this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;this.debugTracked=null;
     if(this.options.creator)this.creator=new CreatorMode(this.capture,{profile:{brand:'TILT TURBO'},faceMode:this.options.faceMode,reducedMotion:true});
     this.bind();this.audio.arm();this.render();this.notify();return this.generation;
   }
