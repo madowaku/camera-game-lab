@@ -20,13 +20,13 @@ export class TiltTurboView {
     this.input=new TiltTurboInput(this.video,{onResult:packet=>{
       if(!this.active||this.source!=='camera')return;
       this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
-      cameraInputDebug.metric("TILT TURBO","rawRoll",packet.raw,packet.at);
-      cameraInputDebug.metric("TILT TURBO","filteredRoll",this.motion.roll,packet.at);
-      cameraInputDebug.metric("TILT TURBO","steering",this.motion.steering,packet.at);
-      cameraInputDebug.metric("TILT TURBO","neutral",this.signal.neutral,packet.at);
-      cameraInputDebug.metric("TILT TURBO","calibration",Math.round((this.motion.progress??0)*100)+"%",packet.at);
+      cameraInputDebug.metric("TiltTurbo","rawRoll",packet.raw,packet.at);
+      cameraInputDebug.metric("TiltTurbo","filteredRoll",this.motion.roll,packet.at);
+      cameraInputDebug.metric("TiltTurbo","steering",this.motion.steering,packet.at);
+      cameraInputDebug.metric("TiltTurbo","neutral",this.signal.neutral,packet.at);
+      cameraInputDebug.metric("TiltTurbo","calibration",Math.round((this.motion.progress??0)*100)+"%",packet.at);
       if(this.motion.tracked!==this.debugTracked){
-        cameraInputDebug.event("TILT TURBO",this.motion.tracked?"TRACK_FOUND":"TRACK_LOST",{},packet.at);
+        cameraInputDebug.event("TiltTurbo",this.motion.tracked?"TRACK_FOUND":"TRACK_LOST",{},packet.at);
         this.debugTracked=this.motion.tracked;
       }
     },onStatus:(status,error)=>{
