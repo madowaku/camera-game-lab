@@ -1,6 +1,7 @@
 import carUrl from './assets/car-v1.webp';
 import { roadCenter, OBSTACLES, ROAD_HALF } from './core.js';
 import { drawFaceMode } from '../creator/FaceMode.js';
+import { speedFxAmount, speedSway } from './visualFx.js';
 export const W = 360, H = 640;
 const colors = { ink: '#183c3c', cream: '#fff7df', mint: '#bad5b1', orange: '#f16b39', teal: '#2d7770' };
 const poly = (c, points, fill) => { c.fillStyle = fill; c.beginPath(); points.forEach(([x,y],i) => i ? c.lineTo(x,y) : c.moveTo(x,y)); c.closePath(); c.fill(); };
@@ -8,9 +9,9 @@ const round = (c, x,y,w,h,r,fill) => { c.fillStyle=fill; c.beginPath(); c.roundR
 export class TiltTurboRenderer {
   constructor(canvas) { this.canvas = canvas; this.c = canvas.getContext('2d'); this.car = new Image(); this.car.src = carUrl; }
   text(label,x,y,size=16,color=colors.cream,align='center') { const c=this.c; c.textAlign=align; c.fillStyle=color; c.font=`${size >= 26 ? '900' : '700'} ${size}px ${size >= 26 ? 'Impact' : 'Trebuchet MS'}, sans-serif`; c.fillText(label,x,y); }
-  project(world, ahead, horizon) { const depth=Math.max(0,1-ahead/2600), scale=.10+.90*depth*depth; return { x:W/2+(world-this.pan)*W*.44*scale, y:horizon+(600-horizon)*depth*depth, scale }; }
+  project(world, ahead, horizon) { const depth=Math.max(0,1-ahead/2600), boost=1+(this.speedFx??0)*.10*depth, scale=(.10+.90*depth*depth)*boost; return { x:W/2+(world-this.pan)*W*.44*(1+(this.speedFx??0)*.12*depth)*scale, y:horizon+(600-horizon)*depth*depth, scale }; }
   draw(g, { video, face, motion={}, source, faceMode='ORIGINAL', phase, prep=0, countdown=0, ending=0, reducedMotion=false, locale='ja', creator=false }={}) {
-    const c=this.c, time=g.elapsed; this.pan=g.x*.30;
+    const c=this.c, time=g.elapsed, speedFx=speedFxAmount(g.speed,reducedMotion), sway=speedSway(time,speedFx); this.pan=g.x*.30; this.speedFx=speedFx;
     const sceneTime=time>=18500&&time<19800&&!reducedMotion?time-200*Math.sin((time-18500)/1300*Math.PI):time;
     c.clearRect(0,0,W,H); c.fillStyle=colors.cream; c.fillRect(0,0,W,H);
     round(c,12,12,336,52,13,colors.ink);
@@ -33,7 +34,8 @@ export class TiltTurboRenderer {
     const marker=180+Math.max(-25,Math.min(25,roll))*2; round(c,marker-3,meterY-3,6,11,3,colors.ink);
     this.text(`${roll>0?'+':''}${roll}°`,creator?317:269,meterY+6,12,colors.ink);
     if (source==='camera' && !motion.tracked) this.text('🙂 FACE HERE',180,creator?218:166,12,colors.ink);
-    const horizon=creator?268:232;
+    const horizon=(creator?268:232)-speedFx*6;
+    c.save(); c.translate(sway.x,sway.y);
     c.fillStyle=colors.mint; c.fillRect(0,horizon-24,W,H-horizon+24);
     poly(c,[[0,horizon+10],[0,horizon-21],[55,horizon-45],[103,horizon-14],[180,horizon-38],[239,horizon],[W,horizon-42],[W,horizon+10]],'#9fc6a1');
     c.fillStyle='#efb969'; c.beginPath(); c.arc(301,horizon-27,18,0,Math.PI*2); c.fill();
@@ -50,6 +52,14 @@ export class TiltTurboRenderer {
       const side=i%2?1:-1,p=this.project(roadCenter(time+ahead)+side*1.3,ahead,horizon);
       round(c,p.x-3*p.scale,p.y-40*p.scale,6*p.scale,40*p.scale,1,'#a5825b');
       c.fillStyle=i%3?'#438c72':'#6c9a6c'; c.beginPath(); c.ellipse(p.x,p.y-50*p.scale,22*p.scale,35*p.scale,0,0,Math.PI*2); c.fill();
+    }
+    if(speedFx>.18&&!reducedMotion){
+      c.save(); c.globalAlpha=.08+speedFx*.22; c.strokeStyle=colors.cream; c.lineWidth=1+speedFx*2;
+      for(let i=0;i<7;i++){
+        const y=horizon+45+((time*.38+i*67)%(H-horizon-70)), side=i%2?-1:1;
+        c.beginPath(); c.moveTo(side<0?18:W-18,y); c.lineTo(side<0?58:W-58,y+20+speedFx*18); c.stroke();
+      }
+      c.restore();
     }
     for(const ob of [...OBSTACLES].reverse()) {
       const ahead=ob.at-time;if(ahead< -120||ahead>2600)continue;
@@ -77,6 +87,7 @@ export class TiltTurboRenderer {
     }
     c.save();c.translate(carX,carY-jump*90);c.rotate(ending && !reducedMotion ? Math.min(1,ending/900)*Math.PI*2 : g.steering*.13);c.scale(scale,scale);
     if(this.car.complete&&this.car.naturalWidth) c.drawImage(this.car,-54,-56,108,108);
+    c.restore();
     c.restore();
     const event=g.flash,age=event?time-event.at:Infinity;
     if(event&&age<700&&!['MAX TILT','FACE LOST','FINISH!'].includes(event.type)) {
