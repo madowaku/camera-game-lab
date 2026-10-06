@@ -1,11 +1,20 @@
+import { TwoSlotIdentity } from "../input/twoSlotIdentity.js";
 const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 // Match identity before smoothing. In particular, a missing hand never lends
 // its character to the other hand, and screen order does not change on crossing.
 export class TwoHandTracker {
-  constructor() { this.reset(); }
-  reset() { this.slots = [null, null]; }
+  constructor() {
+    this.identity = new TwoSlotIdentity({
+      anchors: [{ x: .28, y: .7 }, { x: .72, y: .7 }],
+      labelPenalty: 1.5,
+      continuousMs: 300,
+      predictSeconds: .2,
+      velocityLimit: 3,
+    });
+  }
+  reset() { this.identity.reset(); }
   update(result, now) {
     const candidates = (result?.landmarks ?? []).slice(0, 2).map((points, i) => {
       const palm = [0, 5, 9, 13, 17].map(n => points[n]);
@@ -18,30 +27,11 @@ export class TwoHandTracker {
       const handedness = result.handedness?.[i]?.[0];
       return { x, y, open, angle: Math.atan2(points[9].x - wrist.x, wrist.y - points[9].y), label: handedness?.score >= .6 ? handedness.categoryName : null };
     }).filter(Boolean);
-    const cost = (candidate, slot, i) => {
-      if (!slot) return Math.abs(candidate.x - (i === 0 ? .28 : .72));
-      const age = clamp((now - slot.seenAt) / 1000, 0, .2);
-      const predicted = { x: slot.x + slot.vx * age, y: slot.y + slot.vy * age };
-      return distance(candidate, predicted) + (slot.label && candidate.label && slot.label !== candidate.label ? 1.5 : 0);
-    };
-    let matches = [];
-    if (candidates.length === 2) {
-      const straight = cost(candidates[0], this.slots[0], 0) + cost(candidates[1], this.slots[1], 1);
-      const reverse = cost(candidates[1], this.slots[0], 0) + cost(candidates[0], this.slots[1], 1);
-      matches = straight <= reverse ? [[0, candidates[0]], [1, candidates[1]]] : [[0, candidates[1]], [1, candidates[0]]];
-    } else if (candidates.length === 1) {
-      const p = candidates[0], i = cost(p, this.slots[0], 0) <= cost(p, this.slots[1], 1) ? 0 : 1;
-      matches = [[i, p]];
-    }
-    const seen = new Set();
-    for (const [i, point] of matches) {
-      const old = this.slots[i], dt = Math.max(.016, (now - (old?.seenAt ?? now)) / 1000);
-      this.slots[i] = { ...point, label: point.label ?? old?.label, seenAt: now,
-        vx: old && dt < .3 ? clamp((point.x - old.x) / dt, -3, 3) : 0,
-        vy: old && dt < .3 ? clamp((point.y - old.y) / dt, -3, 3) : 0 };
-      seen.add(i);
-    }
-    return this.slots.map((slot, i) => slot ? { ...slot, present: seen.has(i), slot: i } : { x: i ? .72 : .28, y: .7, present: false, slot: i });
+    return this.identity.update(candidates, now).map((slot, i) => ({
+      ...slot,
+      x: Number.isFinite(slot.x) ? slot.x : (i ? .72 : .28),
+      y: Number.isFinite(slot.y) ? slot.y : .7,
+    }));
   }
 }
 

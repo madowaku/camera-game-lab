@@ -1,5 +1,6 @@
 import { BodyInput } from "./bodyInput.js";
 import { FaceInput } from "./faceInput.js";
+import { OneEuroFilter2D } from "./oneEuroFilter.js";
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
 const distance = (a, b) =>
@@ -69,6 +70,7 @@ export class FingerGunInput extends BodyInput {
     // FaceInput processes mouth signals only; this owner opens one camera for
     // both models and closes both recognizers on cancellation or failure.
     this.mouthInput = new FaceInput(video, { onMouth: (mouth) => this.processMouth(mouth) });
+    this.aimFilter = new OneEuroFilter2D({ minCutoff: 1.5, beta: 0.02, dCutoff: 1 });
     this.mouthArmed = false;
     this.currentAim = { x: 0.5, y: 0.5, visible: false, onTarget: false };
     this.lastFrameAt = null;
@@ -112,9 +114,9 @@ export class FingerGunInput extends BodyInput {
       this.resetTracking();
     } else {
       const aim = projectAim(pose.landmarks, this.video);
-      const blend = this.currentAim.visible ? 1 - Math.exp(-elapsed / 55) : 1;
-      this.currentAim.x += (aim.x - this.currentAim.x) * blend;
-      this.currentAim.y += (aim.y - this.currentAim.y) * blend;
+      const filtered = this.aimFilter.filter(aim.x, aim.y, timestamp);
+      this.currentAim.x = filtered.x;
+      this.currentAim.y = filtered.y;
       this.currentAim.visible = true;
       const target = this.getTarget();
       this.currentAim.onTarget = Boolean(target && Math.hypot(this.currentAim.x - target.x, this.currentAim.y - target.y) <= target.radius);
@@ -140,6 +142,7 @@ export class FingerGunInput extends BodyInput {
     this.mouthArmed = false;
     this.currentAim.visible = false;
     this.currentAim.onTarget = false;
+    this.aimFilter.reset();
   }
 
   stop() {

@@ -5,6 +5,7 @@ import { BodyWingsGame, RING_LINE } from '../src/games/bodyWings.js';
 import { BodyWingsThreeScene } from '../src/wings/threeScene.js';
 import { projectFlightRing } from '../src/wings/visualLayout.js';
 import { QUALITY_PROFILES } from '../src/visual3d/performancePolicy.js';
+import { SpeedCameraRig } from '../src/visual3d/effects/speedCameraRig.js';
 
 function fixture(aspect = 9 / 16) {
   const camera = new THREE.PerspectiveCamera(45, aspect, .01, 100);
@@ -14,7 +15,7 @@ function fixture(aspect = 9 / 16) {
     scene: new THREE.Scene(), camera, quality: QUALITY_PROFILES.high, reducedMotion: false,
     onQualityChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     normalizedToWorld({ x, y }, depth = 0) {
-      const z = -depth * 4, halfHeight = (5 - z) * Math.tan(Math.PI / 8);
+      const z = -depth * 4, halfHeight = (camera.position.z - z) * Math.tan(camera.fov * Math.PI / 360);
       return new THREE.Vector3((x * 2 - 1) * halfHeight * camera.aspect, (1 - y * 2) * halfHeight, z);
     },
     render() { return true; },
@@ -82,4 +83,23 @@ test('reused geometry/materials are disposed once and scene subscriptions are re
   scene.dispose(); scene.dispose();
   assert.equal(visual.scene.children.length, 0); assert.equal(listeners.size, 0);
   assert.ok(counts.size > 10); assert.ok([...counts.values()].every(n => n === 1));
+});
+
+
+test('speed camera rig widens FOV on boost, eases back and respects reduced motion', () => {
+  const camera = new THREE.PerspectiveCamera(45, 1, .01, 100);
+  camera.position.set(0, 0, 5);
+  const rig = new SpeedCameraRig(camera, { maxFovBoost: 8, sway: .03 });
+  for (let i = 0; i < 20; i++) rig.update({ speed: 330, boosted: true, time: i * 16, dt: 16 });
+  assert.ok(camera.fov > 50 && camera.fov <= 53);
+  assert.notEqual(camera.position.x, 0);
+  for (let i = 0; i < 40; i++) rig.update({ speed: 180, boosted: false, time: 400 + i * 16, dt: 16 });
+  assert.ok(camera.fov < 48);
+  rig.update({ speed: 330, boosted: true, time: 1200, dt: 100, reducedMotion: true });
+  for (let i = 0; i < 30; i++) rig.update({ speed: 330, boosted: true, time: 1300 + i * 16, dt: 16, reducedMotion: true });
+  assert.ok(Math.abs(camera.fov - 45) < .2);
+  assert.ok(Math.abs(camera.position.x) < 1e-9);
+  rig.dispose();
+  assert.equal(camera.fov, 45);
+  assert.deepEqual(camera.position.toArray(), [0, 0, 5]);
 });

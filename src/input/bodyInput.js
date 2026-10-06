@@ -32,6 +32,7 @@ export class BodyInput {
     this.session = null;
     this.generation = 0;
     this.frameId = null;
+    this.frameKind = null;
     this.lastVideoTime = -1;
   }
 
@@ -120,7 +121,7 @@ export class BodyInput {
 
       this.running = true;
       this.onStatus("READY");
-      this.frameId = requestAnimationFrame(this.loop);
+      this.scheduleFrame();
     } catch (error) {
       if (this.session === session) this.running = false;
       this.releaseSession(session);
@@ -132,7 +133,34 @@ export class BodyInput {
     this.onResult(result, timestamp);
   }
 
-  loop = () => {
+  scheduleFrame() {
+    if (!this.running) return;
+    if (typeof this.video.requestVideoFrameCallback === "function") {
+      this.frameKind = "video";
+      this.frameId = this.video.requestVideoFrameCallback(this.loop);
+      return;
+    }
+    this.frameKind = "animation";
+    this.frameId = requestAnimationFrame(this.loop);
+  }
+
+  cancelFrame() {
+    if (this.frameId === null) return;
+    if (
+      this.frameKind === "video" &&
+      typeof this.video.cancelVideoFrameCallback === "function"
+    ) {
+      this.video.cancelVideoFrameCallback(this.frameId);
+    } else {
+      cancelAnimationFrame(this.frameId);
+    }
+    this.frameId = null;
+    this.frameKind = null;
+  }
+
+  loop = (scheduledAt) => {
+    this.frameId = null;
+    this.frameKind = null;
     if (!this.running || !this.recognizer) return;
 
     try {
@@ -141,7 +169,7 @@ export class BodyInput {
         this.video.currentTime !== this.lastVideoTime
       ) {
         this.lastVideoTime = this.video.currentTime;
-        const timestamp = performance.now();
+        const timestamp = Number.isFinite(scheduledAt) ? scheduledAt : performance.now();
         const result = this.inferFrame(timestamp);
         this.processResult(result, timestamp);
       }
@@ -151,7 +179,7 @@ export class BodyInput {
       return;
     }
 
-    if (this.running) this.frameId = requestAnimationFrame(this.loop);
+    this.scheduleFrame();
   };
 
   releaseSession(session) {
@@ -169,8 +197,7 @@ export class BodyInput {
     ++this.generation;
     this.running = false;
     this.starting = null;
-    if (this.frameId !== null) cancelAnimationFrame(this.frameId);
-    this.frameId = null;
+    this.cancelFrame();
     if (this.session) this.releaseSession(this.session);
     this.lastVideoTime = -1;
   }

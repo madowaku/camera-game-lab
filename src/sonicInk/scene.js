@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { createThreeVisualLayer } from '../visual3d/createThreeVisualLayer.js';
 import { createGlowStroke } from '../visual3d/objects/glowStroke.js';
-import { ImpactBurst } from '../visual3d/effects/ImpactBurst.js';
-import { ParticleTrail } from '../visual3d/effects/ParticleTrail.js';
+import { ImpactBurst } from '../visual3d/effects/impactBurst.js';
+import { ParticleTrail } from '../visual3d/effects/particleTrail.js';
 import { INKS, sampleStroke, noteAt } from './core.js';
 
 export class SonicInkScene {

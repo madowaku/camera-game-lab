@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { headRoll, steeringForRoll, TiltSignal } from '../src/tiltTurbo/input.js';
 import { TiltTurboGame, roadCenter, ROUND_MS } from '../src/tiltTurbo/core.js';
+import { speedFxAmount, speedSway } from '../src/tiltTurbo/visualFx.js';
 const points = (roll, w=720, h=1280) => {const p=[];const slope=Math.tan(-roll*Math.PI/180)*w/h;p[33]=p[133]={x:.35,y:.5-.15*slope};p[263]=p[362]={x:.65,y:.5+.15*slope};return p;};
 test('camera-pixel roll follows mirrored screen direction in portrait and landscape',()=>{
   for(const [w,h] of [[720,1280],[1280,720]])for(const r of [-25,-15,0,15,25])assert.ok(Math.abs(headRoll(points(r,w,h),w,h)-r)<.001);
@@ -35,4 +36,16 @@ test('a controlled near miss pays once; pause freezes score and clock',()=>{
 test('course following and timing stay consistent across frame sizes',()=>{
   const run=dt=>{const g=new TiltTurboGame();g.start();while(!g.result)g.step(dt,{steering:roadCenter(g.elapsed+100)/1.12,roll:14,tracked:true});return g;};
   const a=run(16),b=run(100);assert.equal(a.hits,0);assert.equal(b.hits,0);assert.equal(a.result.elapsed,20000);assert.ok(Math.abs(a.distance-b.distance)<8);assert.equal(a.history.filter(e=>e.type==='JUMP!').length,1);
+});
+
+
+test('speed visual feedback grows with speed and disappears for reduced motion', () => {
+  assert.equal(speedFxAmount(20), 0);
+  assert.ok(speedFxAmount(65) > 0 && speedFxAmount(65) < 1);
+  assert.equal(speedFxAmount(100), 1);
+  assert.equal(speedFxAmount(100, true), 0);
+  assert.deepEqual(speedSway(1000, 0), { x: 0, y: 0 });
+  const sway = speedSway(1000, 1);
+  assert.ok(Math.abs(sway.x) <= 1.35);
+  assert.ok(Math.abs(sway.y) <= .65);
 });

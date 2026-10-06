@@ -1,13 +1,30 @@
 import atlasUrl from './assets/fruit-atlas-v1.webp';
 import { W, H } from './core.js';
 import { drawCamera } from '../creator/CameraLayout.js';
+import { OneEuroFilter2D } from '../input/oneEuroFilter.js';
 
 const colors = ['#ff4d5a', '#ffb324', '#fb5c76', '#ffe943', '#ff476c'];
 export class AirSlashRenderer {
   constructor(canvas) { this.canvas = canvas; this.c = canvas.getContext('2d'); this.atlas = new Image(); this.atlas.src = atlasUrl; this.reset(); }
-  reset() { this.pieces = []; this.drops = []; this.trails = []; this.labels = []; this.shake = 0; this.soot = 0; this.flash = 0; }
+  reset() { this.pieces = []; this.drops = []; this.trails = []; this.labels = []; this.shake = 0; this.soot = 0; this.flash = 0; this.bladeVisuals = new Map(); }
+  visualStroke(stroke) {
+    let state = this.bladeVisuals.get(stroke.id);
+    if (!state || stroke.at - state.lastAt > 180 || stroke.at < state.lastAt) {
+      state = { filter: new OneEuroFilter2D({ minCutoff: 1.2, beta: .035, dCutoff: 1 }), history: [], lastAt: stroke.at };
+      this.bladeVisuals.set(stroke.id, state);
+    }
+    const point = state.filter.filter(stroke.b.x, stroke.b.y, stroke.at);
+    state.lastAt = stroke.at;
+    state.history.push({ ...point, at: stroke.at });
+    state.history = state.history.filter(p => stroke.at - p.at <= 130);
+    return { ...stroke, a: state.history.at(-2) ?? point, b: point, trail: [...state.history] };
+  }
   event(e, reduced = false) {
-    if (e.type === 'trail') { this.trails.push({ ...e.stroke, life: e.stroke.active ? .2 : .13 }); if (this.trails.length > 28) this.trails.shift(); }
+    if (e.type === 'trail') {
+      const stroke = this.visualStroke(e.stroke);
+      this.trails.push({ ...stroke, life: stroke.active ? .2 : .13 });
+      if (this.trails.length > 28) this.trails.shift();
+    }
     if (e.type === 'slice') {
       const f = e.fruit, nx = -Math.sin(e.angle), ny = Math.cos(e.angle);
       for (const side of [-1, 1]) this.pieces.push({ ...f, angle: e.angle, side, life: 1.05, age: 0, vx: f.vx * .25 + nx * side * (e.power ? 250 : 160), vy: -190 + ny * side * 160, twirl: side * .65 });

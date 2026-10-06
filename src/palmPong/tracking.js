@@ -1,3 +1,4 @@
+import { TwoSlotIdentity } from "../input/twoSlotIdentity.js";
 import { W, H, clamp } from "./core.js";
 export function palmCenter(points) {
   const palm = [0, 5, 9, 13, 17].map(n => points[n]);
@@ -14,40 +15,55 @@ export function palmToCourt(p, videoAspect, courtAspect = W / H) {
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 export class PalmTracker {
   constructor() { this.reset(); }
-  reset() { this.slots = [null, null]; this.samples = []; this.frames = 0; this.firstAt = null; this.lastAt = null; }
+  reset() {
+    this.slots = [null, null]; this.samples = []; this.frames = 0; this.firstAt = null; this.lastAt = null;
+    this.identity = new TwoSlotIdentity({
+      anchors: [{ x: .28 * W, y: H / 2 }, { x: .72 * W, y: H / 2 }],
+      missingCost: 4,
+      predictSeconds: .15,
+      continuousMs: 150,
+      jumpWindowMs: 100,
+      jumpDistance: .25 * W,
+      velocityLimit: 24,
+      ambiguityMargin: .12,
+      farDistance: 4,
+      farPenalty: 20,
+    });
+  }
   update(result, now, videoAspect = W / H) {
     const candidates = (result?.landmarks ?? []).map(palmCenter).filter(Boolean).map(p => palmToCourt(p, videoAspect)).filter(p => p.present);
     this.firstAt ??= now; this.frames++; this.lastAt = now;
-    const prediction = (slot, side) => slot ? { x: slot.rawX + slot.vx * Math.min(.15, (now - slot.seenAt) / 1000), y: slot.rawY + slot.vy * Math.min(.15, (now - slot.seenAt) / 1000) } : { x: (side ? .72 : .28) * W, y: H / 2 };
-    let assignments = [];
-    // Enumerating pairs also allows a third detected hand to be ignored.
-    for (let left = -1; left < candidates.length; left++) for (let right = -1; right < candidates.length; right++) {
-      if (left >= 0 && left === right) continue;
-      const pair = [left, right]; let cost = 0;
-      pair.forEach((index, side) => {
-        if (index < 0) cost += 4;
-        else { const d = distance(candidates[index], prediction(this.slots[side], side)); cost += d > 4 ? 20 + d : d; }
-      });
-      // Before ownership exists, assign by screen side only.
-      if (!this.slots.some(Boolean) && left >= 0 && right >= 0 && candidates[left].x > candidates[right].x) cost += 30;
-      assignments.push({ pair, cost });
-    }
-    assignments.sort((a, b) => a.cost - b.cost);
-    const best = assignments[0] ?? { pair: [-1, -1] };
-    const ambiguous = assignments[1] && assignments[1].cost - best.cost < .12 && best.pair.some(i => i >= 0);
-    const hands = best.pair.map((index, side) => {
-      const point = candidates[index], old = this.slots[side];
+    const assigned = this.identity.update(candidates, now);
+    const hands = assigned.map((point, side) => {
+      const old = this.slots[side];
+      if (!point.present) {
+        if (old) old.present = false;
+        return {
+          x: old?.x ?? (side ? .72 : .28) * W,
+          y: old?.y ?? H / 2,
+          present: false,
+          continuous: false,
+          uncertain: point.uncertain,
+        };
+      }
       const age = old ? now - old.seenAt : Infinity;
-      const jump = old && point && age <= 100 && distance(point, { x: old.rawX, y: old.rawY }) >= .25 * W;
-      if (!point || ambiguous || jump) return { x: old?.x ?? (side ? .72 : .28) * W, y: old?.y ?? H / 2, present: false, continuous: false, uncertain: ambiguous || jump };
-      const continuous = !!old && age < 150 && old.present;
-      const dt = age / 1000, alpha = continuous ? 1 - Math.exp(-dt / .06) : 1;
-      const slot = { x: old && continuous ? old.x + (point.x - old.x) * alpha : point.x, y: old && continuous ? old.y + (point.y - old.y) * alpha : point.y,
-        rawX: point.x, rawY: point.y, vx: continuous ? clamp((point.x - old.rawX) / Math.max(.016, dt), -24, 24) : 0,
-        vy: continuous ? clamp((point.y - old.rawY) / Math.max(.016, dt), -24, 24) : 0, seenAt: now, present: true, continuous };
-      this.slots[side] = slot; return { x: slot.x, y: slot.y, present: true, continuous };
+      const continuous = Boolean(point.continuous && old && old.present && age < 150);
+      const dt = age / 1000;
+      const alpha = continuous ? 1 - Math.exp(-dt / .06) : 1;
+      const slot = {
+        x: old && continuous ? old.x + (point.x - old.x) * alpha : point.x,
+        y: old && continuous ? old.y + (point.y - old.y) * alpha : point.y,
+        rawX: point.x,
+        rawY: point.y,
+        vx: point.vx,
+        vy: point.vy,
+        seenAt: now,
+        present: true,
+        continuous,
+      };
+      this.slots[side] = slot;
+      return { x: slot.x, y: slot.y, present: true, continuous };
     });
-    hands.forEach((h, side) => { if (!h.present && this.slots[side]) this.slots[side].present = false; });
     this.samples.push({ now, hands }); this.samples = this.samples.filter(s => now - s.now < 500).slice(-20);
     return hands;
   }

@@ -1,6 +1,7 @@
 import { ToyDrumGame, DRUMS, BIG_DRUM, inside } from "../games/toyDrum.js";
 import { ToyDrumInput } from "../input/toyDrumInput.js";
 import { projectPalm } from "./tracking.js";
+import { OneEuroPointBank } from "../input/oneEuroFilter.js";
 import { ToyDrumAudio } from "./audio.js";
 import { ToyDrumRenderer, W, H, loadAtlas } from "./renderer.js";
 import { copy } from "./messages.js";
@@ -10,7 +11,8 @@ export const createView = (root, locale) => new ToyDrumView(root, locale);
 export class ToyDrumView {
   constructor(root, locale) {
     this.root = root; this.locale = locale; this.game = new ToyDrumGame(); this.audio = new ToyDrumAudio();
-    this.listeners = new Set(); this.active = false; this.phase = "idle"; this.generation = 0; this.hands = [];
+    this.listeners = new Set(); this.active = false; this.phase = "idle"; this.generation = 0; this.hands = []; this.displayHands = [];
+    this.displayFilter = new OneEuroPointBank({ minCutoff: 1.35, beta: .025, dCutoff: 1 });
     root.innerHTML = `<section class="td-play"><div class="td-toolbar"><span class="td-source"></span><span class="td-time">30<small>s</small></span><button type="button" class="td-pause">Ⅱ</button></div>
       <div class="td-stage" tabindex="0"><video playsinline muted hidden></video><canvas width="${W}" height="${H}" role="img"></canvas>
       <div class="td-cue"><span class="td-mode"></span><strong></strong><small></small><div class="td-sequence" aria-hidden="true"></div></div>
@@ -25,6 +27,7 @@ export class ToyDrumView {
       onFrame: (hands, timestamp) => {
         if (!this.active || this.source !== "camera" || this.phase === "error") return;
         this.hands = hands.map(h => projectPalm(h, this.video.videoWidth / this.video.videoHeight || W / H));
+        this.displayHands = this.displayFilter.filter(this.hands, timestamp, h => h.slot);
         if (this.hands.some(h => h.present)) { this.lastHandAt = performance.now(); this.recoverAt ??= performance.now(); }
         else this.recoverAt = null;
         if (!this.manualPause && !this.inputLost && this.phase === "running") this.game.input(this.hands, timestamp / 1000);
@@ -44,7 +47,7 @@ export class ToyDrumView {
   setLocale(locale) { this.locale = locale; this.uiKey = null; this.render(); }
   activate() {
     this.deactivate(); this.active = true; this.phase = "waiting"; this.game.reset(); this.renderer.reset();
-    this.manualPause = false; this.inputLost = false; this.hands = []; this.error = null; this.status = null; this.uiKey = null;
+    this.manualPause = false; this.inputLost = false; this.hands = []; this.displayHands = []; this.displayFilter.reset(); this.error = null; this.status = null; this.uiKey = null;
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     this.abort = new AbortController(); const signal = this.abort.signal;
     this.root.addEventListener("click", this.click, { signal });
@@ -68,12 +71,12 @@ export class ToyDrumView {
     const token = ++this.generation; this.input.stop(); this.source = "demo"; this.phase = "loading"; this.audio.arm(); this.render(); this.notify();
     await this.atlasPromise; if (!this.active || token !== this.generation) return;
     if (!this.atlas) { this.phase = "error"; this.render(); this.notify(); return; }
-    this.hands = []; this.manualPause = false; this.inputLost = false; this.game.start(); this.renderer.reset(); this.phase = "running";
+    this.hands = []; this.displayHands = []; this.displayFilter.reset(); this.manualPause = false; this.inputLost = false; this.game.start(); this.renderer.reset(); this.phase = "running";
     this.lastFrame = performance.now(); this.render(); this.notify(); this.$(".td-stage").focus({ preventScroll: true });
   }
   releaseInputs() {
     ++this.generation; this.input.stop(); this.audio.stop(); this.abort?.abort();
-    if (this.frameId != null) cancelAnimationFrame(this.frameId); this.frameId = null; this.hands = []; this.game.clearMotion();
+    if (this.frameId != null) cancelAnimationFrame(this.frameId); this.frameId = null; this.hands = []; this.displayHands = []; this.displayFilter.reset(); this.game.clearMotion();
   }
   deactivate() { this.active = false; this.releaseInputs(); this.phase = "idle"; this.renderer.reset(); }
   click = e => {
@@ -128,7 +131,7 @@ export class ToyDrumView {
     }
     this.render(); this.draw(); this.frameId = requestAnimationFrame(this.loop);
   };
-  draw() { this.renderer.draw(this.game, { atlas: this.atlas, video: this.video, source: this.source, hands: this.hands, reducedMotion: this.reducedMotion }); }
+  draw() { this.renderer.draw(this.game, { atlas: this.atlas, video: this.video, source: this.source, hands: this.source === "camera" ? this.displayHands : this.hands, reducedMotion: this.reducedMotion }); }
   render() {
     const t = copy(this.locale), g = this.game, cue = g.cue;
     this.$(".td-time").innerHTML = `${Math.ceil(30 - g.elapsed)}<small>s</small>`;

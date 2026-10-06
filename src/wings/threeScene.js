@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { ParticleTrail } from '../visual3d/effects/particleTrail.js';
 import { ImpactBurst } from '../visual3d/effects/impactBurst.js';
 import { disposeObject3D } from '../visual3d/disposeScene.js';
+import { SpeedCameraRig } from '../visual3d/effects/speedCameraRig.js';
 import { projectFlightRing } from './visualLayout.js';
 
 // A consumer of the shared visual layer, with no renderer, RAF, recognition,
@@ -10,7 +11,7 @@ export class BodyWingsThreeScene {
   constructor(visual) {
     this.visual = visual;
     this.root = new THREE.Group(); visual.scene.add(this.root);
-    this.time = null; this.disposed = false;
+    this.time = null; this.disposed = false; this.cameraRig = new SpeedCameraRig(visual.camera);
     this.root.add(new THREE.HemisphereLight(0xffffff, 0x3a81ad, 2.5));
     const sun = new THREE.DirectionalLight(0xfff1c6, 2.2);
     sun.position.set(-3, 5, 8); this.root.add(sun);
@@ -82,6 +83,7 @@ export class BodyWingsThreeScene {
     const dt = this.time === null ? 0 : Math.min(50, Math.max(0, game.time - this.time));
     this.time = game.time;
     this.applyBudget();
+    this.cameraRig.update({ speed: game.speed, boosted: game.boosted, time: game.time, dt, reducedMotion: reduced });
     // ResizeObserver updates projection on rotation, including while paused.
     visual.camera.updateMatrixWorld();
     this.clouds.forEach((cloud, i) => {
@@ -121,7 +123,7 @@ export class BodyWingsThreeScene {
   dispose() {
     if (this.disposed) return;
     this.disposed = true; this.removeQuality();
-    this.trails.forEach(trail => trail.dispose()); this.impact.dispose();
+    this.trails.forEach(trail => trail.dispose()); this.impact.dispose(); this.cameraRig.dispose();
     disposeObject3D(this.root); this.root.removeFromParent(); this.root.clear();
   }
 }
