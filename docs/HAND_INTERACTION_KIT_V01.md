@@ -134,3 +134,54 @@ Three Visual Layer向けに SpeedCameraRig を追加。
 - reduced-motion時は自動的にbase FOV / no swayへ戻る
 
 リングのゲーム座標・判定・速度は変更しない。
+
+
+## v0.1 第三陣 — 2026-10-06
+
+### TwoSlotIdentity
+両手・二人ゲームで重複していた「どの検出点がどちらの手か」を
+src/input/twoSlotIdentity.js に共通化した。
+
+責務はidentityだけに限定する。
+
+- detector orderの入れ替わり
+- 速度予測
+- handedness label penalty（必要なゲームのみ）
+- third observationの無視
+- impossible jumpの拒否
+- ambiguous overlapの拒否
+- missing / reacquisition
+
+平滑化・projection・gesture・collisionはゲーム側へ残す。
+
+### HANDY PALS
+handedness labelを強く使う設定でTwoSlotIdentityへ移行。
+キャラクタ追従・ダンス判定は変更しない。
+
+### TOY DRUM
+handednessを信用しない純粋な幾何identity設定で移行。
+raw sweep hit detectionとdisplay One Euroの分離は維持。
+
+### PALM PONG
+identity assignmentだけ共通化。
+既存の40ms delayed interpolation、crop rejection、continuity、
+tracking freshnessは専用ロジックとして維持する。
+
+### TILT TURBO
+Flow Drivingの「速度感を視覚で作る」発想を独自実装。
+
+- speedに応じたpseudo-FOV
+- road/worldだけのsubtle sway
+- peripheral speed streaks
+- reduced-motionでは全て無効
+
+ゲーム速度、collision、steering、scoreは変更しない。
+
+## 第三陣検証
+
+既存のPALM PONG / HANDY PALS / TOY DRUMテストに加え、
+TwoSlotIdentity専用テストとTILT TURBO visual FXテストを追加。
+
+GitHub Actions:
+- production build: success
+- full npm test: success
