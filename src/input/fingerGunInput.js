@@ -113,22 +113,22 @@ export class FingerGunInput extends BodyInput {
 
     const pose = getPose(result.hand, this.video);
     if (!pose) {
-      if (this.debugPointing) cameraInputDebug.event("FINGER GUN", "TRACK_LOST", {}, timestamp);
+      if (this.debugPointing) cameraInputDebug.event("FingerGun", "TRACK_LOST", {}, timestamp);
       this.debugPointing = false;
       this.resetTracking();
     } else {
       const aim = projectAim(pose.landmarks, this.video);
-      if (!this.debugPointing) cameraInputDebug.event("FINGER GUN", "TRACK_FOUND", {}, timestamp);
+      if (!this.debugPointing) cameraInputDebug.event("FingerGun", "TRACK_FOUND", {}, timestamp);
       this.debugPointing = true;
-      cameraInputDebug.point("FINGER GUN", "raw-aim", { ...aim, present: true }, { at: timestamp });
+      cameraInputDebug.point("FingerGun", "raw-aim", { ...aim, present: true }, { at: timestamp });
       const filtered = this.aimFilter.filter(aim.x, aim.y, timestamp);
-      cameraInputDebug.point("FINGER GUN", "filtered-aim", { ...filtered, present: true }, { at: timestamp });
+      cameraInputDebug.point("FingerGun", "filtered-aim", { ...filtered, present: true }, { at: timestamp });
       this.currentAim.x = filtered.x;
       this.currentAim.y = filtered.y;
       this.currentAim.visible = true;
       const target = this.getTarget();
       this.currentAim.onTarget = Boolean(target && Math.hypot(this.currentAim.x - target.x, this.currentAim.y - target.y) <= target.radius);
-      cameraInputDebug.metric("FINGER GUN", "onTarget", this.currentAim.onTarget, timestamp);
+      cameraInputDebug.metric("FingerGun", "onTarget", this.currentAim.onTarget, timestamp);
     }
     // Update pointing first so the mouth edge uses this frame's aim. Off-target
     // shots still count as misses; only missing inputs suppress a shot.
@@ -138,13 +138,13 @@ export class FingerGunInput extends BodyInput {
 
   processMouth(mouth) {
     const available = mouth.ready && this.currentAim.visible && this.getTarget();
-    cameraInputDebug.metric("FINGER GUN", "mouthOpen", !!mouth.open);
-    cameraInputDebug.metric("FINGER GUN", "mouthReady", !!mouth.ready);
+    cameraInputDebug.metric("FingerGun", "mouthOpen", !!mouth.open);
+    cameraInputDebug.metric("FingerGun", "mouthReady", !!mouth.ready);
     if (!available) this.mouthArmed = false;
     else if (!mouth.open) this.mouthArmed = true;
     else if (this.mouthArmed) {
       this.mouthArmed = false;
-      cameraInputDebug.event("FINGER GUN", "SHOT", { onTarget: this.currentAim.onTarget });
+      cameraInputDebug.event("FingerGun", "SHOT", { onTarget: this.currentAim.onTarget });
       this.onShot({ x: this.currentAim.x, y: this.currentAim.y });
     }
     this.onMouth({ ...mouth });
