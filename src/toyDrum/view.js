@@ -29,9 +29,9 @@ export class ToyDrumView {
         if (!this.active || this.source !== "camera" || this.phase === "error") return;
         this.hands = hands.map(h => projectPalm(h, this.video.videoWidth / this.video.videoHeight || W / H));
         this.displayHands = this.displayFilter.filter(this.hands, timestamp, h => h.slot);
-        cameraInputDebug.points("TOY DRUM", "raw-hand", this.hands, { at: timestamp });
-        cameraInputDebug.points("TOY DRUM", "display-hand", this.displayHands, { at: timestamp });
-        cameraInputDebug.metric("TOY DRUM", "hands", this.hands.filter(h => h.present).length, timestamp);
+        cameraInputDebug.points("ToyDrum", "raw-hand", this.hands, { at: timestamp });
+        cameraInputDebug.points("ToyDrum", "display-hand", this.displayHands, { at: timestamp });
+        cameraInputDebug.metric("ToyDrum", "hands", this.hands.filter(h => h.present).length, timestamp);
         if (this.hands.some(h => h.present)) { this.lastHandAt = performance.now(); this.recoverAt ??= performance.now(); }
         else this.recoverAt = null;
         if (!this.manualPause && !this.inputLost && this.phase === "running") this.game.input(this.hands, timestamp / 1000);
@@ -115,7 +115,7 @@ export class ToyDrumView {
   blur = () => { if (this.phase === "running" && !this.manualPause) this.togglePause(); };
   flushEvents() {
     for (const e of this.game.takeEvents()) {
-      this.audio.play(e); this.renderer.event(e); cameraInputDebug.event("TOY DRUM", e.type.toUpperCase(), { drum: e.drum, combo: this.game.combo });
+      this.audio.play(e); this.renderer.event(e); cameraInputDebug.event("ToyDrum", e.type.toUpperCase(), { drum: e.drum, combo: this.game.combo });
       if (["free", "rhythm", "fever", "finish"].includes(e.type)) { this.uiKey = null; this.$(".td-announcement").textContent = copy(this.locale)[e.type]; }
     }
   }
