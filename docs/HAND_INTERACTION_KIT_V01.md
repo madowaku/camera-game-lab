@@ -106,3 +106,31 @@ Camera Frame
 6. tracking FPS低下時にもゲーム描画が滑らか
 
 数値は合成テストと人間テストを分けて記録する。
+
+
+## v0.1 第二陣 — 2026-10-06
+
+### SOFT SERVE
+追加フィルタは見送った。現行ですでに、
+- ready判定: raw hand
+- cone表示/物理: 65ms指数平滑化
+に分離されており、One Euroを重ねるより遅延リスクが大きい。
+
+### TOY DRUM
+raw projected handsはそのまま DrumHitDetector へ渡す。
+表示用hand cursorだけ OneEuroPointBank で平滑化する。
+
+これにより高速スイングの swept-path 判定を変えず、停止時のカーソル震えだけ抑える。
+
+### AIR SLASH
+BladeTrackerの速度・collision segmentはrawのまま維持。
+Renderer側だけ手ごとのOne Euro filterと130ms visual historyを持ち、
+slash trailを滑らかに描く。
+
+### BODY WINGS
+Three Visual Layer向けに SpeedCameraRig を追加。
+- speed / BOOSTに応じて最大+8° FOV
+- 小さなcamera sway
+- reduced-motion時は自動的にbase FOV / no swayへ戻る
+
+リングのゲーム座標・判定・速度は変更しない。
