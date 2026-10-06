@@ -28,7 +28,7 @@ export class BodyInput {
     this.video = video;
     this.onStatus = onStatus ?? (() => {});
     this.onResult = onResult ?? (() => {});
-    this.debugLabel = debugLabel ?? this.constructor.name.replace(/Input$/, "") || "CAMERA";
+    this.debugLabel = (debugLabel ?? this.constructor.name.replace(/Input$/, "")) || "CAMERA";
     this.delegate = null;
     this.scheduler = "—";
     this.running = false;
