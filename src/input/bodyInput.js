@@ -3,6 +3,7 @@ import {
   GestureRecognizer
 } from "@mediapipe/tasks-vision";
 import { openFrontCamera } from "./frontCamera.js";
+import { cameraInputDebug } from "./debugStore.js";
 
 const WASM_ROOT =
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
@@ -23,10 +24,13 @@ function createRecognizer(vision, delegate) {
 // Shared camera/model lifecycle. Experiments consume frames in processResult()
 // and keep gesture rules outside this layer.
 export class BodyInput {
-  constructor(video, { onStatus, onResult } = {}) {
+  constructor(video, { onStatus, onResult, debugLabel } = {}) {
     this.video = video;
     this.onStatus = onStatus ?? (() => {});
     this.onResult = onResult ?? (() => {});
+    this.debugLabel = debugLabel ?? this.constructor.name.replace(/Input$/, "") || "CAMERA";
+    this.delegate = null;
+    this.scheduler = "—";
     this.running = false;
     this.starting = null;
     this.session = null;
@@ -89,20 +93,22 @@ export class BodyInput {
         throw new Error("Camera API is not available in this browser.");
       }
 
-      this.onStatus("LOADING_MODEL");
+      this.reportStatus("LOADING_MODEL");
       const vision = await FilesetResolver.forVisionTasks(WASM_ROOT);
       checkActive();
 
       try {
         session.recognizer = await this.createRecognizer(vision, "GPU");
+        this.delegate = "GPU";
       } catch (gpuError) {
         checkActive();
         console.warn("MediaPipe GPU delegate failed; falling back to CPU.", gpuError);
         session.recognizer = await this.createRecognizer(vision, "CPU");
+        this.delegate = "CPU";
       }
       checkActive();
 
-      this.onStatus("REQUESTING_CAMERA");
+      this.reportStatus("REQUESTING_CAMERA");
       session.stream = await this.openCamera(navigator.mediaDevices, this.cameraConstraints, checkActive);
       checkActive();
 
@@ -114,19 +120,24 @@ export class BodyInput {
         track.addEventListener("ended", () => {
           if (this.session === session) {
             this.stop();
-            this.onStatus("ERROR", new Error("Camera stream ended."));
+            this.reportStatus("ERROR", new Error("Camera stream ended."));
           }
         }, { once: true });
       }
 
       this.running = true;
-      this.onStatus("READY");
+      this.reportStatus("READY");
       this.scheduleFrame();
     } catch (error) {
       if (this.session === session) this.running = false;
       this.releaseSession(session);
       throw error;
     }
+  }
+
+  reportStatus(status, error = null) {
+    cameraInputDebug.status(this.debugLabel, status, error);
+    this.onStatus(status, error);
   }
 
   processResult(result, timestamp) {
@@ -137,10 +148,12 @@ export class BodyInput {
     if (!this.running) return;
     if (typeof this.video.requestVideoFrameCallback === "function") {
       this.frameKind = "video";
+      this.scheduler = "video-frame";
       this.frameId = this.video.requestVideoFrameCallback(this.loop);
       return;
     }
     this.frameKind = "animation";
+    this.scheduler = "animation-frame";
     this.frameId = requestAnimationFrame(this.loop);
   }
 
@@ -170,12 +183,19 @@ export class BodyInput {
       ) {
         this.lastVideoTime = this.video.currentTime;
         const timestamp = Number.isFinite(scheduledAt) ? scheduledAt : performance.now();
+        const startedAt = performance.now();
         const result = this.inferFrame(timestamp);
-        this.processResult(result, timestamp);
+        const durationMs = performance.now() - startedAt;
+        if (result !== null && result !== undefined) {
+          cameraInputDebug.status(this.debugLabel, "READY");
+          cameraInputDebug.inference(this.debugLabel, { at: timestamp, durationMs, scheduler: this.scheduler });
+          cameraInputDebug.metric(this.debugLabel, "delegate", this.delegate ?? "unknown", timestamp);
+          this.processResult(result, timestamp);
+        }
       }
     } catch (error) {
       this.stop();
-      this.onStatus("ERROR", error);
+      this.reportStatus("ERROR", error);
       return;
     }
 
@@ -200,5 +220,7 @@ export class BodyInput {
     this.cancelFrame();
     if (this.session) this.releaseSession(this.session);
     this.lastVideoTime = -1;
+    this.delegate = null;
+    cameraInputDebug.status(this.debugLabel, "OFF");
   }
 }
