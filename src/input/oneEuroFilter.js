@@ -92,3 +92,44 @@ export class OneEuroFilter2D {
     this.y.reset();
   }
 }
+
+
+/**
+ * Keeps independent adaptive filters for multiple tracked points.
+ * Missing points reset their slot so reacquisition never eases in from stale
+ * coordinates. Raw points remain available to game rules; this is for display
+ * or other continuous presentation paths.
+ */
+export class OneEuroPointBank {
+  constructor(options = {}) {
+    this.options = options;
+    this.filters = new Map();
+  }
+
+  filter(points, at, keyOf = point => point?.id ?? point?.slot) {
+    const seen = new Set();
+    const output = points.map(point => {
+      const key = keyOf(point);
+      if (key == null || !point?.present || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+        if (key != null) this.filters.get(key)?.reset();
+        return { ...point };
+      }
+      seen.add(key);
+      let filter = this.filters.get(key);
+      if (!filter) {
+        filter = new OneEuroFilter2D(this.options);
+        this.filters.set(key, filter);
+      }
+      return { ...point, ...filter.filter(point.x, point.y, at) };
+    });
+    for (const [key, filter] of this.filters) {
+      if (!seen.has(key)) filter.reset();
+    }
+    return output;
+  }
+
+  reset() {
+    for (const filter of this.filters.values()) filter.reset();
+    this.filters.clear();
+  }
+}
