@@ -1,3 +1,4 @@
+import { cameraInputDebug } from "./debugStore.js";
 const validPoint = (p) => p && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1;
 const clamp = (n) => Math.max(0, Math.min(1, n));
 export const PINCH_CONFIG = Object.freeze({ enter: 0.30, leave: 0.42, frames: 2, staleMs: 300 });
@@ -15,7 +16,7 @@ export function readPinch(result, aspect = 1) {
 
 export class PinchState {
   constructor(config = {}) { this.config = { ...PINCH_CONFIG, ...config }; this.reset(); }
-  reset() { this.present = false; this.pinching = false; this.armed = false; this.candidate = null; this.frames = 0; this.lastAt = null; this.lostAt = null; }
+  reset() { this.present = false; this.pinching = false; this.armed = false; this.candidate = null; this.candidateAt = null; this.frames = 0; this.lastAt = null; this.lostAt = null; }
   update(result, timestamp, aspect = 1) {
     if (!Number.isFinite(timestamp)) { this.reset(); return { present: false, pinching: false, events: ["HAND_LOST"] }; }
     const gap = this.lastAt === null ? 0 : timestamp - this.lastAt;
@@ -32,17 +33,20 @@ export class PinchState {
     if (!this.present) events.push("HAND_PRESENT");
     this.present = true; this.lostAt = null;
     const candidate = reading.pinchRatio <= this.config.enter ? true : reading.pinchRatio >= this.config.leave ? false : null;
-    if (candidate === null) { this.candidate = null; this.frames = 0; }
+    if (candidate === null) { this.candidate = null; this.candidateAt = null; this.frames = 0; }
     else {
-      if (this.candidate !== candidate) { this.candidate = candidate; this.frames = 0; }
+      if (this.candidate !== candidate) { this.candidate = candidate; this.candidateAt = timestamp; this.frames = 0; cameraInputDebug.event("PINCH", "CANDIDATE", { pinching: candidate }, timestamp); }
       this.frames++;
+      const confirmMs = this.candidateAt == null ? 0 : timestamp - this.candidateAt;
+      cameraInputDebug.metric("PINCH", "ratio", reading.pinchRatio, timestamp);
+      cameraInputDebug.metric("PINCH", "confirmMs", confirmMs, timestamp);
       if (this.frames >= this.config.frames) {
         if (!candidate) {
           this.armed = true;
-          if (this.pinching) { this.pinching = false; events.push("PINCH_END"); }
+          if (this.pinching) { this.pinching = false; events.push("PINCH_END"); cameraInputDebug.event("PINCH", "PINCH_END", { confirmedMs: confirmMs }, timestamp); }
         } else if (!this.pinching) {
           this.pinching = true;
-          if (this.armed) events.push("PINCH_START");
+          if (this.armed) { events.push("PINCH_START"); cameraInputDebug.event("PINCH", "PINCH_START", { confirmedMs: confirmMs }, timestamp); }
           this.armed = false;
         }
       }
