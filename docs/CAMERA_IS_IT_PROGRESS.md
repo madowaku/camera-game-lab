@@ -1,3 +1,5 @@
+現在の10面構成と高速リトライは [Stage Pack v0.2](CAMERA_IS_IT_STAGE_PACK_V02.md) を参照。以下はv0.1時点の記録。
+
 # EXP-043 THE CAMERA IS IT — v0.1
 
 実装日: 2026-10-03。仕様: [Prototype Spec v0.1](specs/EXP-043_THE_CAMERA_IS_IT_SPEC_v0.1.md)。

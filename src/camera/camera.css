@@ -33,4 +33,5 @@
 .ci-controls button { flex: 1 1 auto; }
 .ci-hint { font-size: 11px; line-height: 1.7; color: #a8b4a2; margin: 12px 0 0; }
 .ci-receipt { margin-top: 12px; font-size: 13px; color: #d4e4bd; }
+.ci-debug { font: 10px/1.5 Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: #071c18; padding: 10px; }
 @media (prefers-reduced-motion: reduce) { .ci-view * { scroll-behavior: auto; } }

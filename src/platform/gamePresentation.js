@@ -61,8 +61,8 @@ export const gameGuides = {
     en: ['A good guess makes a great hero.', ['Hold your face still for 3s','One face, centered in the frame'], ['Lean left or right to answer','Nod for the middle choice'], ['Return to center for the next','30 seconds of heroic estimation']],
   },
   'outcam-the-camera-is-it': {
-    ja: ['映せば、そこに道ができる。', ['スマホで行き先を映す','フレームの中だけに足場が出現'], ['彼の足元も忘れずに','進むのは彼、道を作るのはあなた'], ['5つの出口へ導く','各ステージ15〜30秒']],
-    en: ['Point your phone. Make a path.', ['Frame the way ahead','Only the framed platforms exist'], ['Keep his feet in view too','He walks. You create the ground.'], ['Reach all five exits','15–30 seconds in each world']],
+    ja: ['映せば、そこに道ができる。', ['スマホで行き先を映す','フレームの中だけに足場が出現'], ['彼の足元も忘れずに','進むのは彼、道を作るのはあなた'], ['10個の出口へ導く','見る・見続ける・目を離す']],
+    en: ['Point your phone. Make a path.', ['Frame the way ahead','Only the framed platforms exist'], ['Keep his feet in view too','He walks. You create the ground.'], ['Reach all ten exits','Look, hold, remember, look away']],
   },
 };
 
@@ -134,7 +134,7 @@ export function resultModel(game,r,locale) {
       title=say('だいたいの腕前、どのくらい？','HOW GOOD WAS YOUR GUESS?');
       metrics=[metric('正解率','ACCURACY',pct(r.accuracy)),metric('最大コンボ','BEST COMBO',number(r.maxCombo)),metric('平均回答時間','AVG. RESPONSE',seconds(r.averageResponseTimeMs))];break;
     case 'outcam-the-camera-is-it':
-      title=r.clear?say('5つの道を、つくった。','YOU MADE FIVE PATHS.'):say('道が消えても、もう一度。','A LOST PATH. ANOTHER CHANCE.');hero=`${number(r.completed)} / 5`;unit=say('ステージクリア','STAGES COMPLETE');
+      title=r.clear?say('見ることで 世界は変わる','YOU CONTROL THE WORLD BY LOOKING'):say('道が消えても、もう一度。','A LOST PATH. ANOTHER CHANCE.');hero=`${number(r.completed)} / ${r.totalStages ?? 10}`;unit=say('ステージクリア','STAGES COMPLETE');
       hint=r.clear?say('次の世界も、あなたのフレームで。','Frame a new world next.'):say('彼の足元と、次の足場を一緒に映そう。','Frame his feet and the next landing together.');metrics=[metric('プレイ時間','TIME',seconds(r.seconds*1000))];break;
   }
   return {title,hero,unit,hint,metrics,source:sourceLabel(r.source,locale)};

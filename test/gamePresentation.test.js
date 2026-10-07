@@ -9,8 +9,8 @@ test('failure, timeout and interrupted results never claim an escape, clear or v
   assert.match(resultModel(blink,{outcome:'escaped',seconds:24,score:100,hides:5},'en').title,/OUT OF THE DARK/);
   for(const outcome of ['caught','timeout']) assert.doesNotMatch(resultModel(blink,{outcome,seconds:12},'en').title,/OUT OF THE DARK/);
   assert.notEqual(resultModel(blink,{outcome:'caught'},'en').title,resultModel(blink,{outcome:'timeout'},'en').title);
-  assert.doesNotMatch(resultModel(game('outcam-the-camera-is-it'),{clear:false,completed:0},'en').title,/FIVE PATHS/);
-  assert.equal(resultModel(game('outcam-the-camera-is-it'),{clear:false,completed:0},'en').hero,'0 / 5');
+  assert.doesNotMatch(resultModel(game('outcam-the-camera-is-it'),{clear:false,completed:0},'en').title,/YOU CONTROL THE WORLD/);
+  assert.equal(resultModel(game('outcam-the-camera-is-it'),{clear:false,completed:0},'en').hero,'0 / 10');
   assert.doesNotMatch(resultModel(game('guardian-spirit'),{victory:false,score:0},'en').title,/VICTORY/);
   assert.match(resultModel(game('voice-note-blaster'),{reason:'STOPPED',score:0},'en').title,/BREATHER/);
 });

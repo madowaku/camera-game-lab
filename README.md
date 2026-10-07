@@ -1,3 +1,10 @@
+# THE CAMERA IS IT — Stage Pack v0.2
+
+`#/game/outcam-the-camera-is-it` now includes Stage 001–010, shared camera rules,
+focus / afterimage / overexposure / linked framing, and a 500ms cause freeze with
+a fast retry. See [implementation and verification](docs/CAMERA_IS_IT_STAGE_PACK_V02.md)
+and [pending Android / human playtest](docs/CAMERA_IS_IT_STAGE_PACK_V02_PLAYTEST.md).
+
 # Camera Game Lab 📷🎮
 
 ## EXP-059: HUMAN FISH / 人面魚生活

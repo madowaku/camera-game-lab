@@ -31,24 +31,25 @@ test("view clamping cannot reveal the whole world at once", () => {
 test("standing still loses the route; camera never carries the character", () => {
   const g = new CameraIsItGame(); g.start(); const x = g.runner.x;
   g.setCamera({ x: 600, y: 570 }); g.step(1400); assert.equal(g.runner.x, x);
-  g.step(30000); assert.equal(g.phase, "result"); assert.equal(g.result.clear, false);
+  g.step(30000); assert.equal(g.phase, "failing"); assert.ok(g.attempts.length > 0);
 });
 test("looking away loses the walker with grace instead of instant failure", () => {
   const g = new CameraIsItGame(); g.start(); g.step(1400);
+  g.runner.airborne = true; g.runner.vy = -100;
   g.setCamera({ x: 2600, y: 570 }, true); g.step(500);
   assert.equal(g.phase, "playing"); g.step(1500);
-  assert.equal(g.result.reason, "lost");
+  assert.equal(g.attempts.at(-1).reason, "lost");
 });
-test("all five framing puzzles clear with automatic movement in 15–30 seconds each", () => {
+test("the original five framing puzzles clear with automatic movement in 15–30 seconds each", () => {
   const g = new CameraIsItGame(); g.start("camera", true);
   for (let tick = 0; tick < 12000 && g.phase !== "result"; tick++) {
     const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
     g.setCamera({ x: r.x + 200, y: (r.y + next.y) / 2 - 50 }); g.step(16);
-    if (g.phase === "stage-clear") g.nextStage();
+    if (g.phase === "stage-clear") { if (g.index === 4) break; g.nextStage(); }
   }
-  assert.equal(g.result?.clear, true); assert.equal(g.result.completed, 5);
-  assert.equal(g.result.source, "camera"); assert.ok(g.result.receipts.every((r) => r.background));
-  for (const row of g.result.receipts) assert.ok(row.seconds >= 15 && row.seconds <= 30, JSON.stringify(row));
+  assert.equal(g.phase, "stage-clear"); assert.equal(g.completed, 5);
+  assert.equal(g.source, "camera"); assert.ok(g.receipts.every((r) => r.background));
+  for (const row of g.receipts) assert.ok(row.seconds >= 15 && row.seconds <= 30, JSON.stringify(row));
   assert.equal(stages[3].title, "TWO WORLDS");
 });
 test("a paused world freezes movement, fade and time", () => {
@@ -57,10 +58,10 @@ test("a paused world freezes movement, fade and time", () => {
 });
 test("TWO WORLDS defeats simple character-following without framing the landing", () => {
   const g = new CameraIsItGame(); g.start(); g.loadStage(3);
-  for (let tick = 0; tick < 2500 && g.phase !== "result"; tick++) {
+  for (let tick = 0; tick < 2500 && !g.attempts.length; tick++) {
     g.setCamera({ x: g.runner.x + 200, y: g.runner.y + 50 }); g.step(16);
   }
-  assert.equal(g.result?.clear, false); assert.equal(g.completed, 0);
+  assert.equal(g.phase, "failing"); assert.equal(g.completed, 0);
 });
 test("orientation wraps headings and measures the rear lens around upright phones", () => {
   const near = relativeLook(orientationBasis({ alpha: 1, beta: 90, gamma: 0 }), orientationBasis({ alpha: 359, beta: 90, gamma: 0 }));

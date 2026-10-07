@@ -5,6 +5,8 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
   ctx.clearRect(0, 0, w, h);
   const left = game.camera.x - w / 2, top = game.camera.y - h / 2;
   ctx.save(); ctx.translate(-left, -top);
+  const pulse = game.platforms.some(p => p.ruleState?.pulseMs > 0);
+  if (pulse && !reducedMotion) ctx.translate(Math.sin(now / 17) * 1.5, 0);
   ctx.fillStyle = "#dcebc519";
   for (let x = Math.floor(left / 80) * 80; x < left + w; x += 80) for (let y = Math.floor(top / 80) * 80; y < top + h; y += 80) {
     ctx.beginPath(); ctx.arc(x, y, 1.6, 0, Math.PI * 2); ctx.fill();
@@ -12,10 +14,26 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
   for (const p of game.platforms) {
     if (p.opacity < .008) continue;
     ctx.globalAlpha = p.opacity;
+    const state = p.ruleState;
+    const heat = p.rule === 'OVEREXPOSE' ? state.overexposeMs / (p.maxVisibleMs ?? 1200) : 0;
+    if (heat > .72 && !reducedMotion) ctx.globalAlpha *= .65 + .35 * Math.sin(now / 38);
+    ctx.save();
+    if (state?.pulseMs > 0 && !reducedMotion) {
+      const scale = 1 - .03 * state.pulseMs / 180;
+      ctx.translate(p.x + p.width / 2, p.y); ctx.scale(scale, scale); ctx.translate(-p.x - p.width / 2, -p.y);
+    }
+    if (state?.pulseMs > 0) { ctx.shadowColor = '#e4ffc1'; ctx.shadowBlur = reducedMotion ? 8 : 22; }
+    if (p.rule === 'FOCUS_HOLD' && !p.active) { ctx.shadowColor = '#c7edac'; ctx.shadowBlur = 18 * state.focusMs / (p.holdMs ?? 500); }
+    ctx.strokeStyle = heat > .45 ? '#ffffff' : '#bddc99';
+    if (p.rule && !p.active) { ctx.setLineDash([7, 6]); ctx.strokeRect(p.x, p.y, p.width, p.height); ctx.restore(); continue; }
+    if (p.rule === 'AFTERIMAGE' && !state.visible) {
+      ctx.strokeStyle = '#dceac77f'; ctx.strokeRect(p.x - 3, p.y + 4, p.width + 6, p.height);
+    }
     ctx.fillStyle = "#bddc99"; ctx.fillRect(p.x, p.y, p.width, 5);
     ctx.fillStyle = "#bedc992b"; ctx.fillRect(p.x, p.y + 5, p.width, p.height - 5);
     ctx.strokeStyle = "#bddc9970"; ctx.lineWidth = 1.5; ctx.strokeRect(p.x, p.y, p.width, p.height);
     ctx.fillStyle = "#d7ff9e";
+    if (heat > .45) { ctx.fillStyle = `rgba(255,255,255,${heat})`; ctx.fillRect(p.x, p.y, p.width, p.height); }
     if (p.jump) {
       ctx.beginPath(); ctx.moveTo(p.x + p.width - 58, p.y - 12); ctx.lineTo(p.x + p.width - 44, p.y - 26); ctx.lineTo(p.x + p.width - 30, p.y - 12); ctx.strokeStyle = "#d7ff9e"; ctx.lineWidth = 4; ctx.stroke();
       ctx.fillRect(p.x + p.width - 62, p.y + 2, 38, 5);
@@ -26,6 +44,17 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
       ctx.globalAlpha = p.opacity * (1 - phase); const x = p.x + (i + .5) * p.width / 10;
       ctx.fillRect(x + Math.sin(i * 2.4) * phase * 18, p.y - phase * 65, 4, 4);
     }
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  for (const a of game.anchors ?? []) {
+    ctx.strokeStyle = a.visible ? '#d7ff9e' : '#8c9f8b'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(a.x, a.y, 14, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#d7ff9e'; ctx.font = '18px monospace'; ctx.textAlign = 'center'; ctx.fillText(a.id, a.x, a.y - 26);
+  }
+  for (const p of game.platforms.filter(p => p.rule === 'LINKED' && p.ruleState.pulseMs > 0)) {
+    const anchors = game.anchors.filter(a => a.linkedGroup === p.linkedGroup);
+    if (anchors.length > 1) { ctx.globalAlpha = .3 * p.ruleState.pulseMs / 180; ctx.beginPath(); ctx.moveTo(anchors[0].x, anchors[0].y); for (const a of anchors.slice(1)) ctx.lineTo(a.x, a.y); ctx.stroke(); }
   }
   ctx.globalAlpha = 1;
   const goal = game.goal;
