@@ -22,6 +22,15 @@ its pose inference. AVATAR excludes camera imagery from display and recording.
 See [implementation and verification](docs/AVATAR_PUPPET_V01.md). Physical Android
 FPS, human tracking sensitivity and comfort remain to be measured.
 
+## TECH-003: MOUTH MUSIC
+
+Open `#/game/tech-mouth-music` or `#mouth-music`. Bite five pentatonic shapes,
+catch chords and triads, and grow a quiet 100 BPM Tone.js accompaniment over
+30 seconds. Includes camera-free tap/Space practice, MUSIC / SIMPLE SE and
+sound-off comparisons, performance probes, melody replay, and local validation
+with a manually selected ADOPT / TRY AGAIN / PARK verdict. See
+[implementation and pending device/experience checks](docs/TECH_003_MOUTH_MUSIC.md).
+
 ## EXP-057: SONIC INK
 
 Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or

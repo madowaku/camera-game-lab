@@ -6,6 +6,7 @@ export const motionProfiles = Object.freeze({
   'tech-camera-puppet': Object.freeze({ ...profile('pop', '.puppet-stage', 'GAOO!', 0), native: true }),
   'solo-maestro': Object.freeze({ ...profile('rhythm', '.maestro-stage', 'BRAVO!', 0), native: true }),
   'tech-camera-instrument': Object.freeze({ ...profile('rhythm', '.cmi-playground .cmi-stage', '♪', 0), native: true }),
+  'tech-mouth-music': profile('rhythm', '.mm-stage', 'MUSIC!'),
   'solo-sonic-ink': profile('orbit', '.si-stage', 'LOOP!', 0),
   'solo-hand-spell': profile('orbit', '.hs-stage', 'LOCKED!', 3),
   'solo-hand-beat': profile('rhythm', '#stage', 'ON BEAT!'),
