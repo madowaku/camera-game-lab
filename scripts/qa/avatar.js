@@ -1,0 +1,68 @@
+// Real WebGL + bundled VRM + native encoder; controls and inputs are synthetic.
+async page => {
+  const base = new URL(page.url()).origin, checks = [], errors = [], warnings = [];
+  const check = (ok, label) => { if (!ok) throw new Error(label); checks.push(label); };
+  const motion = (key, value) => page.locator(`[data-motion=${key}]`).evaluate((el, value) => { el.value = String(value); el.dispatchEvent(new Event('input', { bubbles: true })); }, value);
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('console', e => { if (/too many active WebGL|INVALID_OPERATION/i.test(e.text())) warnings.push(e.text()); });
+  await page.goto(base + '/?qa=avatar-feed#/');
+  check(await page.evaluate(() => !performance.getEntriesByType('resource').some(r => /\/avatar\/|three-vrm/.test(r.name))), 'feed requests no avatar or VRM modules');
+  await page.goto(base + '/?debug=1#/game/tech-camera-puppet');
+  await page.waitForFunction(() => document.querySelector('.puppet-entry .launch-demo')?.disabled === false);
+  await page.locator('.launch-demo').click();
+  await page.waitForFunction(() => document.querySelector('.platform-game-module')?.__puppetTest?.phase === 'playing');
+  await page.evaluate(() => window.__puppet = document.querySelector('.platform-game-module').__puppetTest);
+  check(await page.evaluate(() => __puppet.avatar.backend === 'three' && !__puppet.video.srcObject && !__puppet.input.running && !__puppet.creator), 'PLAY has one WebGL puppet and no camera or recorder in practice');
+  await page.locator('.puppet-settings summary').click();
+  await motion('roll', .6); await motion('mouth', .9); await motion('leftArm', .5);
+  await page.waitForFunction(() => __puppet.avatar.frame.face.mouthOpen > .8);
+  check(await page.evaluate(() => __puppet.avatar.driver.rightArm.rotation.z < -1 && __puppet.avatar.driver.head.rotation.z < -.4), 'mirror maps anatomical left arm and head roll once');
+  const roll = await page.evaluate(() => __puppet.avatar.frame.head.roll);
+  await page.locator('.puppet-lost').click(); await page.waitForTimeout(80);
+  check(await page.evaluate(r => __puppet.avatar.frame.head.roll > r * .9 && !__puppet.avatar.frame.tracking.face, roll), 'short loss holds the current pose');
+  await page.waitForFunction(() => __puppet.avatar.recovery.status.face === 'IDLE');
+  await page.waitForTimeout(350);
+  check(await page.evaluate(() => Math.abs(__puppet.avatar.frame.head.roll) < .05 && __puppet.video.hidden), 'long loss returns to idle without camera imagery');
+  await page.locator('.puppet-lost').click(); await page.waitForFunction(() => __puppet.avatar.frame.head.roll > .5);
+  await page.locator('.puppet-pause').click(); const paused = await page.evaluate(() => __puppet.elapsed);
+  await page.waitForTimeout(150); check(await page.evaluate(t => __puppet.elapsed === t, paused), 'pause freezes puppet and recording clock'); await page.locator('.puppet-pause').click();
+  await page.locator('.puppet-driver').selectOption('mascot'); await page.waitForFunction(() => !!__puppet.avatar.driver?.roar);
+  check(await page.evaluate(() => __puppet.avatar.driver.roar.visible), 'monster interprets mouth as a roar');
+  await page.screenshot({ path: 'output/playwright/avatar-monster.png', fullPage: true });
+  await page.locator('.puppet-driver').selectOption('vrm'); await page.waitForFunction(() => !!__puppet.avatar.driver?.vrm);
+  check(await page.evaluate(() => __puppet.avatar.driver.vrm.meta.metaVersion === '1' && __puppet.avatar.driver.vrm.expressionManager.getValue('aa') > .8), 'actual VRM 1.0 loads and receives the same mouth motion');
+  await page.screenshot({ path: 'output/playwright/avatar-vrm.png', fullPage: true });
+  for (const size of [{ width: 360, height: 500 }, { width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size); await page.waitForTimeout(80);
+    check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `no horizontal overflow ${size.width}x${size.height}`);
+    await page.screenshot({ path: `output/playwright/avatar-${size.width}x${size.height}.png`, fullPage: true });
+  }
+  await page.locator('.puppet-profile').selectOption('TOY'); await page.waitForFunction(() => __puppet.avatar.driver?.config.profile.id === 'toy');
+  check(await page.evaluate(() => __puppet.avatar.driver.config.profile.style.exaggeration === 1.4 && document.querySelectorAll('.puppet-world canvas').length === 1), 'profile swap keeps one canvas');
+  await page.locator('.puppet-camera-mode').selectOption('MINI'); await page.waitForFunction(() => __puppet.avatar.driver?.motion?.miniature);
+  check(await page.evaluate(() => Math.abs(__puppet.avatar.driver.root.scale.y - .38) < .001), 'MINI scales the VRM');
+  await page.locator('.puppet-driver').selectOption('canvas'); await page.waitForFunction(() => __puppet.avatar.backend === 'canvas');
+  check(await page.evaluate(() => document.querySelectorAll('.puppet-world canvas').length === 1 && !__puppet.avatar.visual), '2D driver uses the same motion without a WebGL context');
+  await page.locator('.puppet-driver').selectOption('simple'); await page.waitForFunction(() => __puppet.avatar.backend === 'three');
+  await page.evaluate(() => __puppet.avatar.visual.canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true })));
+  await page.waitForFunction(() => __puppet.avatar.backend === 'canvas');
+  check(await page.evaluate(() => document.querySelectorAll('.puppet-world canvas').length === 1 && __puppet.video.hidden), 'context loss recovers to 2D without exposing a camera image');
+  await page.locator('.game-back').click();
+  await page.locator('.lab-feed').waitFor();
+  check(await page.evaluate(() => !__puppet.active && !__puppet.avatar && !__puppet.input.running && !document.querySelector('.puppet-world canvas')), 'exit releases renderer, input and RAF');
+  await page.goto(base + '/?debug=1#/game/tech-camera-puppet'); await page.waitForFunction(() => document.querySelector('.launch-demo')?.disabled === false);
+  await page.locator('[data-puppet-mode=creator]').click(); await page.locator('.launch-demo').click();
+  await page.waitForFunction(() => document.querySelector('.platform-game-module')?.__puppetTest?.phase === 'playing');
+  await page.evaluate(() => window.__puppet = document.querySelector('.platform-game-module').__puppetTest);
+  await page.locator('.puppet-settings summary').click(); await motion('mouth', .9);
+  await page.waitForTimeout(1500); await page.locator('.puppet-finish').click(); await page.locator('.puppet-result canvas').waitFor();
+  check(await page.evaluate(() => __puppet.result.creator.faceMode === 'AVATAR' && __puppet.result.creator.frames.length > 5 && !__puppet.avatar && !__puppet.video.srcObject), 'CREATOR retains composited avatar frames and releases live resources at result');
+  const download = page.waitForEvent('download'); await page.locator('.puppet-save').click(); const file = await download; await file.saveAs('output/playwright/avatar-clip.' + (file.suggestedFilename().endsWith('.mp4') ? 'mp4' : 'webm'));
+  check((await file.failure()) === null, 'native silent avatar video encodes and downloads');
+  await page.locator('[data-result-action=retry]').click(); await page.waitForFunction(() => __puppet.phase === 'playing' && !!__puppet.avatar?.canvas);
+  check(await page.evaluate(() => document.querySelectorAll('.puppet-world canvas').length === 1 && __puppet.creator.frames.length < 5), 'retry resets temporary recording and mounts one puppet');
+  await page.locator('.game-back').click();
+  await page.locator('.lab-feed').waitFor();
+  check(errors.length === 0 && warnings.length === 0, 'no browser errors or WebGL warnings');
+  return { checks, errors, warnings };
+}

@@ -59,7 +59,7 @@ test("shared snapshots carry pause and input loss through explicit snapshot adap
   for (const phase of ["idle", "error", "loading", "calibrating", "countdown", "result"]) assert.equal(musicAudible({ phase }), false);
 });
 test("every selected track has a direct OpenTracks credit, including practice-only voice music", () => {
-  for (const game of experiments.filter(g => g.id !== "solo-hand-beat" && !["procedural", "stems", "instrument"].includes(g.audioStrategy))) {
+  for (const game of experiments.filter(g => g.id !== "solo-hand-beat" && !["procedural", "silent", "stems", "instrument"].includes(g.audioStrategy))) {
     assert.match(musicCreditMarkup(game, "ja"), /https:\/\/opentracks.com\/bgm\/detail\/\d+/);
     assert.ok(trackForGame(game, "demo"));
   }

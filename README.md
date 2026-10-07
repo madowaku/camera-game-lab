@@ -11,6 +11,17 @@ stems, Imagegen art and credited OtoLogic applause. See
 [implementation, assets and verification](docs/CAMERA_INSTRUMENT_MAESTRO_V01.md).
 Physical phone accuracy/latency tests remain pending.
 
+## TECH-AVATAR-001: CAMERA PUPPET TEST
+
+Open `#/game/tech-camera-puppet` or `#camera-puppet`. Your head, mouth and arms
+drive a simple 3D puppet, little monster, bundled VRM 1.0 robot or 2D puppet
+through the same MotionFrame. Camera-free sliders, tracking-loss recovery,
+profiles, mirror/stage/mini, debug views and silent CREATOR replay/export are
+included. BODY WINGS also supports CREATOR → AVATAR with a little bird, reusing
+its pose inference. AVATAR excludes camera imagery from display and recording.
+See [implementation and verification](docs/AVATAR_PUPPET_V01.md). Physical Android
+FPS, human tracking sensitivity and comfort remain to be measured.
+
 ## EXP-057: SONIC INK
 
 Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or

@@ -6,6 +6,7 @@ const MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/p
 export class BodyWingsInput extends BodyInput {
   constructor(video, options = {}) {
     super(video, options); this.onPose = options.onPose ?? (() => {});
+    this.onMotionResult = options.onMotionResult ?? null;
     this.mask = document.createElement("canvas"); this.maskReady = false; this.lastInferenceAt = -Infinity;
   }
   createRecognizer(vision, delegate) {
@@ -35,6 +36,8 @@ export class BodyWingsInput extends BodyInput {
         this.mask.getContext("2d").putImageData(this.maskImage, 0, 0);
       }
       this.onPose(pose ? { ...pose, at } : null);
+      // Opt-in normalized motion consumers share this inference, not a new one.
+      this.onMotionResult?.({ pose: result, aspect: this.video.videoWidth / this.video.videoHeight }, at);
     } finally { result.segmentationMasks?.forEach(mask => mask.close()); }
   }
   stop() { super.stop(); this.maskReady = false; this.lastInferenceAt = -Infinity; this.onPose(null); }

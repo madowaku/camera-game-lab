@@ -1,8 +1,14 @@
 import { cameraPoint, drawCamera } from "./CameraLayout.js";
-export const FACE_MODES=Object.freeze(["ORIGINAL","EFFECT","HIDE"]);
+export const FACE_MODES=Object.freeze(["ORIGINAL","EFFECT","AVATAR","HIDE"]);
 export function normalizeFaceMode(mode) { return FACE_MODES.includes(mode)?mode:"ORIGINAL"; }
 const oval=(c,x,y,rx,ry)=>{c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
-export function drawFaceMode(c,video,mode,face,{width:w,height:h,open=false,crown=false,effect}={}) {
+export function drawFaceMode(c,video,mode,face,{width:w,height:h,open=false,crown=false,effect,avatarCanvas}={}) {
+  // Full replacement excludes the camera BEFORE compositing, including lost
+  // tracking / loading / unavailable WebGL. Never fall back to a real face.
+  if(mode==="AVATAR") {
+    if(avatarCanvas?.width&&avatarCanvas?.height)c.drawImage(avatarCanvas,0,0,w,h);
+    return;
+  }
   const project=p=>cameraPoint(p,video.videoWidth,video.videoHeight,w,h);
   // HIDE never shows a raw fallback when tracking is absent, stale or ambiguous.
   if(mode!=="HIDE"||face)drawCamera(c,video,w,h);

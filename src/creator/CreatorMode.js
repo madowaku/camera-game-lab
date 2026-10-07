@@ -8,9 +8,10 @@ import { creatorMetric } from "./metrics.js";
 const clamp=n=>Math.max(0,Math.min(1,n));
 const oval=(c,x,y,rx,ry)=>{c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
 export class CreatorMode {
-  constructor(canvas,{profile,faceMode="ORIGINAL",reducedMotion=false}={}) {
+  constructor(canvas,{profile,faceMode="ORIGINAL",reducedMotion=false,avatar=null}={}) {
     this.canvas=canvas;this.profile=profile;this.faceMode=normalizeFaceMode(faceMode);this.reducedMotion=reducedMotion;
     this.faceModes=new Set([this.faceMode]);
+    this.avatar=avatar;
     canvas.width=CREATOR_SIZE.width;canvas.height=CREATOR_SIZE.height;
     this.camera=document.createElement("canvas");this.camera.width=270;this.camera.height=480;
     this.highlights=new HighlightEvents(profile);this.frames=[];this.live=[];this.bytes=0;this.lastCapture=-Infinity;this.generation=0;this.recording=true;
@@ -36,16 +37,16 @@ export class CreatorMode {
     if(!event&&data.final){const previous=this.highlights.events.findLast(e=>e.type===type);if(previous){previous.data={...previous.data,...data};previous.finalAt=time;previous.duration=Math.max(previous.duration,time-previous.at+this.profile[type].duration);}}
     return event;
   }
-  compose(video,food,{time=0,face=null,open=false,biteAge=Infinity,source="camera"}={}) {
+  compose(video,food,{time=0,face=null,open=false,biteAge=Infinity,source="camera",avatarCanvas=this.avatar?.()}={}) {
     this.time=time;
     const c=this.canvas.getContext("2d"),camera=this.camera.getContext("2d"),w=270,h=480,event=this.highlights.latest(time);
     if(this.director){
       c.setTransform(this.canvas.width/w,0,0,this.canvas.height/h,0,0);
       camera.setTransform(this.camera.width/w,0,0,this.camera.height/h,0,0);
       camera.fillStyle="#fff7eb";camera.fillRect(0,0,w,h);
-      if(source==="camera")drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect});
+      if(source==="camera"||this.faceMode==="AVATAR")drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect,avatarCanvas});
       c.fillStyle="#fff7eb";c.fillRect(0,0,w,h);
-      if(source==="camera")c.drawImage(this.camera,0,0,w,h);
+      if(source==="camera"||this.faceMode==="AVATAR")c.drawImage(this.camera,0,0,w,h);
       c.drawImage(food,0,0,w,h);
       c.textAlign="center";c.font="800 9px sans-serif";c.fillStyle="#fff7eb";c.strokeStyle="#583a2d";c.lineWidth=2;
       const brand=`◉ CAMERA GAME #${String(this.profile.director.gameNumber).padStart(3,"0")}`;
@@ -53,9 +54,9 @@ export class CreatorMode {
       if(this.heroTimestamp===undefined&&this.hud){c.font="800 12px sans-serif";const label=`${this.hud.swirls} SWIRLS`;c.strokeText(label,w/2,h*.9);c.fillText(label,w/2,h*.9);}
       this.recorder.capture(this.canvas,time);return;
     }
-    if(video.srcObject){camera.fillStyle="#fff7eb";camera.fillRect(0,0,w,h);drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect});}
+    if(video.srcObject||this.faceMode==="AVATAR"){camera.fillStyle="#fff7eb";camera.fillRect(0,0,w,h);drawFaceMode(camera,video,this.faceMode,face,{width:w,height:h,open,crown:biteAge<700,effect:this.profile.faceEffect,avatarCanvas});}
     c.fillStyle="#fff7eb";c.fillRect(0,0,w,h);
-    if(source==="camera")c.drawImage(this.camera,0,0);
+    if(source==="camera"||this.faceMode==="AVATAR")c.drawImage(this.camera,0,0);
     c.drawImage(food,0,0,w,h);
     const capture=time-this.lastCapture>=125;
     if(capture){
@@ -93,7 +94,7 @@ export class CreatorMode {
     if(kind==="perfect"&&event.data.point&&!this.reducedMotion){c.save();c.strokeStyle="#fffef5";c.lineWidth=2;for(let i=0;i<3;i++){const x=event.data.point.x*w+(i-1)*20,y=event.data.point.y*h-i*9,size=3+Math.sin(age/120+i)*2;c.beginPath();c.moveTo(x-size,y);c.lineTo(x+size,y);c.moveTo(x,y-size);c.lineTo(x,y+size);c.stroke();}c.restore();}
     if(!this.reducedMotion){for(let i=0;i<14;i++){const a=i*2.4,r=35+(age%900)/900*60;c.fillStyle=["#f57682","#a9be88","#f6c561","#fff7eb"][i%4];c.save();c.translate(w*.5+Math.cos(a)*r,y+Math.sin(a)*r);c.rotate(a+age/700);c.fillRect(-2,-3,4,6);c.restore();}}
   }
-  snapshot() { this.recording=false;return {frames:[...this.frames],events:this.highlights.events.map(e=>({...e,data:{...e.data}})),brand:this.profile.brand,faceMode:this.faceMode}; }
+  snapshot() { this.recording=false;return {frames:[...this.frames],events:this.highlights.events.map(e=>({...e,data:{...e.data}})),brand:this.profile.brand,faceMode:this.faceMode,faceModes:[...this.faceModes]}; }
   async finish({source="camera",sound=true}={}) {
     if(!this.director)return this.snapshot();
     const frames=await this.recorder.finish(),events=this.events.events.map(e=>({...e,metadata:{...e.metadata}}));

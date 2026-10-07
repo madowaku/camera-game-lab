@@ -82,12 +82,23 @@ export class BodyWingsView {
     this.game = new BodyWingsGame(source); this.raw = null; this.pointerTilt = 0; this.pointerId = null;
     this.userPaused = false; this.backgroundPaused = document.hidden; this.landingMs = 0; this.highlights = []; this.receiptSaved = false;
     this.visual3dError = null;
+    this.puppetAt = null;
+    this.puppetReady = this.options.faceMode === 'AVATAR' ? this.ensurePuppet(this.generation) : null;
     if (this.options.creator) {
       this.creator = new CreatorMode(this.creatorCanvas, { profile: bodyWingsCreatorProfile, faceMode: this.options.faceMode, reducedMotion: this.reducedMotion });
       this.replayRenderer = new WingsRenderer(document.createElement("canvas"));
     }
     this.bind(); this.audio.enable(); this.audio.setEnabled(this.soundEnabled); this.syncPause(); this.render(); this.notify();
     this.visual3dReady = this.ensureVisual3d(this.generation); return this.generation;
+  }
+  async ensurePuppet(token) {
+    const [{ AvatarLayer }, { BIRD }] = await Promise.all([import('../avatar/AvatarLayer.js'), import('../avatar/profiles/index.js')]);
+    if (token !== this.generation || !this.active) return;
+    const host = document.createElement('div'); Object.assign(host.style, { position: 'absolute', inset: '0', visibility: 'hidden', pointerEvents: 'none' }); this.$('.bw-stage').append(host);
+    this.puppetHost = host; const puppet = this.puppet = new AvatarLayer({ preset: 'CREATOR_SMOOTH', quality: 'LOW' });
+    this.input.onMotionResult = (results, at) => this.puppet?.ingest(results, at);
+    await puppet.load({ host, driver: 'canvas', profile: BIRD, positionScale: 0 });
+    if (token !== this.generation) { puppet.dispose(); host.remove(); }
   }
   async ensureVisual3d(token) {
     let visual;
@@ -160,6 +171,7 @@ export class BodyWingsView {
   releaseInputs() {
     ++this.generation; cancelAnimationFrame(this.raf); this.raf = null; this.abort?.abort(); this.keys.clear(); this.input.stop(); this.audio.dispose();
     this.creator?.dispose(); this.creator = null; this.raw = null; this.currentPose = null;
+    this.input.onMotionResult = null; this.puppet?.dispose(); this.puppet = null; this.puppetHost?.remove(); this.puppetHost = null; this.puppetReady = null;
     this.disposeVisual3d(); this.visual3dReady = null;
     if (this.replayRenderer) { this.replayRenderer.canvas.width = 0; this.replayRenderer.person.width = 0; this.replayRenderer = null; }
   }
@@ -183,8 +195,17 @@ export class BodyWingsView {
     $(".bw-recovery").hidden = this.phase !== "error"; text(".bw-retry", t.retryCamera); text(".bw-practice", t.practice);
     try { this.threeScene?.update({ game: g }); } catch (error) { this.fallbackVisual3d(error); }
     const hybrid = !!this.visual3d && !this.visual3d.failed;
+    if (this.puppet && !g.paused) {
+      const now = performance.now(), dt = this.puppetAt ? Math.min(.1, (now - this.puppetAt) / 1000) : 1 / 30; this.puppetAt = now;
+      if (this.source === 'demo') {
+        const frame = this.puppet.normalizer.normalize({}, now); frame.tracking.pose = true;
+        frame.body.leftShoulder.z = .5 + g.tilt * .4; frame.body.rightShoulder.z = -.5 + g.tilt * .4; frame.body.leanX = -g.tilt;
+        this.puppet.normalized = frame;
+      }
+      this.puppet.update(now, dt);
+    }
     const drawing = { video: this.video, input: this.input, pose: this.source === "camera" ? this.currentPose ?? (this.phase === "ready" ? this.raw : null) : null,
-      demo: this.source === "demo", faceMode: this.options.faceMode, reducedMotion: this.reducedMotion, landing: clamp(this.landingMs / 800), locale: this.locale };
+      demo: this.source === "demo", faceMode: this.options.faceMode, avatarCanvas: this.puppet?.canvas, reducedMotion: this.reducedMotion, landing: clamp(this.landingMs / 800), locale: this.locale };
     this.renderer.draw(g, { ...drawing, hybrid });
     // Scene already contains the segmented, face-mode-safe player. Feed that
     // opaque composite to the shared recorder, without a second camera layer.

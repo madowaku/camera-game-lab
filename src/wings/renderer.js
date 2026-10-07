@@ -8,7 +8,7 @@ export class WingsRenderer {
     this.canvas = canvas; this.person = document.createElement("canvas");
     this.wings = new Image(); this.wings.src = wingsUrl;
   }
-  draw(game, { video, input, pose, demo, faceMode = "ORIGINAL", reducedMotion, landing = 0, locale = "ja", hybrid = false, width, height } = {}) {
+  draw(game, { video, input, pose, demo, faceMode = "ORIGINAL", avatarCanvas, reducedMotion, landing = 0, locale = "ja", hybrid = false, width, height } = {}) {
     const canvas = this.canvas, w = width ?? Math.max(240, canvas.clientWidth), h = height ?? Math.max(400, canvas.clientHeight);
     const dpr = Math.min(devicePixelRatio || 1, 2);
     if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
@@ -53,8 +53,10 @@ export class WingsRenderer {
     const deploy = game.phase === "ready" ? 0 : game.phase === "transform" ? clamp(game.phaseMs / 650) : 1 - landing * .75;
     let body;
     const cameraZoom = game.phase === "ready" ? 1.1 : game.phase === "transform" ? 1.1 - deploy * .1 : 1;
-    if (!demo && pose && video?.readyState >= 2) body = this.drawPerson(c, video, input, pose, faceMode, w, h, playerX, shoulderY, cameraZoom, boost);
-    if (demo || (!body && game.phase !== "ready")) this.drawPilot(c, playerX, shoulderY, game.tilt + wobble, w, !demo);
+    if (faceMode === 'AVATAR' && avatarCanvas?.width) {
+      c.drawImage(avatarCanvas, playerX - w * .5, shoulderY - h * .55, w, h); body = { span: w * .86 };
+    } else if (faceMode !== 'AVATAR' && !demo && pose && video?.readyState >= 2) body = this.drawPerson(c, video, input, pose, faceMode, w, h, playerX, shoulderY, cameraZoom, boost);
+    if ((demo || (!body && game.phase !== "ready")) && faceMode !== 'AVATAR') this.drawPilot(c, playerX, shoulderY, game.tilt + wobble, w, !demo);
     if (deploy > 0) {
       const angle = Math.atan(game.tilt) + wobble;
       const wingWidth = (body?.span ?? w * .86) * deploy;
@@ -87,6 +89,7 @@ export class WingsRenderer {
     if (boost) { c.strokeStyle = "#ffda5c"; c.lineWidth = 5; c.strokeRect(2, 2, w - 4, h - 4); }
   }
   drawPerson(c, video, input, pose, faceMode, w, h, x, y, zoom, wind) {
+    if (faceMode === 'AVATAR') return null;
     // Never expose a raw face in HIDE if its bounds cannot be established.
     if (faceMode === "HIDE" && !pose.face) return null;
     if (!input?.maskReady) return null;

@@ -247,6 +247,14 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../dontLaugh/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `DON’T LAUGH · ${r.reason === "survived" ? "15秒、真顔で生還！" : `${r.elapsed.toFixed(2)}秒で笑っちゃった。`} 君は耐えられる？` : `DON’T LAUGH · ${r.reason === "survived" ? "15 seconds. Still serious!" : `Cracked at ${r.elapsed.toFixed(2)} seconds.`} Can you survive?`),
     load: () => import("../dontLaugh/view.js").then(m => m.createView) }),
+  define({ id: "tech-camera-puppet", exp: "TECH-AVATAR-001", collection: "SOLO", category: "SOLO",
+    titleJa: "CAMERA PUPPET TEST", titleEn: "CAMERA PUPPET TEST", subtitleJa: "身体が、人形にも怪獣にも。きみの動きを別の姿へ。", subtitleEn: "Your body becomes a puppet, a monster, anything.",
+    input: ["FACE", "BODY", "MOUTH"], duration: 30, accent: "#e9a075", tags: ["puppet", "avatar", "VRM", "creator", "人形", "怪獣"],
+    aliases: ["#camera-puppet", "#puppet"], module: "puppetTest", demo: true, motif: "body", visual: "hybrid", audioStrategy: "silent", untimed: true,
+    privacyJa: "インカメラを1本使い、顔と上半身を端末内で認識します。マイク・外部送信はありません。初回は認識モデルを読み込みます。AVATARではカメラ映像を表示・録画しません。PLAYは録画せず、CREATORの一時映像は退出時に破棄。保存は自分で選べます。",
+    privacyEn: "One front-camera stream recognizes face and upper body on your device. No microphone or uploads. Models download on first use. AVATAR excludes camera imagery from display and recording. PLAY does not record; temporary CREATOR frames are discarded on exit. Saving is your choice.",
+    loadPresentation: () => import("../avatar/test/presentation.js"),
+    load: () => import("../avatar/test/view.js").then(m => m.createView) }),
 ]);
 
 export const categories = ["SOLO", "DUO", "OUTCAM", "VOICE", "PHOTO / AR"];
