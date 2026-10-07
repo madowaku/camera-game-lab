@@ -11,3 +11,6 @@
 @media(max-width:700px){.pp-entry-art{max-height:none}.pp-art-title{padding:16px 20px 12px}.pp-art-title h1{font-size:52px;margin-top:10px}.pp-entry-art>img{aspect-ratio:1.15;object-position:center 30%}.pp-entry h2{text-wrap:initial;word-break:keep-all;overflow-wrap:anywhere;font-size:23px;letter-spacing:-.04em}}
 @media(orientation:landscape) and (max-height:500px){.platform--palm-pong:has(.platform-game-module:not([hidden])) .platform-header{display:none}.pp-court{max-height:calc(100dvh - 133px);max-width:calc((100dvh - 133px)*16/9)}.pp-art-title h1{font-size:52px}.pp-entry-art{max-height:none}}
 @media(prefers-reduced-motion:reduce){.pp-entry *,.pp-play *,.pp-result *{animation:none!important;transition:none!important}}
+
+/* Camera stays a DOM video: the overlay never uploads video textures. */
+.pp-court>.camera{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);z-index:0}.pp-court>.phaser-host{position:absolute;inset:0;z-index:1;pointer-events:none;background:transparent}.phaser-host>canvas{display:block;pointer-events:none;background:transparent}.pp-count{z-index:2}

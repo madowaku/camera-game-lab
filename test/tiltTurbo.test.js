@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import { headRoll, steeringForRoll, TiltSignal } from '../src/tiltTurbo/input.js';
 import { TiltTurboGame, roadCenter, ROUND_MS } from '../src/tiltTurbo/core.js';
 const points = (roll, w=720, h=1280) => {const p=[];const slope=Math.tan(-roll*Math.PI/180)*w/h;p[33]=p[133]={x:.35,y:.5-.15*slope};p[263]=p[362]={x:.65,y:.5+.15*slope};return p;};
+test('Feel Layer refactor matches recorded legacy calibration, loss and irregular frames',()=>{
+  // Recorded from the pre-migration TiltSignal, including its 16ms minimum.
+  const frames=[[9,0,0,0],[9,130,0,0],[9,260,0,0],[9,390,0,0],[9,520,0,0],[9,650,0,0],
+    [-11,700,-10.209166808860939,-.3186966722388862],[-11,716,-12.209733025782766,-.4201030256677045],
+    [24,732,-6.649953628038763,-.11994315860448419],[34,800,13.019167129543934,.4598692586080905],
+    [null,850,0,0],[9,1000,10.358953700987446,.3264694201637643],[null,1100,0,0],
+    [-36,2000,-.9525711116879201,0],[14,1990,.26372094817937963,0],
+    [14,2010,1.440793838888658,0],[9,2043,.8992139081335137,0],[9,2076,.5612084329874991,0]];
+  const signal=new TiltSignal();
+  for(const [raw,at,roll,steering] of frames){const output=signal.sample(raw,at);
+    assert.ok(Math.abs(output.roll-roll)<1e-12);assert.ok(Math.abs(output.steering-steering)<1e-12);
+    assert.equal(output.tracked,raw!==null);assert.equal(output.ready,at>=650);
+    if(raw!==null){assert.equal(output.debug.stable,output.roll);assert.equal(output.debug.feel,output.steering);}
+  }
+  assert.equal(signal.neutral,9);
+});
 test('camera-pixel roll follows mirrored screen direction in portrait and landscape',()=>{
   for(const [w,h] of [[720,1280],[1280,720]])for(const r of [-25,-15,0,15,25])assert.ok(Math.abs(headRoll(points(r,w,h),w,h)-r)<.001);
   assert.equal(headRoll([]),null);const broken=points(10);broken[33]={x:NaN,y:.3};assert.equal(headRoll(broken),null);

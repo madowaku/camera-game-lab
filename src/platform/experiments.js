@@ -180,7 +180,7 @@ export const experiments = Object.freeze([
     loadPresentation: () => import("../wings/presentation.js"),
     resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `${r.rings}/${r.totalRings}リング、${r.distance}m飛んだ！ 最大コンボ ×${r.bestCombo}` : `${r.rings}/${r.totalRings} rings. ${r.distance}m flown! Best combo ×${r.bestCombo}`),
     load: () => import("../wings/view.js").then(m => m.createView) }),
-  define({ id: "duo-palm-pong", exp: "EXP-048", collection: "DUO", category: "DUO",
+  define({ id: "duo-palm-pong", exp: "EXP-048", collection: "DUO", category: "DUO", renderer: "phaser",
     launchReadyJa: "PLAYで手の準備、STARTでラリー。", launchReadyEn: "PLAY to line up your hands. START to rally.",
     titleJa: "PALM PONG", titleEn: "PALM PONG", subtitleJa: "ふたりの手で、ラリーをつなごう。", subtitleEn: "Two hands. One little rally.",
     input: ["HAND"], players: 2, orientation: "landscape", duration: 30, accent: "#67c5a2", tags: ["co-op", "rally", "卓球", "協力", "二手"],

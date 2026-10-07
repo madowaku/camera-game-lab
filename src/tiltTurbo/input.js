@@ -1,3 +1,5 @@
+import { exponentialSmooth, applyDeadZone, responseCurve, FEEL_PRESETS } from '../inputFeel/index.js';
+
 export const DEAD_ZONE = 5;
 export const MAX_TILT = 25;
 export const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -14,8 +16,7 @@ export function headRoll(points, width = 1, height = 1) {
   return Math.abs(roll) <= 55 ? roll : null;
 }
 export function steeringForRoll(roll) {
-  if (!Number.isFinite(roll) || Math.abs(roll) <= DEAD_ZONE) return 0;
-  return Math.sign(roll) * Math.pow(clamp((Math.abs(roll) - DEAD_ZONE) / (MAX_TILT - DEAD_ZONE), 0, 1), .85);
+  return responseCurve(applyDeadZone(roll / MAX_TILT, DEAD_ZONE / MAX_TILT), FEEL_PRESETS.steering.exponent);
 }
 export class TiltSignal {
   constructor() { this.reset(); }
@@ -32,7 +33,11 @@ export class TiltSignal {
       if (this.progress === 1) { const sorted = this.samples.map(s => s.raw).sort((a,b) => a-b); this.neutral = sorted[Math.floor(sorted.length / 2)]; this.samples = []; }
     }
     const roll = clamp(raw - (this.neutral ?? raw), -45, 45);
-    this.filtered += (roll - this.filtered) * (1 - Math.exp(-Math.max(dt, 16) / 70));
-    return { tracked: true, ready: this.neutral !== null, progress: this.progress, roll: this.filtered, steering: steeringForRoll(this.filtered) };
+    // Preserve the legacy 16ms minimum and 70ms feel smoothing exactly. There
+    // is no second filter in the shared layer; calibration remains reliability.
+    this.filtered = exponentialSmooth(this.filtered, roll, Math.max(dt, 16) / 1000, FEEL_PRESETS.steering.tau);
+    const steering = steeringForRoll(this.filtered);
+    return { tracked: true, ready: this.neutral !== null, progress: this.progress, roll: this.filtered, steering,
+      debug: { raw, neutral: this.neutral, stable: this.filtered, feel: steering } };
   }
 }

@@ -1,7 +1,12 @@
 import { PalmPongGame, W, H, STEP, DURATION } from "./core.js";
 import { PalmPongInput } from "../input/palmPongInput.js";
 import { PalmPongAudio } from "./audio.js";
-import { renderCourt } from "./renderer.js";
+import { PhaserRuntime } from '../game-runtime/phaser/PhaserRuntime.js';
+import { CameraInputBridge } from '../game-runtime/phaser/input/CameraInputBridge.js';
+import { GameEventBus } from '../game-runtime/phaser/events/GameEventBus.js';
+import { PalmPongScene } from '../games/palm-pong/PalmPongScene.js';
+import { CameraGestureEvents, palmPongSnapshot } from '../input/cameraGameState.js';
+import { PaddleFeel } from './feel.js';
 import { textFor } from "./messages.js";
 import { readSettings, saveSettings, saveResult } from "./records.js";
 import "./palmPong.css";
@@ -12,19 +17,21 @@ export class PalmPongView {
     this.audio = new PalmPongAudio(); this.source = "camera"; this.phase = "idle"; this.active = false; this.generation = 0; this.guide = true;
     this.audio.enabled = readSettings().effects;
     this.keys = new Set(); this.pointers = new Map();
+    this.paddleFeel = new PaddleFeel({ variant: new URLSearchParams(location.search).get('feel') });
     root.innerHTML = `<section class="pp-play"><div class="pp-hud"><span class="pp-source"></span><div class="pp-score"><strong>0</strong><span></span><small></small></div><div class="pp-hud-right"><span class="pp-timer">30</span><button type="button" class="pp-pause"></button></div></div>
-      <div class="pp-court" tabindex="0"><video hidden muted playsinline></video><canvas class="pp-canvas" width="1280" height="720" role="img"></canvas><div class="pp-count" aria-live="polite" hidden></div></div>
+      <div class="pp-court camera-stage" tabindex="0"><video class="camera" hidden muted playsinline></video><div class="phaser-host" role="img"></div><div class="pp-count game-ui" aria-live="polite" hidden></div></div>
       <div class="pp-cue" role="status"></div><div class="pp-preparation"><button type="button" class="pp-start pp-primary" disabled></button></div>
       <div class="pp-overlay" hidden><h2></h2><p></p><div class="pp-recovery-buttons"><button type="button" class="pp-resume pp-primary" hidden></button><button type="button" class="pp-camera-retry pp-secondary" hidden></button><button type="button" class="pp-realign pp-secondary" hidden></button><button type="button" class="pp-demo pp-secondary" hidden></button><button type="button" class="pp-exit pp-text" hidden></button></div></div>
       <footer class="pp-play-footer"><p class="pp-tip"></p><button type="button" class="pp-sound" aria-pressed="true"></button></footer></section>`;
-    this.$ = selector => root.querySelector(selector); this.canvas = this.$("canvas"); this.video = this.$("video");
+    this.$ = selector => root.querySelector(selector); this.video = this.$("video");
+    this.inputBridge = new CameraInputBridge(); this.gameEvents = new GameEventBus(); this.gestures = new CameraGestureEvents();
     this.input = new PalmPongInput(this.video, { onStatus: (status, error) => {
       if (!this.active || this.source !== "camera") return; this.status = status;
       if (status === "ERROR") { this.phase = "error"; this.error = error; this.game.pause("tracking"); this.audio.pause(); }
       this.render(); this.notify();
     } });
   }
-  configure({ guide = true } = {}) { this.guide = guide; }
+  configure({ guide = true, feelVariant = this.paddleFeel.variant } = {}) { this.guide = guide; this.paddleFeel.variant = feelVariant === 'B' ? 'B' : 'A'; this.paddleFeel.reset(); }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   notify() { this.listeners.forEach(fn => fn(this.snapshot())); }
   snapshot() {
@@ -33,7 +40,9 @@ export class PalmPongView {
   }
   setLocale(locale) { this.locale = locale; this.render(); }
   activate() {
-    this.deactivate(); this.active = true; this.phase = "waiting"; this.status = null; this.error = null; this.lastSnapshot = null; this.uiKey = null;
+    this.releaseInputs(); this.active = true; this.phase = "waiting"; this.status = null; this.error = null; this.lastSnapshot = null; this.uiKey = null;
+    this.inputBridge.reset(); this.gestures.reset(); this.inputSnapshot = null;
+    this.paddleFeel.reset();
     this.game.reset(this.source); this.saved = false; this.accumulator = 0;
     this.demoPoints = [0, 1].map(side => ({ x: (side ? .72 : .28) * W, y: H / 2, present: true, continuous: true }));
     this.abort = new AbortController(); const signal = this.abort.signal;
@@ -44,8 +53,15 @@ export class PalmPongView {
     window.addEventListener("keydown", this.keyDown, { signal }); window.addEventListener("keyup", this.keyUp, { signal });
     window.addEventListener("blur", this.blur, { signal }); window.addEventListener("resize", this.resize, { signal });
     document.addEventListener("visibilitychange", this.visibility, { signal });
-    this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    this.lastFrame = performance.now(); this.frameId = requestAnimationFrame(this.loop); this.render(); this.draw();
+    const motion = matchMedia("(prefers-reduced-motion: reduce)"); this.reducedMotion = motion.matches;
+    motion.addEventListener('change', event => { this.reducedMotion = event.matches; }, { signal });
+    this.lastFrame = performance.now();
+    if (this.runtime) this.runtime.restart();
+    else {
+      this.scene = new PalmPongScene(this, { inputBridge: this.inputBridge, gameEvents: this.gameEvents, reducedMotion: this.reducedMotion });
+      this.runtime = new PhaserRuntime(this.$('.phaser-host'), this.scene);
+    }
+    this.render(); this.draw();
   }
   async startCamera() {
     this.source = "camera"; this.game.source = "camera";
@@ -64,21 +80,25 @@ export class PalmPongView {
     ++this.generation; this.input.stop(); this.source = "demo"; this.phase = "waiting"; this.error = null; this.game.reset("demo"); this.saved = false;
     this.demoPoints = [0, 1].map(side => ({ x: (side ? .72 : .28) * W, y: H / 2, present: true, continuous: true }));
     this.game.setPaddles(this.demoPoints); this.audio.arm(); this.lastFrame = performance.now(); this.accumulator = 0;
+    this.paddleFeel.reset();
     this.render(); this.notify(); this.$(".pp-court").focus({ preventScroll: true });
   }
   releaseInputs() {
     ++this.generation; this.input.stop(); this.audio.stop(); this.abort?.abort(); this.keys.clear();
     for (const id of this.pointers.keys()) { try { this.$(".pp-court").releasePointerCapture(id); } catch {} }
-    this.pointers.clear(); if (this.frameId != null) cancelAnimationFrame(this.frameId); this.frameId = null;
+    this.pointers.clear(); this.paddleFeel.reset(); this.runtime?.sleep();
   }
-  deactivate() { this.active = false; this.releaseInputs(); this.phase = "idle"; }
+  deactivate({ retainRenderer = false } = {}) {
+    this.active = false; this.releaseInputs(); this.phase = "idle";
+    if (!retainRenderer) { this.runtime?.destroy(); this.runtime = null; this.scene = null; this.inputBridge.reset(); this.gestures.reset(); }
+  }
   click = event => {
     if (event.target.closest(".pp-start")) { this.audio.arm(); this.game.start(); this.$(".pp-court").focus({ preventScroll: true }); }
     else if (event.target.closest(".pp-pause")) this.game.paused ? this.resume() : this.pause("user");
     else if (event.target.closest(".pp-resume")) this.resume();
     else if (event.target.closest(".pp-demo")) this.startDemo();
     else if (event.target.closest(".pp-camera-retry")) { this.game.reset("camera"); this.saved = false; this.input.stop(); void this.startCamera(); }
-    else if (event.target.closest(".pp-realign")) { this.input.tracker.reset(); this.game.requestResume(); }
+    else if (event.target.closest(".pp-realign")) { this.input.tracker.reset(); this.paddleFeel.reset(); this.game.requestResume(); }
     else if (event.target.closest(".pp-exit")) this.onExit?.();
     else if (event.target.closest(".pp-sound")) { this.audio.enabled = !this.audio.enabled; saveSettings({ effects: this.audio.enabled }); if (this.audio.enabled) this.audio.arm(); }
     this.render(); this.notify();
@@ -96,6 +116,7 @@ export class PalmPongView {
     if (!this.active || this.source !== "camera") return;
     if (this.phase === "rotate" && innerWidth >= innerHeight) { void this.startCamera(); return; }
     this.input.tracker.reset(); this.game.ready = false; this.game.stable = 0;
+    this.paddleFeel.reset();
     if (this.input.running) { this.pause("rotation"); if (this.game.paused) this.game.resumeRequested = false; }
   };
   keyDown = event => {
@@ -123,11 +144,12 @@ export class PalmPongView {
       p.x += ((this.keys.has(controls[1]) ? 1 : 0) - (this.keys.has(controls[0]) ? 1 : 0)) * dt * 6;
       p.y += ((this.keys.has(controls[3]) ? 1 : 0) - (this.keys.has(controls[2]) ? 1 : 0)) * dt * 6;
     }
-    this.game.setPaddles(this.demoPoints); this.demoPoints.forEach(p => { p.continuous = true; });
+    this.demoPoints.forEach(p => { p.x = Math.max(0, Math.min(W, p.x)); p.y = Math.max(0, Math.min(H, p.y)); });
   }
   loop = now => {
     if (!this.active) return;
     const dt = Math.max(0, (now - this.lastFrame) / 1000); this.lastFrame = now;
+    this.renderDt = dt;
     if (!["idle", "loading", "error", "rotate"].includes(this.phase)) {
       if (dt + this.accumulator > .2 && !["calibration", "round_end", "result", "paused"].includes(this.game.phase)) { this.pause("processing"); this.accumulator = 0; }
       else {
@@ -135,13 +157,28 @@ export class PalmPongView {
         while (this.accumulator >= STEP - 1e-8) {
           const inputTime = now - this.accumulator * 1000;
           if (this.source === "demo") this.updateDemo(this.game.paused ? 0 : STEP);
-          else this.game.setPaddles(this.input.tracker.sample(inputTime));
+          const points = this.source === 'demo' ? this.demoPoints : this.input.tracker.sample(inputTime);
+          this.inputSnapshot = palmPongSnapshot(points, inputTime, this.inputSnapshot);
+          this.inputBridge.publish(this.inputSnapshot, this.gestures.update(this.inputSnapshot));
+          const normalized = this.inputBridge.snapshot;
+          this.game.setPaddles([normalized.leftHand, normalized.rightHand].map(p => ({ x: p.x * W, y: p.y * H, present: p.visible, continuous: p.continuous })));
+          if (this.source === 'demo') this.demoPoints.forEach(p => { p.continuous = true; });
           if (this.source === "camera" && innerWidth < innerHeight) { this.game.ready = false; this.game.stable = 0; if (this.game.paused) this.game.step(STEP); }
           else this.game.step(STEP);
           this.accumulator -= STEP;
         }
       }
-      for (const event of this.game.takeEvents()) this.audio.play(event);
+      for (const event of this.game.takeEvents()) {
+        this.audio.play(event);
+        const data = { ...event, timestamp: now, x: (event.x ?? W / 2) / W * this.scene.scale.width, y: (event.y ?? H / 2) / H * this.scene.scale.height };
+        if (event.type === 'RETURN') {
+          this.gameEvents.emit('HIT', data); this.gameEvents.emit('SCORE', { ...data, score: this.game.total, delta: 1 });
+          if (Math.abs(event.offset) < .2) this.gameEvents.emit('HIGHLIGHT', { ...data, kind: 'perfect-hit' });
+        } else if (event.type === 'RALLY_MILESTONE') {
+          this.gameEvents.emit('COMBO', { ...data, count: event.rally });
+          if (event.rally >= 10) this.gameEvents.emit('FEVER', data);
+        } else this.gameEvents.emit(event.type, data);
+      }
       if (this.game.paused) this.audio.pause(); else if (this.audio.context?.state === "suspended" && this.game.resumeRequested) this.audio.arm();
       if (this.game.phase === "result" && !this.saved) {
         this.saved = true;
@@ -153,9 +190,9 @@ export class PalmPongView {
     this.render(); this.draw();
     const snapshotKey = `${this.snapshot().phase}|${this.game.paused}`;
     if (snapshotKey !== this.lastSnapshot) { this.lastSnapshot = snapshotKey; this.notify(); }
-    if (this.active && this.game.phase !== "result") this.frameId = requestAnimationFrame(this.loop);
   };
-  draw() { renderCourt(this.canvas, this.game, { source: this.source, video: this.video, guide: this.guide, reducedMotion: this.reducedMotion }); }
+  draw() { this.video.hidden = this.source !== 'camera'; }
+  get canvas() { return this.runtime?.canvas ?? null; }
   render() {
     const t = textFor(this.locale), g = this.game;
     const key = [this.locale, this.phase, this.status, this.source, g.phase, g.ready, g.rally, g.best, Math.ceil(g.elapsed), Math.ceil(g.countdown), g.pauseReason, g.resumeRequested, Math.ceil(g.resumeCount ?? -1), g.pauseAge >= 10, ...g.paddles.map(p => `${p.present}:${p.active}`), this.audio.enabled].join("|");
@@ -167,7 +204,7 @@ export class PalmPongView {
     this.$(".pp-pause").textContent = g.paused ? t.resume : t.pause;
     this.$(".pp-pause").disabled = this.phase !== "waiting" || ["calibration", "round_end", "result"].includes(g.phase);
     this.$(".pp-pause").setAttribute("aria-pressed", String(g.paused));
-    this.$(".pp-canvas").setAttribute("aria-label", t.tagline); this.$(".pp-court").setAttribute("aria-label", this.source === "demo" ? t.demoTip : t.tip);
+    this.$(".phaser-host").setAttribute("aria-label", t.tagline); this.$(".pp-court").setAttribute("aria-label", this.source === "demo" ? t.demoTip : t.tip);
     let cue = t.tip;
     if (g.phase === "calibration") cue = g.ready ? t.ready : !g.paddles[0].present ? t.left : !g.paddles[1].present ? t.right : g.paddles.some(p => !p.active) ? t.zone : t.hold;
     else if (g.phase === "serve_wait") cue = t.miss;

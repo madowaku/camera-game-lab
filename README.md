@@ -11,6 +11,16 @@ stems, Imagegen art and credited OtoLogic applause. See
 [implementation, assets and verification](docs/CAMERA_INSTRUMENT_MAESTRO_V01.md).
 Physical phone accuracy/latency tests remain pending.
 
+## Camera Input Feel Layer v0.1
+
+Dependency-free smoothing, response curves, spring follow, inertia and magnetic
+snap live in `src/inputFeel/`. TILT TURBO uses the shared API with its existing
+70ms / ±5° / 25° / .85 response. PALM PONG keeps collision inputs unchanged and
+offers an optional, bounded visual follower: `?feel=B#/game/duo-palm-pong`
+(`feel=A` is the default). Add `debug=1` to either game's URL to compare
+RAW / STABLE / FEEL. See [API, verification and pending A401OP comparisons](docs/CAMERA_INPUT_FEEL_V01.md).
+
+
 ## TECH-AVATAR-001: CAMERA PUPPET TEST
 
 Open `#/game/tech-camera-puppet` or `#camera-puppet`. Your head, mouth and arms

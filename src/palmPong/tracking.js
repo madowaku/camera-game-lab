@@ -14,7 +14,7 @@ export function palmToCourt(p, videoAspect, courtAspect = W / H) {
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 export class PalmTracker {
   constructor() { this.reset(); }
-  reset() { this.slots = [null, null]; this.samples = []; this.frames = 0; this.firstAt = null; this.lastAt = null; }
+  reset() { this.slots = [null, null]; this.rawHands = [null, null]; this.samples = []; this.frames = 0; this.firstAt = null; this.lastAt = null; }
   update(result, now, videoAspect = W / H) {
     const candidates = (result?.landmarks ?? []).map(palmCenter).filter(Boolean).map(p => palmToCourt(p, videoAspect)).filter(p => p.present);
     this.firstAt ??= now; this.frames++; this.lastAt = now;
@@ -34,6 +34,8 @@ export class PalmTracker {
     }
     assignments.sort((a, b) => a.cost - b.cost);
     const best = assignments[0] ?? { pair: [-1, -1] };
+    // Debug observations only. Rejected candidates must never enter gameplay.
+    this.rawHands = best.pair.map(index => candidates[index] ?? null);
     const ambiguous = assignments[1] && assignments[1].cost - best.cost < .12 && best.pair.some(i => i >= 0);
     const hands = best.pair.map((index, side) => {
       const point = candidates[index], old = this.slots[side];
@@ -67,4 +69,7 @@ export class PalmTracker {
     });
   }
   get fps() { return this.lastAt > this.firstAt ? (this.frames - 1) * 1000 / (this.lastAt - this.firstAt) : 0; }
+  debugSample(now) {
+    return { raw: this.lastAt !== null && now - this.lastAt <= 100 ? this.rawHands : [null, null], stable: this.sample(now) };
+  }
 }

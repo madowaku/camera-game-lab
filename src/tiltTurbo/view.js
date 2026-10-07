@@ -14,7 +14,8 @@ export class TiltTurboView {
     root.innerHTML=`<section class="tt-play"><div class="tt-toolbar"><span class="tt-source"></span><div><button class="tt-sfx" type="button" aria-pressed="true">SE ON</button><button class="tt-pause" type="button">Ⅱ</button></div></div>
       <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
       <div class="tt-overlay" hidden role="status"><h2></h2><p></p><button class="tt-resume" type="button" hidden></button><button class="tt-retry-camera" type="button" hidden></button><button class="tt-demo" type="button" hidden></button></div></div>
-      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><div class="tt-live" aria-live="polite" role="status"></div></section>`;
+      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><div class="tt-live" aria-live="polite" role="status"></div></section>`;
+    this.debugEnabled=new URLSearchParams(location.search).get('debug')==='1';
     this.$=s=>root.querySelector(s);this.video=this.$('video');this.canvas=this.$('.tt-canvas');this.capture=this.$('.tt-capture');this.renderer=new TiltTurboRenderer(this.canvas);
     this.input=new TiltTurboInput(this.video,{onResult:packet=>{
       if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
@@ -101,6 +102,9 @@ export class TiltTurboView {
   draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
   render(){
     const t=this.t;if(!this.$('.tt-hint'))return;
+    const hud=this.$('.tt-feel-debug');hud.hidden=!this.debugEnabled;
+    if(this.debugEnabled){const m=this.currentMotion,d=m?.debug??(this.source==='demo'?{raw:m?.roll,stable:m?.roll,feel:m?.steering}:null),number=(n,unit)=>Number.isFinite(n)?`${n.toFixed(3)}${unit}`:'LOST';
+      hud.textContent=`RAW    ${m?.tracked?number(d?.raw,'°'):'LOST'}\nSTABLE ${m?.tracked?number(d?.stable,'°'):'LOST'}\nFEEL   ${m?.tracked?number(d?.feel,' steering'):'LOST'}\nINPUT ${this.source?.toUpperCase()??'—'} · 70ms / ±5° / exponent .85`;}
     this.$('.tt-source').textContent=`${this.source==='demo'?t.demo:t.camera}${this.options.creator?' · CREATOR':''}`;
     this.$('.tt-sfx').textContent=`SE ${this.audio.enabled?'ON':'OFF'}`;this.$('.tt-sfx').setAttribute('aria-pressed',String(this.audio.enabled));
     const playable=['calibration','countdown','playing'].includes(this.phase);
