@@ -107,6 +107,14 @@ download, listening, or as a secondary music asset inside a creator tool.
 
 ## FINGER GUN
 
+ROCK PAPER BOOM! (EXP-061, 2026-10-06) also reuses this exact track and lazy
+inline asset. [Creator conditions](https://opentracks.com/creator/detail/55),
+[site license](https://opentracks.com/help/articles/license/) and
+[site terms](https://opentracks.com/help/articles/terms/) were rechecked on that
+date and permit commercial game background use. BGM runs during BOOM and stops
+for freeze, countdown, pause and exit; no recording or soundtrack export.
+See [ROCK PAPER BOOM! asset manifest](../../../docs/rock-paper-boom-assets.json).
+
 - Track: [8-bit Aggressive1](https://opentracks.com/bgm/detail/1978)
 - Creator: もっぴーさうんど (Moppy Sound)
 - Source download: https://opentracks.com/bgm/detail/1978/download

@@ -16,6 +16,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "duo-rock-paper-boom": "finger",
   "solo-hook": "handy",
   "solo-hand-spell": "handSpell",
   "solo-air-slash": "airSlash",

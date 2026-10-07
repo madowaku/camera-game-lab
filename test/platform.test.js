@@ -170,3 +170,18 @@ test("legacy touch and DUO fallback normalize practice provenance for retry and 
   assert.doesNotMatch(resultPayload(game, { score: 0, source: 'camera' }, 'en').text, /Practice/);
   assert.doesNotMatch(resultPayload(game, { score: 0, scored: false }, 'en').text, /pts/);
 });
+
+test("launcher forwards semantic game events only while that Phaser game is active", async t => {
+  const root = fakeDom(t), delivered = [], bus = new Set();
+  const game = { id: 'phaser-game', module: 'phaser-game', load: async () => (host => ({
+    gameEvents: { on(type, listener) { bus.add(listener); return () => bus.delete(listener); }, emit: event => [...bus].forEach(listener => listener(event)) },
+    setLocale() {}, activate() {}, startCamera() {}, deactivate() {}, releaseInputs() {},
+  })) };
+  const launcher = createLauncher(root, { onGameEvent: (event, owner) => delivered.push([event.type, owner.id]) });
+  const entry = await launcher.prepare(game, 'en'); launcher.begin();
+  assert.equal(bus.size, 1);
+  entry.instance.gameEvents.emit({ type: 'HIGHLIGHT' });
+  assert.deepEqual(delivered, [['HIGHLIGHT', 'phaser-game']]);
+  launcher.stop(); assert.equal(bus.size, 0); entry.instance.gameEvents.emit({ type: 'LATE' });
+  assert.deepEqual(delivered, [['HIGHLIGHT', 'phaser-game']]);
+});

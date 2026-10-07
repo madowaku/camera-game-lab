@@ -1,0 +1,56 @@
+{
+  "experiment": "EXP-061 ROCK PAPER BOOM!",
+  "verifiedAt": "2026-10-06",
+  "images": {
+    "provider": "OpenAI built-in Imagegen",
+    "atlas": {
+      "generation": "exec-e2374e90-4139-49d3-a1d4-5ad08a0367f1.png",
+      "asset": "src/rockPaperBoom/assets/weapons.webp",
+      "dimensions": [2172, 724],
+      "alpha": true,
+      "layout": "Three equal 724px frames: volcanic fist, cyan scissors, golden palm. Phaser texture subframes; no semantic image edits.",
+      "processing": "WebP quality 87, original dimensions and alpha preserved; PNG retained in ignored output/rock-paper-boom/weapons-source.png",
+      "sha256": "71A9F67F932DD004E0159B3ECEAAB8A995B77DF614FEA055981FB01BF49243CD"
+    },
+    "cover": {
+      "generation": "exec-5511e09c-2fc2-462d-a6a5-39cfd3d404a0.png",
+      "asset": "public/previews/rock-paper-boom.webp",
+      "dimensions": [768, 1152],
+      "processing": "Resized from 1024x1536, WebP quality 86. Title rendered as HTML. Source retained in ignored output/rock-paper-boom/cover-source.png",
+      "sha256": "013A40F76EF4FD69171F7EC092A52308D484B7B931FAB47E091DFD7910A4A53B"
+    }
+  },
+  "music": {
+    "title": "8-bit Aggressive1",
+    "creator": "もっぴーさうんど",
+    "source": "https://opentracks.com/bgm/detail/1978",
+    "creatorTerms": "https://opentracks.com/creator/detail/55",
+    "license": "https://opentracks.com/help/articles/license/",
+    "siteTerms": "https://opentracks.com/help/articles/terms/",
+    "conditions": "Creator follows site license; commercial game background use permitted. Reuses existing downloaded track and lazy inline module; no additional source distribution, music download, listening function, recording or creator export.",
+    "asset": "src/assets/music/finger-gun-theme.mp3",
+    "module": "src/assets/music/fingerGunTheme.js",
+    "sha256": "8ECEEDC05BF0A30D844C94B1CF3C1D6B9B0CCC74161A8128B988DD1FE3E520B2",
+    "edit": "Existing opening 15 seconds, stereo MP3 128 kbit/s, 0.75-second fade out.",
+    "runtime": "Shared MusicBed only during BOOM. Countdown SE, silent freeze, independent BGM and SE mute. Stops on pause and exit."
+  },
+  "effects": {
+    "provider": "Kenney Impact Sounds / RPG Audio",
+    "license": "CC0",
+    "sources": [
+      {
+        "source": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds/Audio/impactMetal_heavy_000.ogg",
+        "asset": "src/rockPaperBoom/assets/impact.ogg",
+        "licenseFile": "src/rockPaperBoom/assets/IMPACT-LICENSE.txt",
+        "sha256": "E07045693E4A2B3D165C424E3DAB4C781D9FF8880A386880AC89A51315D7F831"
+      },
+      {
+        "source": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/knifeSlice.ogg",
+        "asset": "src/rockPaperBoom/assets/slash.ogg",
+        "licenseFile": "src/rockPaperBoom/assets/RPG-LICENSE.txt",
+        "sha256": "4CD96DC630BED9840C15F1DD2306DA2CC56A4DA26A5D3F1A03C5A7265AC5E54F"
+      }
+    ],
+    "procedural": "Original Web Audio low countdown, shoot cue, bass impact, retry and victory chord. Active nodes stopped on freeze, mute and pause."
+  }
+}

@@ -53,6 +53,19 @@ and Kenney CC0 accents accompany the game. See [implementation and verification]
 [specification](docs/specs/EXP-060_HOOK_SPEC_v0.1.md) and the pending
 [five-round phone playtest](docs/HOOK_PLAYTEST.md).
 
+## EXP-061: ROCK PAPER BOOM! / 爆裂じゃんけん
+
+Two ordinary hands. Ridiculous consequences. Open `#/game/duo-rock-paper-boom`
+or `#rock-paper-boom`. Two friends throw rock/paper/scissors into left/right zones
+on the rear camera. Fresh simultaneous stable hands lock after SHOOT!, freeze
+for 0.5 seconds, then trigger METEOR FIST, DIMENSION CUT, GIANT PALM or one of
+three epic draws. Tap AGAIN for an immediate rematch with the same camera.
+Includes camera-free A/S/D + J/K/L or touch practice, JA/EN, pause, tracking retry,
+Debug HUD, Imagegen art, OpenTracks BGM and shared Kenney CC0 SE. Uses the shared
+Phaser renderer and independent rules core. See [implementation and verification](docs/ROCK_PAPER_BOOM_PROGRESS.md)
+and [asset provenance](docs/rock-paper-boom-assets.json). Physical two-person accuracy
+and five-to-ten-round human playtests remain to be checked.
+
 ## EXP-057: SONIC INK
 
 Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or
