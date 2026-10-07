@@ -1,0 +1,72 @@
+{
+  "experiment": "EXP-059",
+  "id": "solo-human-fish",
+  "verifiedAt": "2026-10-06",
+  "images": [
+    {
+      "asset": "src/humanFish/assets/aquarium-v1.webp",
+      "source": "src/humanFish/assets/aquarium-v1.png",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": false,
+      "use": "Aquarium background and launch art",
+      "sourceSha256": "A9926EE39B77E48A881C6CD22CE8F69B5959DD805C75B2A6750B0E13512A083D",
+      "assetSha256": "2AA73E2B87F0EB7C76AED29CF94DB9F5B21E6C74745E34BB03A30F0F640893D1",
+      "prompt": "Use case: stylized-concept\nAsset type: full-bleed portrait aquarium background for HUMAN FISH, a playful camera-controlled survival game.\nPrimary request: a breathtaking beautiful miniature tropical aquarium viewed straight through its front glass, luminous turquoise water grading to deep petrol teal below, golden sunlight caustics, peach pink branching coral, lavender anemones, lush emerald aquatic plants, smooth sand and tiny shells, a charming miniature sunken wooden pirate ship toy near the bottom.\nComposition: tall portrait 9:16 image. Water surface visible near the upper 14 percent with a quiet pale aqua air band above; tank floor at bottom 92 percent. Decorations concentrated at bottom and outer edges, with a generous uncluttered open swimming area in the center. A few tiny colorful background tropical fish at the far edges only. Show the aquarium interior filling the frame, no exterior tank, no room. No main player fish, no human face; runtime adds the player. Rich sophisticated jewel colors, very high polish, soft dimensional handcrafted miniature 3D aesthetic, whimsical but serene, clear silhouettes, subtle depth.\nConstraints: no typography, no text, no logos, no watermark, no user interface."
+    },
+    {
+      "asset": "src/humanFish/assets/fish-v1.webp",
+      "source": "src/humanFish/assets/fish-v1.png",
+      "generator": "built-in image_gen.imagegen",
+      "transparent": true,
+      "use": "Human-fish player and launch character; own camera face is composited at runtime",
+      "sourceSha256": "67BC5E278483AFCC2DC9E49017F82810DBDF805209656711D7A0A82CA70F063E",
+      "assetSha256": "ED48C62FF73AAE1138565B0BAC0DBA8D3D13452D47964C49FE3B9BE16754684C",
+      "prompt": "Use case: stylized-concept\nAsset type: single transparent HUMAN FISH game character sprite, no scenery.\nPrimary request: a whimsical strange human-faced tropical fish. One plump small luminous turquoise-and-gold fish with shimmering scales, beautiful coral-orange translucent fan tail on the LEFT, long elegant dorsal and belly fins, fish body extends horizontally toward a round human face on the RIGHT. The human face looks directly toward the viewer, sculpted friendly adult face with large expressive eyes, raised eyebrows, a small human nose, cheeks and a little pursed human mouth. Charming absurd human fish, funny rather than frightening. The face occupies the right third of the horizontal silhouette, centered at approximately x=65%, y=48%. Face is pale warm peach; the fish body and fins remain distinctly tropical.\nStyle: premium polished miniature 3D character, detailed iridescent scales, glossy eyes, soft studio lighting, confident beautiful readable silhouette.\nComposition: single centered fish, near side view of body and front view of face, facing RIGHT, all fins and tail completely visible, generous transparent padding. Aspect 3:2 landscape, fish fills 85% width. No cast shadow, no water, no bubble, no other fish, no text, no logo. Actual alpha transparent background."
+    }
+  ],
+  "preview": {
+    "asset": "public/previews/human-fish.webp",
+    "use": "Feed key art",
+    "source": "Browser-rendered entrance art using the two generated images"
+  },
+  "music": {
+    "title": "aquarium",
+    "creator": "えだまめ88",
+    "sourceUrl": "https://opentracks.com/bgm/detail/19143",
+    "downloadPage": "https://opentracks.com/bgm/detail/19143/download",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "siteTermsUrl": "https://opentracks.com/help/articles/terms/",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/351",
+    "verifiedAt": "2026-10-06",
+    "asset": "src/assets/music/human-fish.mp3",
+    "source": "output/music-sources/human-fish/aquarium-original.mp3 (ignored, original not distributed)",
+    "sourceSha256": "8A44E5B8844F81B75DB14473270930484D88042D34B11359A4C804EF5031F3C7",
+    "assetSha256": "656FF8EE482E2AD465BED9B296FC093FD7A3998E75922286F72176ED91AF31EB",
+    "acquisition": "Official POST download form, track=1; 165.048-second original, 6606016 bytes.",
+    "edit": "Opening 48 seconds, 96 kbit/s stereo MP3 at 44.1kHz; -22 LUFS / -2dB true peak target; 100ms fade in and 1-second fade out. Original tempo and pitch.",
+    "use": "Commercial game background use permitted; creator follows the site license. Lazy inline converted JS, no standalone audio in public/dist, listening player or music downloads. Only active gameplay. Separate BGM mute, pause/result/exit lifecycle. Low-pass at critical oxygen. CREATOR videos and photos contain no BGM."
+  },
+  "effects": [
+    {
+      "asset": "src/humanFish/assets/swish.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/cloth1.ogg",
+      "creator": "Kenney",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0",
+      "licenseFile": "src/humanFish/assets/Kenney-LICENSE.txt",
+      "sha256": "DDB93A3671233F95DA0E0B10367F082F7EB42FA6CAADDCF776410AA8833C747D",
+      "use": "Breath swish beneath original synthesized gasp tones"
+    },
+    {
+      "asset": "src/humanFish/assets/paw.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds/Audio/impactSoft_medium_000.ogg",
+      "creator": "Kenney",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "license": "CC0",
+      "licenseFile": "src/humanFish/assets/Kenney-Impact-LICENSE.txt",
+      "sha256": "7D3BA0BB5E60A11B5D3E558C141303DCF494256675FBF753C0D252D2CF0481E3",
+      "use": "Soft cat-paw slap"
+    }
+  ],
+  "originalAudio": "Eat, gasp, low-oxygen, cat-warning, float-away and clear tones synthesized locally with Web Audio."
+}

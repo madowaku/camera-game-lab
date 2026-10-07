@@ -1,6 +1,7 @@
 import { escapeHtml as esc } from "./copy.js";
 
 export const tracks = Object.freeze({
+  humanFish: { id: "humanFish", title: "aquarium", creator: "えだまめ88", url: "https://opentracks.com/bgm/detail/19143", volume: .22, load: () => import("../assets/music/humanFish.js") },
   handSpell: { id: "handSpell", title: "The maze of aqua", creator: "蒲鉾さちこ", url: "https://opentracks.com/bgm/detail/23061", volume: .22, load: () => import("../assets/music/handSpell.js") },
   blinkSpooky: { id: "blinkSpooky", title: "不穏ROOM", creator: "MAKOOTO", url: "https://opentracks.com/bgm/detail/9957", volume: .07, load: () => import("../assets/music/uneasyRoom.js") },
   airSlash: { id: "airSlash", title: "イケイケな気分", creator: "ハヤシユウ", url: "https://opentracks.com/bgm/detail/11555", volume: .2, load: () => import("../assets/music/airSlash.js") },
@@ -16,6 +17,7 @@ export const tracks = Object.freeze({
   finger: { id: "finger", title: "8-bit Aggressive1", creator: "もっぴーさうんど", url: "https://opentracks.com/bgm/detail/1978", volume: .22, load: () => import("../assets/music/fingerGunTheme.js") },
 });
 const themes = {
+  "solo-human-fish": "humanFish",
   "duo-rock-paper-boom": "finger",
   "solo-hook": "handy",
   "solo-hand-spell": "handSpell",
@@ -93,6 +95,8 @@ export class MusicBed {
     } catch { this.failed = true; }
   }
   update(snapshot, foreground = true) {
+    this.filterHz = Math.max(80, Math.min(20000, Number(snapshot?.musicFilterHz) || 20000));
+    if (this.filter) this.filter.frequency.setTargetAtTime(this.filterHz, this.context.currentTime, .1);
     const nextRate = Math.max(.5, Math.min(2, Number(snapshot?.musicRate) || 1));
     if (nextRate !== this.rate) { this.pause(); this.rate = nextRate; }
     this.wanted = musicAudible(snapshot, foreground);
@@ -113,7 +117,12 @@ export class MusicBed {
       if (node.playbackRate) node.playbackRate.value = this.rate;
       gain.gain.setValueAtTime(0, this.context.currentTime);
       gain.gain.linearRampToValueAtTime(this.track.volume, this.context.currentTime + .12);
-      node.connect(gain); gain.connect(this.context.destination);
+      node.connect(gain);
+      if (this.track.id === 'humanFish' && this.context.createBiquadFilter) {
+        this.filter = this.context.createBiquadFilter(); this.filter.type = 'lowpass';
+        this.filter.frequency.value = this.filterHz || 20000;
+        gain.connect(this.filter); this.filter.connect(this.context.destination);
+      } else gain.connect(this.context.destination);
       this.startedAt = this.context.currentTime;
       node.start(0, this.offset % this.buffer.duration);
       this.source = node; this.gain = gain;
@@ -123,6 +132,7 @@ export class MusicBed {
     if (!this.source) return;
     this.offset = (this.offset + Math.max(0, this.context.currentTime - this.startedAt) * this.rate) % this.buffer.duration;
     try { this.source.stop(); this.source.disconnect(); this.gain.disconnect(); } catch { /* Already stopped. */ }
+    this.filter?.disconnect(); this.filter = null;
     this.source = null; this.gain = null;
   }
   stop() {

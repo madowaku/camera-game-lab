@@ -1,5 +1,22 @@
 # Game music assets
 
+## HUMAN FISH (EXP-059)
+
+- Track: [aquarium](https://opentracks.com/bgm/detail/19143), by えだまめ88.
+- Official download form, track 1: https://opentracks.com/bgm/detail/19143/download.
+  Acquired 2026-10-06. Original retained only in ignored `output/music-sources/human-fish/`.
+- [OpenTracks license](https://opentracks.com/help/articles/license/),
+  [site terms](https://opentracks.com/help/articles/terms/) and
+  [creator conditions](https://opentracks.com/creator/detail/351) checked 2026-10-06:
+  commercial game background use and editing allowed; creator follows site license.
+- Opening 48 seconds, 96 kbit/s stereo MP3 / 44.1kHz; −22 LUFS / −2dB true peak
+  target; 100ms fade-in and one-second fade-out. Original tempo and pitch.
+- Lazy inline converted JS audio. No standalone MP3 in public/dist, listening
+  feature or audio download. BGM follows active play, mute, pause, result and exit.
+  Critical oxygen adds a low-pass filter. Photos and CREATOR exports contain no BGM.
+- Source and runtime SHA-256 hashes, provenance and exact processing are recorded
+  in [the asset manifest](../../../docs/human-fish-assets.json).
+
 ## HAND SPELL (EXP-056)
 
 - Track: [The maze of aqua](https://opentracks.com/bgm/detail/23061), by 蒲鉾さちこ.

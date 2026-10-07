@@ -9,6 +9,15 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-human-fish", exp: "EXP-059", collection: "SOLO", category: "SOLO",
+    titleJa: "HUMAN FISH", titleEn: "HUMAN FISH", subtitleJa: "美しい水槽で、人面魚として生き延びる。欲張るほど息が苦しくなる。", subtitleEn: "Live as a human fish. The greedier you get, the harder it is to breathe.",
+    input: ["FACE", "MOUTH"], duration: 45, accent: "#98dec6", tags: ["aquarium", "survival", "creator", "人面魚", "水槽", "欲張り", "呼吸"],
+    aliases: ["#human-fish", "#humanFish"], module: "humanFish", renderer: "phaser", demo: true, motif: "mouth", previewType: "image", previewAsset: "/previews/human-fish.webp",
+    privacyJa: "インカメラで顔と口を追跡します。マイク・外部送信は使いません。初回に顔モデルをダウンロード。PLAYは録画しません。写真は保存操作時のみ端末へ。CREATORの一時リプレイも端末内で処理し、退出時に破棄します。動画は音声なしです。",
+    privacyEn: "Front camera tracks your face and mouth on your device. No microphone or uploads. Face models download on first use. PLAY does not record. Photos save only on request. CREATOR replay stays on your device and is discarded on exit. Videos are silent.",
+    loadPresentation: () => import("../humanFish/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `人面魚として${r.survival.toFixed(1)}秒生きました。称号「${r.titleJa}」 食べたエサ${r.foods} / 呼吸${r.breaths} / 猫${r.catHits}` : `I lived ${r.survival.toFixed(1)} seconds as a human fish. ${r.titleEn}. Food ${r.foods} / Breaths ${r.breaths} / Cat slaps ${r.catHits}`),
+    load: () => import("../humanFish/view.js").then(m => m.createView) }),
   define({ id: "solo-maestro", exp: "MAESTRO-001", collection: "SOLO", category: "SOLO",
     titleJa: "MAESTRO", titleEn: "MAESTRO", subtitleJa: "手を振った瞬間、音楽がきみについてくる。", subtitleEn: "Move your hands. The music follows you.",
     input: ["BODY"], duration: 32, untimed: true, accent: "#f3c87c", tags: ["music", "orchestra", "指揮", "音楽", "楽器"],

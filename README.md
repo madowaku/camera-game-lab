@@ -1,5 +1,18 @@
 # Camera Game Lab 📷🎮
 
+## EXP-059: HUMAN FISH / 人面魚生活
+
+Live in a beautiful aquarium as a human-faced fish. Open `#/game/solo-human-fish`
+or `#human-fish`. Move your face to swim, open your mouth to bite underwater,
+and close/reopen at the surface for a full PUHAAAA oxygen refill. A 45-second
+greedy life with shrimp, deep pearls, bonus temptations and telegraphed cat paws.
+Includes camera-free touch / arrows / WASD / Space practice, tracking-loss grace,
+pause, a six-stat life report and style title, local PNG photos, and CREATOR’s
+seven-second real gasp highlight with ORIGINAL / EFFECT / HIDE and silent export.
+Uses the shared Phaser layer, Imagegen aquarium/fish, OpenTracks “aquarium” by
+えだまめ88 and shared Kenney CC0 SE. See [specification](docs/specs/EXP-059_HUMAN_FISH_SPEC_v0.1.md),
+[asset provenance](docs/human-fish-assets.json) and [verification](docs/HUMAN_FISH_PROGRESS.md).
+
 ## Camera Instrument / MAESTRO v0.1
 
 Open `#/game/tech-camera-instrument` (`#world-instrument`) to place up to five

@@ -1,0 +1,15 @@
+Built-in image_gen.imagegen / 2026-10-06
+
+AQUARIUM
+Use case: stylized-concept
+Asset type: full-bleed portrait aquarium background for HUMAN FISH, a playful camera-controlled survival game.
+Primary request: a breathtaking beautiful miniature tropical aquarium viewed straight through its front glass, luminous turquoise water grading to deep petrol teal below, golden sunlight caustics, peach pink branching coral, lavender anemones, lush emerald aquatic plants, smooth sand and tiny shells, a charming miniature sunken wooden pirate ship toy near the bottom.
+Composition: tall portrait 9:16 image. Water surface visible near the upper 14 percent with a quiet pale aqua air band above; tank floor at bottom 92 percent. Decorations concentrated at bottom and outer edges, with a generous uncluttered open swimming area in the center. A few tiny colorful background tropical fish at the far edges only. Show the aquarium interior filling the frame, no exterior tank, no room. No main player fish, no human face; runtime adds the player. Rich sophisticated jewel colors, very high polish, soft dimensional handcrafted miniature 3D aesthetic, whimsical but serene, clear silhouettes, subtle depth.
+Constraints: no typography, no text, no logos, no watermark, no user interface.
+
+FISH (transparent_background: true)
+Use case: stylized-concept
+Asset type: single transparent HUMAN FISH game character sprite, no scenery.
+Primary request: a whimsical strange human-faced tropical fish. One plump small luminous turquoise-and-gold fish with shimmering scales, beautiful coral-orange translucent fan tail on the LEFT, long elegant dorsal and belly fins, fish body extends horizontally toward a round human face on the RIGHT. The human face looks directly toward the viewer, sculpted friendly adult face with large expressive eyes, raised eyebrows, a small human nose, cheeks and a little pursed human mouth. Charming absurd human fish, funny rather than frightening. The face occupies the right third of the horizontal silhouette, centered at approximately x=65%, y=48%. Face is pale warm peach; the fish body and fins remain distinctly tropical.
+Style: premium polished miniature 3D character, detailed iridescent scales, glossy eyes, soft studio lighting, confident beautiful readable silhouette.
+Composition: single centered fish, near side view of body and front view of face, facing RIGHT, all fins and tail completely visible, generous transparent padding. Aspect 3:2 landscape, fish fills 85% width. No cast shadow, no water, no bubble, no other fish, no text, no logo. Actual alpha transparent background.
