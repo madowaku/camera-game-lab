@@ -129,6 +129,9 @@ export function mountPlatform(app) {
     onExit: () => navigate(feedRoute(feedId)),
     onReplay: (game) => { if (session?.game.id === game.id && session.result) replayRound(); },
     onPhotoError: () => toast(t("failed")),
+    onGameEvent(event, game) {
+      window.dispatchEvent(new CustomEvent('camera-lab:game', { detail: { gameId: game.id, ...event } }));
+    },
     onState(snapshot, game) {
       if (!session || session.game.id !== game.id || !session.begun) return;
       // A controller can recover from denied camera access into its demo mode.

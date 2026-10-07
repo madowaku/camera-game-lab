@@ -2,7 +2,7 @@ import { artworkAssets } from "./artworkAssets.js";
 // Display numbers belong to a collection. Identity and routing never depend on them.
 const loadSolo = () => import("../solo/soloExperience.js").then((m) => m.createSoloExperience);
 const define = (entry) => Object.freeze({
-  status: "playable", featured: false, orientation: "portrait", players: 1,
+  status: "playable", featured: false, orientation: "portrait", players: 1, renderer: "dom",
   duration: 30, previewType: "poster", previewAsset: null,
   requiresCamera: true, requiresMicrophone: false, tags: [], aliases: [],
   ...entry, ...(artworkAssets[entry.id] ? { previewType: "image", previewAsset: artworkAssets[entry.id] } : {}), route: `#/game/${entry.slug ?? entry.id}`, slug: entry.slug ?? entry.id,
@@ -33,6 +33,15 @@ export const experiments = Object.freeze([
     privacyEn: "Front camera tracks your face and mouth on your device. No microphone, recording or uploads. The face model downloads on first use. Music is discarded on exit. Saving validation stores only measurements and feedback on your device.",
     loadPresentation: () => import("../mouthMusic/presentation.js"),
     load: () => import("../mouthMusic/view.js").then(m => m.createView) }),
+  define({ id: "solo-hook", exp: "EXP-060", collection: "SOLO", category: "SOLO", renderer: "phaser-three", visual: "hybrid",
+    titleJa: "HOOK!", titleEn: "HOOK!", subtitleJa: "食いついたら、身体ごと引け。", subtitleEn: "When it bites, put your body into it.",
+    input: ["HAND"], duration: 30, accent: "#30bcae", tags: ["fishing", "ocean", "釣り", "魚", "逆へ引く"],
+    aliases: ["#hook", "#hook-fishing"], module: "hook", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/hook.webp",
+    privacyJa: "インカメラで片手の位置と動きを追跡します。映像と手の位置は端末内で処理し、外部へ送信しません。マイク・録画は使いません。釣り上げた記念写真だけ端末メモリに一時保持し、保存は自分で選びます。退出時に破棄します。初回は手認識モデルをダウンロードします。練習はカメラとモデルなしで遊べます。",
+    privacyEn: "Front camera tracks one palm and its motion locally, without uploads. No microphone or recording. Catch photos stay temporarily in device memory; saving is your choice. They are discarded on exit. The hand model downloads on first use. Practice needs neither camera nor models.",
+    loadPresentation: () => import("../hook/presentation.js"),
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `HOOK! · ${r.catches.length}匹 · ${r.score}点${r.biggest ? ` · 最大${r.biggest.size}cm` : ""}。君も大物、釣れる？` : `HOOK! · ${r.catches.length} catches · ${r.score} points${r.biggest ? ` · biggest ${r.biggest.size}cm` : ""}. Can you land a big one?`),
+    load: () => import("../hook/view.js").then(m => m.createView) }),
   define({ id: "solo-sonic-ink", exp: "EXP-057", collection: "SOLO", category: "SOLO",
     titleJa: "SONIC INK", titleEn: "SONIC INK", subtitleJa: "その線が、メロディになる。", subtitleEn: "Draw in the air. Hear what you made.",
     input: ["HAND"], duration: 15, accent: "#edb6d2", tags: ["drawing", "3D", "music", "お絵描き", "音楽", "空間"],
@@ -287,6 +296,7 @@ export function validateRegistry(list) {
     if (!categories.includes(game.category) || !Array.isArray(game.input) || !game.input.length || game.input.some((input) => !inputs.includes(input))) errors.push(`${game.id}: invalid category/input`);
     if (!Number.isInteger(game.players) || game.players < 1 || !(game.duration > 0)) errors.push(`${game.id}: invalid players/duration`);
     if (!["portrait", "landscape", "any"].includes(game.orientation)) errors.push(`${game.id}: invalid orientation`);
+    if (!["dom", "phaser", "phaser-three"].includes(game.renderer)) errors.push(`${game.id}: invalid renderer`);
     if (!["poster", "image", "video"].includes(game.previewType)) errors.push(`${game.id}: invalid previewType`);
     if (!/^#[0-9a-f]{6}$/i.test(game.accent)) errors.push(`${game.id}: invalid accent`);
     for (const field of ["featured", "requiresCamera", "requiresMicrophone"]) if (typeof game[field] !== "boolean") errors.push(`${game.id}: invalid ${field}`);

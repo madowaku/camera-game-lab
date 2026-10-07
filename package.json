@@ -18,6 +18,7 @@
     "@mediapipe/tasks-vision": "1.0.1",
     "@pixiv/three-vrm": "3.5.5",
     "gsap": "3.15.0",
+    "phaser": "4.2.1",
     "three": "0.186.1",
     "tone": "15.1.22"
   },

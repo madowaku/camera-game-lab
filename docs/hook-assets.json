@@ -1,0 +1,109 @@
+{
+  "experiment": "EXP-060",
+  "id": "solo-hook",
+  "verifiedAt": "2026-10-06",
+  "images": [
+    {
+      "asset": "src/hook/assets/fish-atlas-v1.png",
+      "sha256": "F9DC57DD65B5C804A96D1C9B39F91EB8E20C92FB9B210FEB9856674A1E6BBC54"
+    },
+    {
+      "asset": "src/hook/assets/fish-atlas-v2.png",
+      "sha256": "9F4FECB54244563D7A6AC9F07560502F182DC162F418F43F1DB55E6971423F9D"
+    },
+    {
+      "asset": "src/hook/assets/cover-v1.png",
+      "sha256": "61FF085124EEF2DCC6183FEFFD606ED31D0190F5E81A0B74E238386A1240DD64"
+    },
+    {
+      "asset": "src/hook/assets/cover-v1.webp",
+      "sha256": "1EE554FE46615DAFACC4291F8DBA8576342162D0C88EF00AB855047DAA1423E6"
+    },
+    {
+      "asset": "src/hook/assets/aji-v1.webp",
+      "sha256": "9690CC525FC4A9EBB63526A057887352F39A926F9131A6CBB8E65A73D43E92D4"
+    },
+    {
+      "asset": "src/hook/assets/tai-v1.webp",
+      "sha256": "6D15C46AD5F313BF9F70CEE2EF6D9B21E33F1431DD311892A5A21C0058C5AC9F"
+    },
+    {
+      "asset": "src/hook/assets/tuna-v1.webp",
+      "sha256": "9A7C73D72DB0BC8F95D587EC0998CFEB95C648F2DE991EFAF8C3252EC991AC30"
+    },
+    {
+      "asset": "src/hook/assets/boot-v1.webp",
+      "sha256": "4A58AC90BCF729AE24CD31B717E7240E33C95417C94790777AFC9B48B42F1F1B"
+    },
+    {
+      "asset": "src/hook/assets/human-v1.webp",
+      "sha256": "E26EB2A318AF75CC772BEA899C31DB4CC964899EEEC2FDC8827F3AA03BBE6FB5"
+    },
+    {
+      "asset": "public/previews/hook.webp",
+      "sha256": "1EE554FE46615DAFACC4291F8DBA8576342162D0C88EF00AB855047DAA1423E6"
+    }
+  ],
+  "imageGeneration": {
+    "generator": "built-in image_gen.imagegen",
+    "prompts": "docs/hook-image-prompts.txt",
+    "packing": "scripts/prepare-hook-assets.py",
+    "alpha": true,
+    "originalDirectory": "C:/Users/hiro/.codex/generated_images/01a1119a-3612-7173-be32-8b84e6ea7318",
+    "originals": [
+      "exec-d6fb4c1e-0a20-4230-b764-4eef9f6b8687.png",
+      "exec-30e1211c-0e23-4e1f-b550-91ad01519c8a.png",
+      "exec-f617af58-3b7b-4aa9-896b-ecec27d48439.png"
+    ]
+  },
+  "music": {
+    "title": "ぷかぷか",
+    "creator": "ゆうり (Yuli Audio Craft)",
+    "bpm": 120,
+    "sourceUrl": "https://opentracks.com/bgm/detail/11821",
+    "downloadPage": "https://opentracks.com/bgm/detail/11821/download",
+    "creatorTermsUrl": "https://opentracks.com/creator/detail/204#terms-of-use",
+    "licenseUrl": "https://opentracks.com/help/articles/license/",
+    "verifiedAt": "2026-10-06",
+    "creatorConditions": "Site-conforming; no additional creator restrictions listed.",
+    "sourceSha256": "AD6F181AA136764C4D9D864A7546621520F17584A1C6584882643B0D203C0C9B",
+    "asset": "src/assets/music/handy-pals.mp3",
+    "assetSha256": "025D394036181B45A61F545DB55708E37CDD0B6042454BD3748648D6B4305140",
+    "edit": {
+      "start": 0,
+      "duration": 30,
+      "bitrateKbps": 96,
+      "sampleRate": 44100,
+      "channels": 2,
+      "loudnessTargetLUFS": -20,
+      "truePeakDB": -2,
+      "fadeIn": 0.05,
+      "fadeOut": 1
+    },
+    "delivery": "Vite ?inline import in a lazy game BGM module; no standalone audio file in public or dist. Used only as game background music. Saving/sharing exports a still PNG with no audio.",
+    "commercialUse": "Commercial game BGM and editing permitted under the verified source and creator license. No separate music player, music export or audio download is provided.",
+    "use": "Reuses existing legally downloaded OpenTracks asset. Current site license, site terms and creator site-conforming conditions rechecked. Active game BGM only; FEVER playback rate 1.16. Shared BGM mute/pause/result/exit lifecycle. Lazy inline JS; no standalone MP3 in dist or public, no audio exports. Track-specific page unavailable to web fetch; existing acquisition provenance retained."
+  },
+  "effects": [
+    {
+      "asset": "src/hook/assets/cast.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/cloth1.ogg",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "license": "CC0",
+      "licenseFile": "src/hook/assets/Kenney-RPG-LICENSE.txt",
+      "use": "Rod cast whoosh",
+      "sha256": "DDB93A3671233F95DA0E0B10367F082F7EB42FA6CAADDCF776410AA8833C747D"
+    },
+    {
+      "asset": "src/hook/assets/splash.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_impact-sounds/Audio/impactSoft_medium_000.ogg",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "license": "CC0",
+      "licenseFile": "src/hook/assets/Kenney-Impact-LICENSE.txt",
+      "use": "Impact accent under synthesized splash",
+      "sha256": "7D3BA0BB5E60A11B5D3E558C141303DCF494256675FBF753C0D252D2CF0481E3"
+    }
+  ],
+  "originalAudio": "Bite, hook, landing, success, fever and line-break cues synthesized with Web Audio. Photos contain no audio.",
+  "thirdParty3d": "No third-party model. Shared Three visual layer animates curved meshes textured with the generated fish."
+}

@@ -26,7 +26,7 @@ export function releaseResources(instance) {
 
 // One cached controller per module avoids accumulating its existing global event
 // listeners. Dormant controllers have no stream, model, timer or AudioContext.
-export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onReplay }) {
+export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onReplay, onGameEvent }) {
   const cache = new Map();
   let generation = 0, current = null;
   function closeAudio(instance) {
@@ -38,6 +38,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     if (!current) return;
     const entry = current; current = null;
     entry.enabled = false;
+    entry.gameEventUnsubscribe?.(); entry.gameEventUnsubscribe = null;
     entry.autoStart = false;
     entry.motion.stop();
     entry.instance.deactivate(); releaseResources(entry.instance); closeAudio(entry.instance);
@@ -105,6 +106,9 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     const entry = current;
     entry.options = options; entry.instance.configure?.(options);
     entry.lastPhase = null; entry.host.hidden = false; entry.autoStart = true; entry.enabled = true;
+    entry.gameEventUnsubscribe ??= entry.instance.gameEvents?.on('*', event => {
+      if (current === entry && entry.enabled) onGameEvent?.(event, entry.game);
+    }) ?? null;
     entry.motion.begin(entry.game);
     entry.instance.activate(entry.game.mode);
     if (source === "demo" && entry.instance.startDemo) entry.instance.startDemo();
@@ -119,7 +123,7 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     releaseResult() { if (current) { current.autoStart = false; current.motion.stop(); releaseResources(current.instance); closeAudio(current.instance); } },
     retry(source) {
       if (!current) return;
-      ++generation; current.autoStart = false; current.enabled = false; current.motion.stop(); current.instance.deactivate(); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
+      ++generation; current.autoStart = false; current.enabled = false; current.gameEventUnsubscribe?.(); current.gameEventUnsubscribe = null; current.motion.stop(); current.instance.deactivate({ retainRenderer: true }); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
     },
   };
 }

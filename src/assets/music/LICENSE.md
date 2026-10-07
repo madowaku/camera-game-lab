@@ -148,6 +148,21 @@ HAND BEAT keeps its own timed beat. NOTE BLASTER uses music in practice mode onl
 
 The song starts after the automatic greeting, follows the shared BGM switch and stops on pause, results and departure. Brief hand-tracking loss keeps the toy and background music running. Exact provenance is in [the HANDY PALS manifest](../../../docs/handy-pals-assets.json).
 
+## EXP-060 HOOK! (2026-10-06)
+
+Reuses **ぷかぷか / ゆうり**, [OpenTracks track 11821](https://opentracks.com/bgm/detail/11821)
+and the existing `handy-pals.mp3` asset listed above. The
+[source license](https://opentracks.com/help/articles/license/),
+[site terms](https://opentracks.com/help/articles/terms/) and
+[creator conditions](https://opentracks.com/creator/detail/204#terms-of-use)
+were checked again on 2026-10-06. Commercial game background use and editing
+are permitted. Original acquisition and hashes remain unchanged.
+The shared music owner pauses on missing hands and manual pause, stops on
+results/exit and plays at rate 1.16 during FEVER. Audio stays inline in the lazy
+game music module; no separate download/listening feature is exposed.
+Catch souvenirs are still PNG files with no audio. See the
+[HOOK asset manifest](../../../docs/hook-assets.json).
+
 ## EXP-054 AIR SLASH (2026-10-04)
 
 - Track: [イケイケな気分](https://opentracks.com/bgm/detail/11555) / ハヤシユウ.

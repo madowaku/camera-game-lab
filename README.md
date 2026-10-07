@@ -31,6 +31,18 @@ sound-off comparisons, performance probes, melody replay, and local validation
 with a manually selected ADOPT / TRY AGAIN / PARK verdict. See
 [implementation and pending device/experience checks](docs/TECH_003_MOUTH_MUSIC.md).
 
+## EXP-060: HOOK! / カメラ釣り
+
+One hand casts, hooks a bite, then pulls against the fish. Open `#/game/solo-hook`
+or `#hook` for a portrait 30-second round with five fish, tension and landing
+gauges, fish feints, FEVER, local catch photos and JA / EN. Touch and keyboard
+practice follows the same rules; missing hands pause active play.
+The shared Phaser runtime draws the sea and fish, while the shared Three visual
+layer brings the Imagegen fish toward the lens. OpenTracks “ぷかぷか” / ゆうり
+and Kenney CC0 accents accompany the game. See [implementation and verification](docs/HOOK_PROGRESS.md),
+[specification](docs/specs/EXP-060_HOOK_SPEC_v0.1.md) and the pending
+[five-round phone playtest](docs/HOOK_PLAYTEST.md).
+
 ## EXP-057: SONIC INK
 
 Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or
