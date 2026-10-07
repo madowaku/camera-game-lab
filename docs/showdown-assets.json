@@ -1,0 +1,12 @@
+{
+  "game": "EXP-058 FINGER GUN: SHOWDOWN",
+  "verified": "2026-10-07",
+  "assets": [
+    { "path": "src/showdown/assets/town-v1.webp", "original": "src/showdown/assets/town-v1.png", "source": "Built-in Imagegen", "prompt": "docs/showdown-image-prompts.txt" },
+    { "path": "src/rockPaperBoom/assets/impact.ogg", "source": "https://kenney.nl/assets/impact-sounds", "license": "CC0", "licenseFile": "src/rockPaperBoom/assets/IMPACT-LICENSE.txt", "use": "Toy shot accent, reused bundled asset" },
+    { "path": "src/hook/assets/cast.ogg", "source": "https://kenney.nl/assets/rpg-audio", "license": "CC0", "licenseFile": "src/hook/assets/Kenney-RPG-LICENSE.txt", "use": "Reload accent, reused bundled asset" },
+    { "path": "src/assets/music/finger-gun-theme.mp3", "title": "8-bit Aggressive1", "creator": "もっぴーさうんど", "source": "https://opentracks.com/bgm/detail/1978", "license": "https://opentracks.com/help/articles/license/", "use": "Game background music only; shared lazy inline bundle, existing 15-second edit", "provenance": "src/assets/music/LICENSE.md" }
+  ],
+  "procedural": ["Phaser toy outlaw/civilian markers", "confetti and impact rings", "Web Audio hit, lightning, clock and final chord"],
+  "note": "Music is an existing commercially usable arcade track, not a new western composition. Creator exports omit all audio. No new paid plugin or asset purchase."
+}

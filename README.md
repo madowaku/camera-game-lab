@@ -7,6 +7,19 @@ and [pending Android / human playtest](docs/CAMERA_IS_IT_STAGE_PACK_V02_PLAYTEST
 
 # Camera Game Lab 📷🎮
 
+## EXP-058: FINGER GUN: SHOWDOWN
+
+Open `#/game/solo-finger-gun-showdown` or `#showdown`: point to aim, open your
+mouth to fire, lower your wrist to reload six shots. A 30-second toy western
+with civilians, gold, QUICK DRAW, combos, HIGH NOON and a final bounty.
+Camera-free practice, JA/EN, pause, Imagegen background, licensed OpenTracks
+music and Kenney CC0 sounds are included. CREATOR offers face modes and local
+seven-second best-moment replay/silent video export. See
+[implementation and verification](docs/SHOWDOWN_PROGRESS.md),
+[asset provenance](docs/showdown-assets.json) and
+[original specification](docs/specs/EXP-058_FINGER_GUN_SHOWDOWN_v0.1.md).
+Physical camera/phone playtesting remains pending.
+
 ## EXP-059: HUMAN FISH / 人面魚生活
 
 Live in a beautiful aquarium as a human-faced fish. Open `#/game/solo-human-fish`

@@ -19,7 +19,7 @@ const detection = (...points) => ({ landmarks: points.map(p => landmarks(...p)),
 test("EXP-048 has unique DUO identity and practice-aware challenge sharing", () => {
   const game = experiments.find(g => g.id === "duo-palm-pong"); assert.deepEqual(validateRegistry(experiments), []);
   assert.equal(game.players, 2); assert.equal(game.orientation, "landscape"); assert.equal(game.requiresMicrophone, false); assert.deepEqual(game.aliases, ["#palm-pong"]);
-  assert.equal(game.renderer, 'phaser'); assert.ok(experiments.filter(item => ![game.id, 'solo-human-fish', 'duo-rock-paper-boom', 'solo-hook'].includes(item.id)).every(item => item.renderer === 'dom'));
+  assert.equal(game.renderer, 'phaser'); assert.ok(experiments.filter(item => ![game.id, 'solo-human-fish', 'duo-rock-paper-boom', 'solo-hook', 'solo-finger-gun-showdown'].includes(item.id)).every(item => item.renderer === 'dom'));
   assert.equal(experiments.filter(g => g.exp === "EXP-048" && g.collection === "DUO").length, 1);
   const payload = resultPayload(game, { outcome: "rally", source: "demo", bestRally: 18, scored: false }, "ja", "https://example.test/");
   assert.match(payload.text, /練習.*18ラリー.*何回/); assert.equal(payload.url, "https://example.test/#/game/duo-palm-pong"); assert.doesNotMatch(payload.text, /点|pts/);

@@ -1,0 +1,4 @@
+Built-in Imagegen, 2026-10-07. No reference images. transparent_background=false.
+Output: src/showdown/assets/town-v1.png; runtime copy: town-v1.webp (720 × 1280).
+
+Use case: stylized-concept. Asset type: portrait 9:16 background for a camera arcade game FINGER GUN SHOWDOWN. A beautiful playful toy western town diorama, bright turquoise sky, orange sandstone distant mesas, yellow sun, wooden saloon facades on left and right with clearly visible dark open windows at different heights, crates at bottom corners. Painted wood and clay toy materials, polished charming 3D illustration, bold warm colors. Central lower half is uncluttered turquoise and sandy space reserved for player's live camera silhouette. No people, no weapons, no text, no UI, no watermark. Straight frontal composition, usable game backdrop.

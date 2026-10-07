@@ -3,6 +3,7 @@
 import { DRUMS, BIG_DRUM } from '../games/toyDrum.js';
 const profile = (family, stage, label, every = 5) => Object.freeze({ family, stage, label, every });
 export const motionProfiles = Object.freeze({
+  'solo-finger-gun-showdown': Object.freeze({ ...profile('impact', '.sd-stage', 'BAN!', 0), native: true }),
   'solo-human-fish': profile('swirl', '.hf-stage', 'PAKU!', 0),
   // The round scene owns the freeze/impact contrast; avoid a second effect layer.
   'duo-rock-paper-boom': Object.freeze({ ...profile('impact', '.rpb-stage', 'BOOM!', 0), native: true }),
