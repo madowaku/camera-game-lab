@@ -1,0 +1,108 @@
+{
+  "verifiedOn": "2026-10-07",
+  "title": "Little Theatre",
+  "composition": "Original fixed 16-bar C-major arrangement authored for Camera Game Lab; free commercial use.",
+  "bpm": 120,
+  "bars": 16,
+  "recordings": {
+    "source": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "credits": "Sam Gossner, Simon Dalzell; sample cutting Elan Hickler / Soundemote"
+  },
+  "sourceFiles": [
+    {
+      "file": "violin.wav",
+      "repositoryPath": "Strings/Violin Section/susVib/VlnEns_susVib_C4_v1.wav",
+      "sha256": "c07edd5b2119fa1da2207aba996961b50dd616f69bbcf2300ab271bc6c16239f"
+    },
+    {
+      "file": "bell.wav",
+      "repositoryPath": "Percussion/Glock/glock_medium_C5.wav",
+      "sha256": "635f898e0bcb6975b96b18efd9c896f6f1b97ff12174a339ada4814e49675660"
+    },
+    {
+      "file": "cymbal.wav",
+      "repositoryPath": "Percussion/cymbal-crash1_mf_rr1.wav",
+      "sha256": "3b4a6ed42627eedca39f6480e9825dedeaab538197fc734f85be13ba655aa6aa"
+    },
+    {
+      "file": "snare.wav",
+      "repositoryPath": "Percussion/Snare2-HitSN_v3_rr1_Sum.wav",
+      "sha256": "3df96009d655dd4fe43c635bd3c20314a1e0cbdf9f571ee8a66207f9ef917d08"
+    },
+    {
+      "file": "trumpet.wav",
+      "repositoryPath": "Brass/Trumpet/sus/Sum_SHTrumpet_sus_C3_v3_rr1.wav",
+      "sha256": "4a55ab4d867cfa3499fbcf1c5d8d530f757621a9979aee5b46d3fd69a2931c99"
+    },
+    {
+      "file": "LICENSE.txt",
+      "repositoryPath": "LICENSE",
+      "sha256": "36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673"
+    },
+    {
+      "file": "kick.wav",
+      "repositoryPath": "Percussion/BDrumNewhit_v3_rr1_Sum.wav",
+      "sha256": "a2d8829e8b2b59e8afb12fa396b01758827059339c2a84ad066d17b36c82d1ff"
+    },
+    {
+      "file": "tom.wav",
+      "repositoryPath": "Percussion/Timpani/Timpani1_Hit_v3_rr1_Sum.wav",
+      "sha256": "8b39a785901d08dee14dd89914bdf2201e16ee418965e4d903fdb8e280a14d24"
+    },
+    {
+      "file": "spiccato.wav",
+      "repositoryPath": "Strings/Violin Section/Spic/VlnEns_Spic_C4_v1_rr1.wav",
+      "sha256": "b734950875dff1dd7cda7c4721901516560b99f5655c3ffd40b6dc43c16e9c2f"
+    }
+  ],
+  "rendered": [
+    {
+      "asset": "src/maestro/music/strings.ogg",
+      "sha256": "b35c393ca4db05607189e09843965a836c676729c2055651605be61621d3095d",
+      "durationSeconds": 32.0
+    },
+    {
+      "asset": "src/maestro/music/brass.ogg",
+      "sha256": "7ad73443d8414e3d7784041f3b2d567055eb5ef0a715349203ed965133f46e64",
+      "durationSeconds": 32.0
+    },
+    {
+      "asset": "src/maestro/music/percussion.ogg",
+      "sha256": "88175643dc230e4628600f7b4253834c58acd1510e93bf45c04daa4372d489bb",
+      "durationSeconds": 32.0
+    },
+    {
+      "asset": "src/maestro/music/kick.ogg",
+      "sha256": "9030eb5ea813d7373bf160f0ca58ca87e73641f7c27b9cb3b7a4dc79b2ae8d17",
+      "durationSeconds": 0.8
+    },
+    {
+      "asset": "src/maestro/music/snare.ogg",
+      "sha256": "6a1483f7369caccf437a496bfe410c23bcebc9d9adb59e467f88765b4a3eac97",
+      "durationSeconds": 0.8
+    },
+    {
+      "asset": "src/maestro/music/cymbal.ogg",
+      "sha256": "b82ebb1c1bafe75242cc82c9f4cc99d5cc1f8278db5fcba138cf9d6f8c3f1162",
+      "durationSeconds": 2.0
+    },
+    {
+      "asset": "src/maestro/music/tom.ogg",
+      "sha256": "3a1868b8a2e88e32efaa7b666a262570edb3fce517f2769d9a997185575a3441",
+      "durationSeconds": 0.8
+    },
+    {
+      "asset": "src/maestro/music/bell.ogg",
+      "sha256": "59a5b6ca9d716eadb4da824c893089f33521b13312e35d65a6cb18be38501f34",
+      "durationSeconds": 2.0
+    },
+    {
+      "asset": "src/maestro/music/finale.ogg",
+      "sha256": "e0dfa5b9250e9e38d60bcd14a451f55fa89b52d06e06fb49e9a9ad219bb1c63e",
+      "durationSeconds": 3.0
+    }
+  ],
+  "delivery": "Three mono Vorbis loops, 22050 Hz, exact 32s; same AudioContext and start time; independent gains. No runtime composition."
+}

@@ -12,7 +12,7 @@ export class MotionDirector {
   }
   begin(game) {
     this.stop(); this.game = game; this.profile = motionProfiles[game.id];
-    if (!this.profile) { this.game = null; return; }
+    if (!this.profile || this.profile.native) { this.game = null; return; }
     if (!this.reduced) {
       this.reduced = matchMedia('(prefers-reduced-motion: reduce)');
       this.reduced.addEventListener('change', this.onPreference);

@@ -1,5 +1,16 @@
 # Camera Game Lab 📷🎮
 
+## Camera Instrument / MAESTRO v0.1
+
+Open `#/game/tech-camera-instrument` (`#world-instrument`) to place up to five
+sound spots on real objects, or `#/game/solo-maestro` (`#maestro`) to conduct a
+miniature animal orchestra. Includes camera-free practice, JA/EN, MELODY/DRUM/TOY,
+section/dynamics control, CUT, guarded FINALE/BRAVO, pause/mute/retry and Debug HUD.
+Uses the existing camera lifecycle, a reusable zone API, actual CC0 instrument
+stems, Imagegen art and credited OtoLogic applause. See
+[implementation, assets and verification](docs/CAMERA_INSTRUMENT_MAESTRO_V01.md).
+Physical phone accuracy/latency tests remain pending.
+
 ## EXP-057: SONIC INK
 
 Draw in the air. Hear what you made. Open `#/game/solo-sonic-ink` or

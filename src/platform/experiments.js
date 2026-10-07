@@ -9,6 +9,22 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-maestro", exp: "MAESTRO-001", collection: "SOLO", category: "SOLO",
+    titleJa: "MAESTRO", titleEn: "MAESTRO", subtitleJa: "手を振った瞬間、音楽がきみについてくる。", subtitleEn: "Move your hands. The music follows you.",
+    input: ["BODY"], duration: 32, untimed: true, accent: "#f3c87c", tags: ["music", "orchestra", "指揮", "音楽", "楽器"],
+    aliases: ["#maestro"], module: "maestro", demo: true, motif: "body", audioStrategy: "stems", previewType: "image", previewAsset: "/previews/maestro.webp",
+    privacyJa: "インカメラで肩と両手首を端末内で認識します。マイク・録画・外部送信は使いません。初回に姿勢の認識モデルをダウンロードします。練習ではカメラもモデルも不要です。",
+    privacyEn: "Front camera recognizes shoulders and wrists on your device. No microphone, recording or uploads. A pose model downloads on first use. Practice needs neither camera nor models.",
+    loadPresentation: () => import("../camera/instrument/presentation.js"),
+    load: () => import("../maestro/view.js").then(m => m.createView) }),
+  define({ id: "tech-camera-instrument", exp: "TECH-INSTRUMENT-001", collection: "TECH", category: "SOLO",
+    titleJa: "WORLD INSTRUMENT", titleEn: "WORLD INSTRUMENT", subtitleJa: "好きな物を、きみの楽器に。", subtitleEn: "Your world. Your instrument.",
+    input: ["HAND", "CAMERA"], duration: 30, untimed: true, accent: "#a9dcd1", tags: ["music", "playground", "rear camera", "楽器", "音スポット"],
+    aliases: ["#camera-instrument", "#world-instrument", "#toy-piano"], module: "cameraInstrument", demo: true, motif: "hand", audioStrategy: "instrument",
+    privacyJa: "アウトカメラで人差し指の先を端末内で認識します。物体の自動認識は行いません。マイク・録画・外部送信は使いません。初回に手の認識モデルをダウンロードします。音の位置は退出すると消えます。",
+    privacyEn: "Rear camera tracks one index fingertip on your device. Objects are placed manually. No microphone, recording or uploads. A hand model downloads on first use. Sound spots are cleared on exit.",
+    loadPresentation: () => import("../camera/instrument/presentation.js"),
+    load: () => import("../playground/camera-instrument/view.js").then(m => m.createView) }),
   define({ id: "solo-sonic-ink", exp: "EXP-057", collection: "SOLO", category: "SOLO",
     titleJa: "SONIC INK", titleEn: "SONIC INK", subtitleJa: "その線が、メロディになる。", subtitleEn: "Draw in the air. Hear what you made.",
     input: ["HAND"], duration: 15, accent: "#edb6d2", tags: ["drawing", "3D", "music", "お絵描き", "音楽", "空間"],

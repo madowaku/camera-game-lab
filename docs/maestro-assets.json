@@ -1,0 +1,101 @@
+{
+  "verifiedOn": "2026-10-07",
+  "images": {
+    "generator": "Built-in OpenAI Imagegen tool; no model version selector exposed.",
+    "prompts": "docs/maestro-image-prompts.md",
+    "orchestra": {
+      "source": "C:/Users/hiro/.codex/generated_images/01a1160c-7c63-7452-90ca-efc97fde248a/exec-a6b06c86-a621-467e-9626-19711308ade4.png",
+      "original": {
+        "path": "src/maestro/assets/orchestra-v1.png",
+        "bytes": 1732258,
+        "sha256": "706d67893034ea853a0150afe77ec7cc00e7a4c7ec5d53ddf1294628749becaf"
+      },
+      "runtime": {
+        "path": "src/maestro/assets/orchestra-v1.webp",
+        "bytes": 189214,
+        "sha256": "5b809dc02a2ce3cb4901680d0460663f5e47e0bcd0b5712d76ea919c42a820ef"
+      },
+      "processing": "2172x724 RGBA source; 1440x480 WebP; true alpha preserved. Three equal atlas cells. No third-party reference images."
+    },
+    "cover": {
+      "source": "C:/Users/hiro/.codex/generated_images/01a1160c-7c63-7452-90ca-efc97fde248a/exec-2c4659c1-ece1-42bc-983f-c693fa9a0ed8.png",
+      "original": {
+        "path": "src/maestro/assets/cover-v1.png",
+        "bytes": 2054567,
+        "sha256": "68d2311b57a9c257c379d5dccda27156f6f044b32434b07b99f30314631b483d"
+      },
+      "runtime": {
+        "path": "src/maestro/assets/cover-v1.webp",
+        "bytes": 132454,
+        "sha256": "7de9ba42835eab2672f1cf37e52f444c8d5a9d21e4b9028ed8fc48a8ef171e0d"
+      },
+      "preview": {
+        "path": "public/previews/maestro.webp",
+        "bytes": 50798,
+        "sha256": "1a1a24c80fd508694d9de0f52f9e863a4f5ee86f53d4eae289d267d864de6f1c"
+      },
+      "processing": "Portrait source retained; 768px-wide WebP cover and 432px-wide feed preview. Title and interactive controls rendered in code."
+    }
+  },
+  "orchestraMusic": {
+    "manifest": "docs/maestro-audio-assets.json",
+    "renderer": "scripts/prepare-maestro-audio.py",
+    "license": "CC0 recordings; original fixed arrangement for this project.",
+    "delivery": "Three 32-second stems at 120 BPM, plus sample-based one-shots. Inline lazy JS assets; no standalone audio in public/dist."
+  },
+  "applause": {
+    "title": "拍手 群衆03-3（短）",
+    "creator": "OtoLogic",
+    "page": "https://otologic.jp/free/se/applause-cheer01.html",
+    "terms": "https://otologic.jp/free/license.html",
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "archive": {
+      "path": "C:/Dev/AssetsShared/Audio/OtoLogic/Applause-Crowd03-mp3.zip",
+      "sha256": "041614c132bc397b67bc3bda79cbedb72ee4df2f3f9626a721236b52f44827b2"
+    },
+    "source": {
+      "path": "C:/Dev/AssetsShared/Audio/OtoLogic/Applause-Crowd03/Applause-Crowd03/Applause-Crowd03-3(Short).mp3",
+      "sha256": "3681d704e95112204b323c796ac8f5bd5d179f0d971f957e324c1b979666f8f5"
+    },
+    "runtime": {
+      "path": "src/maestro/assets/applause.ogg",
+      "bytes": 25909,
+      "sha256": "0d0fe8bcd22b372414c557bda154b37e9a6e1716f31142a809f884248adac1db"
+    },
+    "processing": "First 4 seconds; gain 0.6; fade-out from 3 to 4 seconds; mono 22050Hz Vorbis quality 4.",
+    "attribution": "SE: OtoLogic (CC BY 4.0). Volume, length and encoding edited. Linked in live game and how-to sheet.",
+    "acquisition": "Official ZIP link downloaded through the browser; local source archive retained in AssetsShared."
+  },
+  "confirmation": {
+    "creator": "Kenney",
+    "page": "https://kenney.nl/assets/interface-sounds",
+    "license": "CC0-1.0",
+    "source": {
+      "path": "C:/Dev/AssetsShared/Audio/SE/kenney_interface-sounds/Audio/confirmation_001.ogg",
+      "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a"
+    },
+    "runtime": {
+      "path": "src/maestro/assets/confirmation.ogg",
+      "bytes": 8968,
+      "sha256": "063564703b6094d70718a3e787a55cc9141611e4ecd6b6637f8828f79b4a8c3a"
+    },
+    "licenseFile": "src/maestro/assets/KENNEY-LICENSE.txt",
+    "processing": "Unmodified source copy."
+  },
+  "optionalPlaygroundBacking": {
+    "title": "おもちゃの一日",
+    "creator": "いまたく",
+    "page": "https://opentracks.com/bgm/detail/7044",
+    "license": "OpenTracks commercial background-use license",
+    "terms": "https://opentracks.com/help/articles/license/",
+    "creatorTerms": "https://opentracks.com/creator/detail/273#terms-of-use",
+    "runtime": {
+      "path": "src/assets/music/toy-drum.mp3",
+      "bytes": 432946,
+      "sha256": "95e257c3f90b3f05bb2e75404324273f3b94307210562e56234a70afb90e71a3"
+    },
+    "existingProvenance": "docs/toy-drum-assets.json",
+    "delivery": "Existing licensed inline MusicBed. Off by default; only active play; mute, pause, background and exit stop it. No source download, recording or export."
+  }
+}

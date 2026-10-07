@@ -3,6 +3,8 @@
 import { DRUMS, BIG_DRUM } from '../games/toyDrum.js';
 const profile = (family, stage, label, every = 5) => Object.freeze({ family, stage, label, every });
 export const motionProfiles = Object.freeze({
+  'solo-maestro': Object.freeze({ ...profile('rhythm', '.maestro-stage', 'BRAVO!', 0), native: true }),
+  'tech-camera-instrument': Object.freeze({ ...profile('rhythm', '.cmi-playground .cmi-stage', '♪', 0), native: true }),
   'solo-sonic-ink': profile('orbit', '.si-stage', 'LOOP!', 0),
   'solo-hand-spell': profile('orbit', '.hs-stage', 'LOCKED!', 3),
   'solo-hand-beat': profile('rhythm', '#stage', 'ON BEAT!'),

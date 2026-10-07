@@ -1,5 +1,10 @@
 # Preview assets
 
+`maestro.webp` (2026-10-07) is the miniature theatre cover generated with the
+built-in Imagegen tool, resized to 432px wide. Original PNG, runtime cover and
+orchestra atlas are in `src/maestro/assets/`. [Exact prompts](../../docs/maestro-image-prompts.md)
+and [provenance/hashes](../../docs/maestro-assets.json).
+
 `hand-beat.webp` is an original generated illustration for this sprint (2026-10-02).
 Generated with the available built-in `image_gen.imagegen` tool. The user requested
 imagegen2.5; the tool exposes no model selector or returned model version, so that

@@ -49,6 +49,7 @@ export function mountPlatform(app) {
   function updateMusicChrome() {
     const available = route?.view === "game" && !!trackForGame(route.experiment, session?.source ?? "camera");
     const button = $(".game-music"); button.disabled = !available;
+    button.hidden = ["stems", "instrument"].includes(route?.experiment?.audioStrategy);
     button.textContent = available ? `BGM ${music.enabled ? "ON" : "OFF"}` : route?.experiment?.id === "solo-hand-beat" ? "BEAT" : "BGM —";
     button.setAttribute("aria-pressed", String(available && music.enabled));
     button.setAttribute("aria-label", available ? (locale === "ja" ? `BGMを${music.enabled ? "消す" : "つける"}` : `Turn BGM ${music.enabled ? "off" : "on"}`) : (locale === "ja" ? "このモードのBGMは停止しています" : "BGM is silent in this mode"));
@@ -67,7 +68,7 @@ export function mountPlatform(app) {
     $(".sheet-close").focus();
   }
   function info(game) {
-    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("privacyText"))}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}${musicCreditMarkup(game, locale)}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
+    showSheet(`<p class="platform-kicker">${game.exp} / ${game.collection}</p><h2 id="sheet-title">${esc(titleOf(game, locale))}</h2><p>${esc(subtitleOf(game, locale))}</p><dl><dt>${t("input")}</dt><dd>${game.input.map((input) => inputLabel(input, locale)).join(" + ")} · ${game.players}${t("players")}</dd><dt>${t("duration")}</dt><dd>${game.untimed ? (locale === "ja" ? "時間制限なし" : "NO TIME LIMIT") : t("seconds", { n: game.duration })}</dd></dl>${game.orientation === "landscape" ? `<p>${t("rotate")}</p>` : ""}<h3>${t("privacy")}</h3><p>${esc(game[locale === "ja" ? "privacyJa" : "privacyEn"] ?? t("privacyText"))}</p>${game.requiresMicrophone ? `<p>${t("voiceReason")}</p>` : ""}${musicCreditMarkup(game, locale)}<a class="sheet-play" href="${game.route}">PLAY ↗</a>`);
     if (session?.game.id === game.id) $(".sheet-play").remove();
     else $(".sheet-play").addEventListener("click", (event) => { event.preventDefault(); closeSheet(); action("play", game); });
   }

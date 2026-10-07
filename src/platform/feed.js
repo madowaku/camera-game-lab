@@ -7,14 +7,14 @@ export function mountFeed(root, { order, locale, favorites, events, initialId, o
   root.innerHTML = `<div class="lab-feed" tabindex="0" role="region" aria-label="${t("feedLabel")}">${order.map((game, index) => `
     <article class="feed-card" data-id="${game.id}" style="--accent:${game.accent}" aria-labelledby="title-${game.id}">
       <div class="feed-edition"><span><i></i> INTERACTIVE EXPERIMENT</span><span>${String(index + 1).padStart(2, "0")} / ${String(order.length).padStart(2, "0")}</span></div>
-      <div class="game-preview">${previewMarkup(game)}<span class="preview-caption">${t("preview")} / ${game.duration}S</span></div>
+      <div class="game-preview">${previewMarkup(game)}<span class="preview-caption">${t("preview")} / ${game.untimed ? "FREE TIME" : `${game.duration}S`}</span></div>
       <div class="feed-copy"><div class="feed-meta">${game.exp}<span>/</span>${game.category}</div><h1 id="title-${game.id}">${esc(titleOf(game, locale))}</h1><p>${esc(subtitleOf(game, locale))}</p></div>
       <div class="action-rail">
         <button type="button" data-action="favorite" aria-label="${t("favorite")}" aria-pressed="${favorites.has(game.id)}"><span aria-hidden="true">${favorites.has(game.id) ? "♥" : "♡"}</span></button>
         <button type="button" data-action="share" aria-label="${t("share")}"><span aria-hidden="true">↗</span></button>
         <button type="button" data-action="info" aria-label="${t("info")}"><span class="info-glyph" aria-hidden="true">i</span></button>
       </div>
-      <div class="feed-facts"><span>${game.input.map((input) => inputLabel(input, locale)).join(" + ")}</span><span>${game.players}${t("players")}</span><span>${t("seconds", { n: game.duration })}</span></div>
+      <div class="feed-facts"><span>${game.input.map((input) => inputLabel(input, locale)).join(" + ")}</span><span>${game.players}${t("players")}</span><span>${game.untimed ? (locale === "ja" ? "時間制限なし" : "NO TIME LIMIT") : t("seconds", { n: game.duration })}</span></div>
       <button type="button" class="feed-play" data-action="play" aria-label="PLAY ${esc(titleOf(game, locale))}"><span class="play-triangle" aria-hidden="true"></span> PLAY <span class="play-arrow" aria-hidden="true">↗</span></button>
       <div class="feed-foot"><span>CAMERA ON. WORLD OFF.</span><button type="button" data-action="advance" aria-label="${t("swipe")}">${t("swipe")} <span aria-hidden="true">↑</span></button></div>
     </article>`).join("")}</div>`;
