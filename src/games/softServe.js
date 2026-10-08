@@ -41,7 +41,7 @@ export class SoftServeGame {
     // Short hand-detection gaps while attaching do not erase deliberate hold.
     // Never count unobserved time toward the hold, and expire it after 150 ms.
     if (!tracked && this.phase === "ready" && !this.manualPause && ms <= 500) {
-      this.readyLossMs += dt;
+      this.readyLossMs += Math.max(0, ms);
       this.missing = true; this.paused = true; this.wasMissing = false;
       if (this.readyLossMs > this.rules.readyLossGraceMs) this.readyMs = 0;
       return;
