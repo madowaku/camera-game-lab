@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DwellTarget, AirSwipe } from '../src/cameraUi/core.js';
+import { DwellTarget, AirSwipe, projectHandCursor } from '../src/cameraUi/core.js';
 import { DwellRetry } from '../src/maruMagic/core.js';
 
 const rect = { left: 50, top: 50, right: 150, bottom: 150 };
@@ -72,4 +72,12 @@ test('air swipe requires valid positive viewport dimensions', () => {
   const s=new AirSwipe();
   assert.equal(s.update({x:40,y:600},0,{width:0,height:800}),0);
   assert.equal(s.update(null,100,{width:360,height:800}),0);
+});
+
+test('menu cursor mirrors x once and rejects missing hand data', () => {
+  const frame=(x,y)=>({landmarks:[Array.from({length:21},()=>({x,y}))]});
+  assert.deepEqual(projectHandCursor(frame(.25,.75),360,800),{x:270,y:600});
+  assert.equal(projectHandCursor(frame(-.1,.5),360,800),null);
+  assert.equal(projectHandCursor({},360,800),null);
+  assert.equal(projectHandCursor(frame(.5,.5),0,800),null);
 });
