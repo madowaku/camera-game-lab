@@ -17,11 +17,12 @@ export class HumanFishView {
     this.gameEvents = new GameEventBus(); this.inputBridge = new CameraInputBridge({ staleMs: 200 }); this.options = { faceMode: 'EFFECT' };
     root.innerHTML = `<section class="hf-play"><div class="hf-play-toolbar"><span class="hf-source"></span><div><button type="button" class="hf-photo">PHOTO</button><button type="button" class="hf-se" aria-pressed="true">SE ON</button><button type="button" class="hf-pause">Ⅱ</button></div></div>
       <div class="hf-stage" role="group" tabindex="0"><video muted playsinline hidden></video><div class="hf-phaser-host"></div>
-      <div class="hf-hud"><div><span>LIFE</span><strong class="hf-time">45.0</strong></div><div><span>COLLECTED</span><strong class="hf-score">0</strong></div></div>
-      <div class="hf-o2"><div><strong class="hf-o2-value">O₂ 100%</strong><span class="hf-depth">DEPTH 37%</span></div><div class="hf-o2-track"><i></i></div><p class="hf-action"></p></div>
+      <div class="hf-hud"><div><span>LIFE</span><strong class="hf-time">45.0</strong></div>
+      <div class="hf-o2"><div><strong class="hf-o2-value">O₂ 100%</strong><span class="hf-depth">DEPTH 37%</span></div><div class="hf-o2-track"><i></i></div></div>
+      <div><span>COLLECTED</span><strong class="hf-score">0</strong></div></div>
       <div class="hf-overlay" hidden role="status"><h2></h2><p></p><button type="button" class="hf-resume" hidden></button><button type="button" class="hf-camera-retry" hidden></button><button type="button" class="hf-fallback" hidden></button></div>
       <div class="hf-tracking" hidden role="status"></div><div class="hf-depth-label">DEEPER = TEMPTING</div></div>
-      <div class="hf-practice" hidden><p></p><button type="button" class="hf-bite">パクッ / ぷはっ</button></div><p class="hf-hint"></p><p class="hf-live" role="status" aria-live="polite"></p></section>`;
+      <div class="hf-practice" hidden><p></p><button type="button" class="hf-bite">パクッ / ぷはっ</button></div><p class="hf-hint hf-action"></p><p class="hf-live" role="status" aria-live="polite"></p></section>`;
     this.$ = s => root.querySelector(s); this.video = this.$('video'); this.capture = document.createElement('canvas'); this.capture.width = 540; this.capture.height = 960;
     this.input = new NoteEaterInput(this.video, { onFrame: packet => {
       if (!this.active || this.source !== 'camera') return;
@@ -174,7 +175,6 @@ export class HumanFishView {
     this.$('.hf-source').textContent = this.source === 'demo' ? this.ja ? 'カメラなしの練習' : 'CAMERA-FREE PRACTICE' : 'HUMAN FISH / LIVE';
     this.$('.hf-practice').hidden = this.source !== 'demo'; this.$('.hf-practice p').textContent = this.ja ? '水槽をタップ・ドラッグして泳ぐ。矢印 / WASDでも操作。' : 'Tap / drag to swim. Arrows / WASD also work.';
     this.$('.hf-bite').textContent = this.ja ? 'パクッ / ぷはっ' : 'BITE / BREATHE · SPACE';
-    this.$('.hf-hint').textContent = this.ja ? '深く潜るほどおいしい。でも、息継ぎを忘れずに。' : 'Deeper tastes better. Remember to come up for air.';
     this.$('.hf-se').textContent = `SE ${this.audio.enabled ? 'ON' : 'OFF'}`; this.$('.hf-se').setAttribute('aria-pressed', String(this.audio.enabled));
     this.$('.hf-pause').setAttribute('aria-label', this.ja ? '一時停止' : 'Pause'); this.$('.hf-photo').textContent = this.ja ? '写真' : 'PHOTO';
     this.$('.hf-photo').disabled = !['playing', 'ending'].includes(this.phase) || this.isPaused;

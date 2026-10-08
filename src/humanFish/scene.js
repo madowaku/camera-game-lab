@@ -2,6 +2,7 @@ import { CameraGameScene } from '../game-runtime/phaser/PhaserGameScene.js';
 import aquarium from './assets/aquarium-v1.webp';
 import fish from './assets/fish-v1.webp';
 import { drawFishFace } from './face.js';
+import { FOODS } from './core.js';
 
 export class HumanFishScene extends CameraGameScene {
   constructor(view, services) { super('human-fish', services); this.view = view; }
@@ -69,21 +70,49 @@ export class HumanFishScene extends CameraGameScene {
     }
     const ids = new Set(g.items.map(item => item.id));
     for (const [id, group] of this.items) if (!ids.has(id)) { group.destroy(true); this.items.delete(id); }
+    // Match the bite rule so the cue marks the food that will actually be eaten.
+    const target = g.phase === 'playing' && !g.atSurface && g.stun === 0 ? g.items
+      .map(item => ({ item, distance: Math.hypot((item.x - g.player.x) / .10, (item.y - g.player.y) / .065) }))
+      .filter(({ distance }) => distance <= 1).sort((a, b) => a.distance - b.distance)[0]?.item : null;
     for (const item of g.items) {
       let group = this.items.get(item.id);
       if (!group) {
-        const radius = item.kind === 'giant' ? 16 : item.kind === 'pearl' ? 12 : 10;
-        const color = item.kind === 'shrimp' ? 0xff987d : item.kind === 'flake' ? 0xf6c770 : item.kind === 'gold' ? 0xffd24b : 0xfff5e4;
-        const ring = this.add.circle(0, 0, radius + 7, color, .13).setStrokeStyle(1.5, color, .6);
-        const bead = this.add.circle(0, 0, radius, color, 1).setStrokeStyle(2, 0xfff9e4, .7);
-        const glint = this.add.circle(-radius * .27, -radius * .3, radius * .28, 0xffffff, .85);
-        const label = this.add.text(0, radius + 11, item.kind === 'shrimp' ? '+3 SHRIMP' : item.kind === 'flake' ? '+1' : `+${item.kind === 'giant' ? 20 : item.kind === 'gold' ? 15 : 10}`, {
-          fontFamily: 'Trebuchet MS, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#fff8de', stroke: '#0a434a', strokeThickness: 4,
+        const radius = item.kind === 'giant' ? 21 : item.kind === 'flake' ? 14 : 17;
+        const color = item.kind === 'shrimp' ? 0xffa16f : item.kind === 'flake' ? 0xffdb64 : item.kind === 'gold' ? 0xffd23e : 0xfff8ef;
+        const ring = this.add.circle(0, 0, radius + 6, 0x063841, .94).setStrokeStyle(2, 0xfff3b9);
+        const bead = this.add.circle(0, 0, radius, color).setStrokeStyle(2, 0x092f38);
+        const glint = this.add.circle(-radius * .27, -radius * .3, radius * .28, 0xffffff, .9);
+        const detail = this.add.graphics();
+        if (item.kind === 'shrimp') {
+          bead.setVisible(false); glint.setVisible(false);
+          detail.lineStyle(9, color).beginPath().arc(1, -1, 10, -.6, 4.1).strokePath();
+          detail.fillStyle(color).fillTriangle(-9, -6, -17, -14, -17, -3);
+          detail.fillStyle(0x092f38).fillCircle(10, -7, 2);
+          detail.lineStyle(2, 0xffe7c8).lineBetween(4, 8, 3, 3).lineBetween(-3, 8, -2, 3);
+        } else if (item.kind === 'gold') {
+          bead.setVisible(false); glint.setVisible(false);
+          detail.fillStyle(color).fillPoints([{ x: 0, y: -18 }, { x: 17, y: 0 }, { x: 0, y: 18 }, { x: -17, y: 0 }], true);
+          detail.lineStyle(2, 0xfffae0).lineBetween(-8, 0, 8, 0).lineBetween(0, -9, 0, 9);
+        }
+        // Deep labels sit above the prize, clear of the bottom of the tank.
+        const labelY = item.y > .7 ? -radius - 25 : radius + 9;
+        const labelBack = this.add.graphics();
+        const label = this.add.text(0, labelY, '', {
+          fontFamily: 'Trebuchet MS, Noto Sans JP, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#fff8de',
         }).setOrigin(.5, 0);
-        if (item.kind === 'shrimp') { bead.setScale(1.25, .6); bead.setRotation(-.5); }
-        group = this.add.container(0, 0, [ring, bead, glint, label]).setDepth(5); this.items.set(item.id, group);
+        group = this.add.container(0, 0, [ring, bead, glint, detail, labelBack, label]).setDepth(10);
+        group.foodMarker = { ring, label, labelBack, labelY }; this.items.set(item.id, group);
       }
-      group.setPosition(item.x * w, item.y * h + Math.sin(anim * 2 + item.id) * (this.reducedMotion ? 0 : 3)).setScale(w / 480);
+      const { ring, label, labelBack, labelY } = group.foodMarker, ready = target === item;
+      const name = item.kind === 'flake' ? v.ja ? 'エサ' : 'FOOD' : item.kind === 'shrimp' ? v.ja ? 'エビ' : 'SHRIMP' : '';
+      const caption = ready ? v.ja ? 'パクッ！' : 'BITE!' : `${name ? name + ' ' : ''}+${FOODS[item.kind].points}`;
+      if (label.text !== caption) {
+        label.setText(caption); const width = label.width + 14;
+        labelBack.clear().fillStyle(ready ? 0xffe389 : 0x063841, .98).fillRoundedRect(-width / 2, labelY - 3, width, label.height + 6, 5);
+        label.setColor(ready ? '#073f46' : '#fff8de');
+      }
+      ring.setStrokeStyle(ready ? 4 : 2, ready ? 0xffdf64 : 0xfff3b9);
+      group.setPosition(item.x * w, item.y * h + Math.sin(anim * 2 + item.id) * (this.reducedMotion ? 0 : 3)).setScale(Math.max(.85, w / 480));
       group.setAlpha(v.game.phase === 'over' ? .4 : 1);
     }
     this.water.clear();
