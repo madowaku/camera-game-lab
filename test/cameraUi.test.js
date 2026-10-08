@@ -80,4 +80,32 @@ test('menu cursor mirrors x once and rejects missing hand data', () => {
   assert.equal(projectHandCursor(frame(-.1,.5),360,800),null);
   assert.equal(projectHandCursor({},360,800),null);
   assert.equal(projectHandCursor(frame(.5,.5),0,800),null);
+  assert.equal(projectHandCursor(frame(.5,.5),Infinity,800),null);
+});
+
+test('a clock reversal restarts a partially held target', () => {
+  const dwell = new DwellTarget({ holdMs: 650 });
+  dwell.update({ x: 90, y: 100 }, 100, rect);
+  dwell.update({ x: 90, y: 100 }, 200, rect);
+  dwell.update({ x: 90, y: 100 }, 150, rect);
+  assert.equal(dwell.progress, 0);
+  assert.equal(dwell.startedAt, 150);
+});
+test('another air swipe requires settling after the first gesture', () => {
+  const swipe = new AirSwipe(), o = { width: 360, height: 800 };
+  swipe.update({ x: 40, y: 650 }, 0, o);
+  swipe.update({ x: 40, y: 590 }, 100, o);
+  assert.equal(swipe.update({ x: 40, y: 515 }, 200, o), 1);
+  assert.equal(swipe.update({ x: 40, y: 390 }, 300, o), 0);
+  for (const at of [400, 500, 600, 700]) assert.equal(swipe.update({ x: 40, y: 390 }, at, o), 0);
+  swipe.update({ x: 40, y: 390 }, 800, o);
+  swipe.update({ x: 40, y: 460 }, 900, o);
+  assert.equal(swipe.update({ x: 40, y: 530 }, 1000, o), -1);
+});
+test('offscreen points cannot arm an air scroll', () => {
+  const o = { width: 360, height: 800 };
+  for (const points of [[{ x: -1, y: 650 }, { x: -1, y: 590 }, { x: -1, y: 450 }], [{ x: 40, y: 950 }, { x: 40, y: 870 }, { x: 40, y: 810 }]]) {
+    const swipe = new AirSwipe();
+    points.forEach((p, i) => assert.equal(swipe.update(p, i * 100, o), 0));
+  }
 });

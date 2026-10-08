@@ -18,6 +18,9 @@ import "./gamePresentation.css";
 import { MusicBed, trackForGame, musicCreditMarkup } from "./music.js";
 import { decorateMotion } from './motionDirector.js';
 import './motion.css';
+import { simplifyLaunch } from './launchOverview.js';
+import { mountCameraUi } from '../cameraUi/controller.js';
+import './accessibleUi.css';
 
 export function mountPlatform(app) {
   const invalid = validateRegistry(experiments);
@@ -34,6 +37,16 @@ export function mountPlatform(app) {
     <dialog class="platform-sheet" aria-labelledby="sheet-title"><button type="button" class="sheet-close">×</button><div class="sheet-content"></div></dialog><div class="platform-toast" role="status" aria-live="polite"></div><div class="onboarding-slot"></div>`;
   const $ = (selector) => app.querySelector(selector);
   const view = $("#platform-view"), gamePage = $(".platform-game"), panel = $(".launch-panel"), cacheRoot = $(".game-cache"), result = $(".platform-result"), sheet = $("dialog");
+  const cameraUi = mountCameraUi(app, { locale, onEnabledChange: enabled => launcher.setMenuUi(enabled) });
+  const inlineControls = document.createElement('div'); inlineControls.className = 'inline-round-controls'; inlineControls.hidden = true;
+  cacheRoot.before(inlineControls);
+  inlineControls.addEventListener('click', event => {
+    const action = event.target.closest('[data-inline-action]')?.dataset.inlineAction;
+    if (action === 'retry' && session) { events.emit('retry', { id: session.game.id }); launcher.retryInline(); }
+    else if (action === 'next' && session) {
+      const next = nextExperiment(order, session.game.id); events.emit('next_game', { id: session.game.id, nextId: next.id }); feedId = next.id; navigate(feedRoute(next.id));
+    }
+  });
   const music = new MusicBed({ enabled: storage.read("camera-game-lab-bgm-v1", true) });
   let musicTimer;
   function updateMusic() {
@@ -61,6 +74,7 @@ export function mountPlatform(app) {
   $(".sheet-close").addEventListener("click", closeSheet);
   sheet.addEventListener("click", (event) => { if (event.target === sheet) { const bounds = sheet.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeSheet(); } });
   function showSheet(content) {
+    cameraUi.resetTargets();
     sheetTrigger = document.activeElement;
     $(".sheet-content").innerHTML = content;
     $(".sheet-close").setAttribute("aria-label", t("close"));
@@ -103,6 +117,7 @@ export function mountPlatform(app) {
   }
   function showResult() {
     if (!session?.result) return;
+    app.classList.add('platform-menu');
     const game = session.game;
     result.hidden = false; cacheRoot.classList.add("platform-has-result");
     if (session.presentation) {
@@ -112,6 +127,7 @@ export function mountPlatform(app) {
       decorateMotion(result, game, 'result');
       session.presentation.paint(result, session.result);
       session.resultCleanup = session.presentation.mountResult?.(result, session.result, locale);
+      improveResultActions();
       result.querySelector("button")?.focus({ preventScroll: true });
       window.scrollTo(0, 0); return;
     }
@@ -120,12 +136,28 @@ export function mountPlatform(app) {
     result.innerHTML = arcadePresentation.resultMarkup(game, session.result, locale);
     decorateMotion(result, game, 'result');
     gamePage.insertBefore(result, cacheRoot);
+    improveResultActions();
     result.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
     // Keep result controls in reach after a full-screen game.
     result.querySelector('[data-result-action="retry"]').focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
+  function improveResultActions() {
+    result.querySelector('.result-navigation')?.remove();
+    const navigation = document.createElement('div'); navigation.className = 'result-navigation';
+    for (const button of result.querySelectorAll('[data-result-action]')) {
+      const name = button.dataset.resultAction;
+      if (['retry', 'next', 'browse'].includes(name)) {
+        button.textContent = name === 'retry' ? `↻ ${t('retry')}` : name === 'next' ? `${t('next')} →` : `← ${t('back')}`;
+        button.setAttribute('aria-label', button.textContent);
+        navigation.append(button);
+      }
+    }
+    result.prepend(navigation);
+    cameraUi.setScene('result');
+  }
   const launcher = createLauncher(cacheRoot, {
+    onMenuFrame: (frame, at) => cameraUi.acceptFrame(frame, at),
     onExit: () => navigate(feedRoute(feedId)),
     onReplay: (game) => { if (session?.game.id === game.id && session.result) replayRound(); },
     onPhotoError: () => toast(t("failed")),
@@ -134,6 +166,15 @@ export function mountPlatform(app) {
     },
     onState(snapshot, game) {
       if (!session || session.game.id !== game.id || !session.begun) return;
+      if (game.module === 'maruMagic') {
+        inlineControls.hidden = snapshot.menuPhase !== 'result';
+        app.classList.toggle('platform-inline-result', snapshot.menuPhase === 'result');
+        if (snapshot.menuPhase === 'result') {
+          inlineControls.innerHTML = `<button type="button" data-inline-action="retry">↻ ${t('retry')}</button><button type="button" data-inline-action="next">${t('next')} →</button>`;
+          cameraUi.setScene('inline-result', { external: snapshot.source === 'camera' });
+        } else { app.classList.remove('platform-menu'); cameraUi.setScene('playing'); }
+        launcher.setMenuUi(cameraUi.enabled);
+      }
       // A controller can recover from denied camera access into its demo mode.
       // Retry must keep the mode that actually produced the result.
       if (["camera", "demo"].includes(snapshot.source)) session.source = snapshot.source;
@@ -153,6 +194,8 @@ export function mountPlatform(app) {
   });
   function replayRound() {
     if (!session) return;
+    cameraUi.setScene('playing');
+    app.classList.remove('platform-menu');
     events.emit("retry", { id: session.game.id });
     session.resultCleanup?.(); session.resultCleanup = null;
     session.presentation?.discardResult?.(session.result);
@@ -178,16 +221,22 @@ export function mountPlatform(app) {
     if (session?.game.id === game.id && session.presentation) {
       panel.classList.remove("has-guide");
       panel.innerHTML = session.presentation.launchMarkup(game, locale);
+      simplifyLaunch(panel, game, locale);
       decorateMotion(panel, game, 'entry');
       session.presentation.paint(panel); return;
     }
     panel.classList.remove("has-guide");
     panel.innerHTML = arcadePresentation.launchMarkup(game, locale);
+    simplifyLaunch(panel, game, locale);
     decorateMotion(panel, game, 'entry');
     panel.querySelectorAll("button").forEach((button) => button.setAttribute("aria-label", button.textContent));
   }
   function updateChrome() {
     document.documentElement.lang = locale;
+    cameraUi.setLocale(locale);
+    for (const button of inlineControls.querySelectorAll('[data-inline-action]')) {
+      button.textContent = button.dataset.inlineAction === 'retry' ? `↻ ${t('retry')}` : `${t('next')} →`;
+    }
     updateMusicChrome();
     $("nav").setAttribute("aria-label", locale === "ja" ? "メインナビゲーション" : "Main navigation");
     $(".platform-locale").textContent = locale === "ja" ? "EN" : "JA";
@@ -195,6 +244,8 @@ export function mountPlatform(app) {
     $(".game-back").textContent = `← ${t("back")}`; $(".game-back").href = feedRoute(feedId);
     $(".game-info").setAttribute("aria-label", t("info"));
     app.querySelectorAll("[data-nav]").forEach((link) => { if (route?.view === link.dataset.nav) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current"); });
+    $('[data-nav="feed"]').textContent = locale === 'ja' ? 'あそぶ' : 'PLAY';
+    $('[data-nav="explore"]').textContent = locale === 'ja' ? 'さがす' : 'FIND';
   }
   function dismissOnboarding() { storage.write("camera-game-lab-platform-onboarded-v1", true); $(".onboarding-slot").replaceChildren(); }
   function onboarding() {
@@ -211,11 +262,15 @@ export function mountPlatform(app) {
   }
   async function renderRoute(preserveFeed = false) {
     const generation = ++routeGeneration;
+    cameraUi.setScene('off');
+    inlineControls.hidden = true;
+    app.classList.remove('platform-inline-result');
     if (feed) { feedId = feed.id; feed.destroy(); feed = null; }
     if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, started: session.started });
     session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); session = null; stopMusic(); launcher.stop(); closeSheet(); viewAbort.abort(); viewAbort = new AbortController();
     $(".onboarding-slot").replaceChildren();
     route = resolveRoute(location.hash);
+    app.classList.toggle('platform-menu', route.view === 'game');
     view.hidden = route.view === "game"; gamePage.hidden = route.view !== "game"; result.hidden = true;
     app.classList.toggle("platform--feed", route.view === "feed");
     const customTheme = route.view === "game" && route.experiment?.module === "softServe";
@@ -238,7 +293,7 @@ export function mountPlatform(app) {
     if (route.view === "feed") {
       const initialId = preserveFeed ? feedId : route.id ?? feedId;
       feed = mountFeed(view, { order, locale, favorites, events, initialId, onAction: action, onView: (id) => { feedId = id; } });
-      onboarding();
+      cameraUi.setScene('feed', { onNavigate: direction => feed?.moveBy(direction) });
     } else if (route.view === "explore") {
       mountExplore(view, { locale, state: { ...exploreState, signal: viewAbort.signal }, onAction: action });
       // Preserve local filters across game visits. This transient catalog state isn't a shared URL.
@@ -256,8 +311,9 @@ export function mountPlatform(app) {
         if (!ready || generation !== routeGeneration) return;
         session.presentation = presentation;
         if (presentation) launchCopy(game);
+        cameraUi.setScene('launch');
         panel.querySelectorAll("button").forEach((button) => { button.disabled = false; });
-        panel.querySelector(".launch-status").textContent = game[locale === "ja" ? "launchReadyJa" : "launchReadyEn"] ?? t("ready");
+        panel.querySelector(".launch-status").textContent = '';
       } catch (error) {
         if (generation !== routeGeneration) return;
         console.error("Game import failed", error);
@@ -268,9 +324,12 @@ export function mountPlatform(app) {
   }
   function beginRound(source) {
     if (!session || session.begun) return;
+    cameraUi.setScene('playing');
+    app.classList.remove('platform-menu');
     session.begun = true; session.source = source;
     panel.hidden = true; cacheRoot.hidden = false;
     armMusic();
+    launcher.setMenuUi(cameraUi.enabled);
     launcher.begin(session.source, session.presentation?.readOptions?.(panel) ?? {});
   }
   panel.addEventListener("click", (event) => {
@@ -305,7 +364,7 @@ export function mountPlatform(app) {
   window.addEventListener("resize", () => {
     if (session?.presentation) session.presentation.paint(session.result ? result : panel, session.result);
   });
-  window.addEventListener("pagehide", () => { session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); stopMusic(); launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
+  window.addEventListener("pagehide", () => { cameraUi.setScene('off'); session?.resultCleanup?.(); session?.presentation?.discardResult?.(session.result); stopMusic(); launcher.stop(); feed?.destroy(); if (session?.begun && !session.result) events.emit("game_abort", { id: session.game.id, reason: "pagehide" }); });
   window.addEventListener("pageshow", (event) => { if (event.persisted) void renderRoute(); });
   void renderRoute();
 }

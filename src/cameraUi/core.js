@@ -35,7 +35,7 @@ export class AirSwipe {
   reset() { this.anchor = null; this.last = null; this.startAt = null; this.lastAt = null; this.samples = 0; this.locked = false; this.settleFrom = null; }
   update(point, at, { width, height, blocked = false } = {}) {
     if (!Number.isFinite(at) || !finite(point) || !Number.isFinite(width) || !Number.isFinite(height)
-      || width <= 0 || height <= 0 || blocked || point.x > width * this.lane) { this.reset(); return 0; }
+      || width <= 0 || height <= 0 || blocked || point.x < 0 || point.y < 0 || point.y > height || point.x > width * this.lane) { this.reset(); return 0; }
     if (this.locked) {
       if (!this.last || distance(this.last, point) > 6) this.settleFrom = null;
       else this.settleFrom ??= at;
@@ -61,7 +61,7 @@ export class AirSwipe {
 // Whole-frame mirrored landmark projection; no camera or DOM dependency.
 export function projectHandCursor(result, width, height) {
   const tip = result?.landmarks?.[0]?.[8];
-  if (!(width > 0 && height > 0) || !Number.isFinite(tip?.x) || !Number.isFinite(tip?.y)) return null;
+  if (!(Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) || !Number.isFinite(tip?.x) || !Number.isFinite(tip?.y)) return null;
   const x = (1 - tip.x) * width, y = tip.y * height;
   return x >= 0 && x <= width && y >= 0 && y <= height ? { x, y } : null;
 }

@@ -37,7 +37,7 @@ export class MaruView {
   say(ja, en) { return this.locale === 'ja' ? ja : en; }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   notify() { this.listeners.forEach(fn => fn(this.snapshot())); }
-  snapshot() { return { phase: this.phase, source: this.source, paused: this.game.paused, musicSilent: this.game.phase === 'summoned' || this.game.missingAt !== null, result: null }; }
+  snapshot() { return { phase: this.phase, menuPhase: this.game.phase === 'summoned' ? 'result' : null, source: this.source, paused: this.game.paused, musicSilent: this.game.phase === 'summoned' || this.game.missingAt !== null, result: null }; }
   setLocale(locale) { this.locale = locale; this.render(); }
   activate() {
     this.active = true; this.abort?.abort(); this.abort = new AbortController(); const signal = this.abort.signal;
@@ -47,7 +47,7 @@ export class MaruView {
     this.debug = new URLSearchParams(location.search).get('debug') === '1';
   }
   setup(source) {
-    this.input.stop(); ++this.generation; this.source = source; this.phase = 'playing'; this.game.reset(); this.retryDwell.reset(); this.dwellRetries = 0; this.visualPoints = []; this.tip = null; this.pointer = null; this.handAt = null; this.handSeen = false; this.lastResult = null; this.error = null;
+    this.input.stop(); ++this.generation; this.source = source; this.phase = 'playing'; this.game.reset(); this.retryDwell.reset(); this.dwellRetries = 0; this.visualPoints = []; this.tip = null; this.menuTip = null; this.pointer = null; this.handAt = null; this.handSeen = false; this.lastResult = null; this.error = null;
     this.audio.arm(); this.video.hidden = source !== 'camera'; this.input.trackingEnabled = source === 'camera';
     if (!this.runtime) { this.scene = new MaruScene(this, { inputBridge: this.inputBridge, gameEvents: this.gameEvents, reducedMotion: this.reducedMotion }); this.runtime = new PhaserRuntime(this.$('.maru-phaser'), this.scene, { width: SIZE, height: SIZE }); }
     this.runtime.game.loop.wake(); this.render(); this.notify();
@@ -63,6 +63,8 @@ export class MaruView {
     if (!this.active || this.phase !== 'playing' || this.source !== 'camera' || this.game.paused) return;
     const p = projectTip(result, this.video.videoWidth, this.video.videoHeight);
     if (this.game.phase === 'summoned') {
+      this.menuTip = p;
+      if (this.menuUiEnabled) { this.tip = null; this.retryDwell.reset(); return; }
       this.tip = p;
       if (p) { this.handAt = at; if (this.retryDwell.update(p, at, this.retryTarget())) { this.dwellRetries++; this.again(); } }
       else this.retryDwell.reset();
@@ -100,9 +102,13 @@ export class MaruView {
   }
   clearVisual() { this.visualPoints = []; this.tip = null; }
   clearStroke(reason = null) { this.game.cancel(reason); this.clearVisual(); this.pointer = null; }
-  again() {
+  again(fromMenu = false) {
     if (this.phase !== 'playing' || this.game.paused) return;
-    const retryZone = this.source === 'camera' ? this.retryTarget() : null;
+    // Menu cursors use the whole viewport, while the game uses the camera crop.
+    // Guard the actual game-space fingertip before the fixed menu disappears.
+    const p = fromMenu ? this.menuTip : null, margin = SIZE * .1;
+    const retryZone = this.source !== 'camera' ? null : p ? { left: p.x - margin, right: p.x + margin, top: p.y - margin, bottom: p.y + margin } : this.retryTarget();
+    this.menuTip = null;
     this.game.reset(); this.game.waitOutside(retryZone); this.retryDwell.reset(); this.clearVisual(); this.lastResult = null; this.pointer = null; this.handAt = null; this.handSeen = false;
     this.audio.silence(); this.audio.arm(); this.input.trackingEnabled = this.source === 'camera'; this.render();
   }

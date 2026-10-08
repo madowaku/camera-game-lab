@@ -1,13 +1,15 @@
-.camera-ui { position:fixed; inset:auto 0 0; z-index:20; pointer-events:none; font:700 12px/1.35 system-ui,sans-serif; color:#f4f5e9; }
-.camera-ui button { pointer-events:auto; border:1px solid #6d8766; background:#1b261c; color:#f4f5e9; border-radius:999px; min-height:44px; }
-.camera-ui-toggle { position:fixed; bottom:calc(15px + env(safe-area-inset-bottom)); left:calc(12px + env(safe-area-inset-left)); padding:0 14px; box-shadow:0 5px 16px #0008; }
-.camera-ui-nav { position:fixed; top:45%; right:calc(8px + env(safe-area-inset-right)); transform:translateY(-50%); display:grid; gap:8px; }
-.camera-ui-nav button { width:48px; height:48px; font-size:22px; background:#283327ee; }
-.camera-ui-hint { position:fixed; top:calc(94px + env(safe-area-inset-top)); left:12px; right:12px; text-align:center; font-size:11px; background:#162118e8; border:1px solid #627c55; border-radius:9px; padding:8px; pointer-events:none; }
-.camera-ui-cursor { position:fixed; left:0; top:0; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%; pointer-events:none; background:conic-gradient(#d7ff3f var(--dwell,0%),#ffffff40 0); padding:4px; box-shadow:0 0 0 2px #111d; }
-.camera-ui-cursor span { display:block; width:100%; height:100%; border-radius:50%; background:#263825e8; border:2px solid #f0ffe0; }
-.camera-ui-hover { outline:3px solid #d7ff3f !important; outline-offset:3px; }
-.camera-ui-status { position:fixed; bottom:calc(68px + env(safe-area-inset-bottom)); left:12px; right:12px; text-align:center; margin:0; font-size:11px; pointer-events:none; }
+.camera-ui { position:relative; z-index:12; color:var(--pl-text); background:var(--pl-bg); border-bottom:1px solid var(--pl-border); }
+.camera-ui-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:980px; margin:auto; padding:8px 18px; min-height:72px; }
+.camera-ui-toggle { flex:none; min-height:52px; padding:8px 14px; border:1px solid var(--pl-border); border-radius:14px; color:var(--pl-text); background:var(--pl-surface); font-size:16px; font-weight:800; }
+.camera-ui-toggle[aria-pressed="true"] { background:var(--pl-accent); color:var(--pl-bg); border-color:var(--pl-accent); }
+.camera-ui-hint { margin:0; color:var(--pl-muted); font-size:16px; line-height:1.4; max-width:240px; }
+.camera-ui-status { margin:0; padding:0 18px 12px; font-size:16px; line-height:1.5; }
 .camera-ui-status:empty { display:none; }
-.camera-ui [hidden] { display:none !important; }
-@media (prefers-reduced-motion:reduce) { .camera-ui * { transition:none !important; } }
+/* Continuous games keep the canvas and scroll position stable on completion. */
+.camera-ui[data-scene="inline-result"] { position:fixed; z-index:70; left:0; right:0; bottom:calc(88px + env(safe-area-inset-bottom)); width:min(100%,560px); margin-inline:auto; background:#10120ff5; border-top:1px solid #363c30; --pl-bg:#10120f; --pl-surface:#1b1e18; --pl-text:#f4f5e9; --pl-muted:#a9b09e; --pl-border:#363c30; --pl-accent:#d7ff3f; }
+.camera-ui-cursor { position:fixed; width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:50%; padding:5px; pointer-events:none; z-index:100; background:conic-gradient(#d7ff3f var(--dwell,0%),#ffffff60 0); box-shadow:0 0 0 2px #10120f; }
+.camera-ui-cursor span { display:block; width:100%; height:100%; border-radius:50%; background:#18231ef0; border:2px solid white; }
+.camera-ui-cursor span::after { content:''; position:absolute; width:8px; height:8px; left:23px; top:23px; border-radius:50%; background:white; }
+.camera-ui-hover { outline:4px solid #d7ff3f !important; outline-offset:3px; }
+.camera-ui [hidden],.camera-ui[hidden] { display:none !important; }
+@media(max-width:380px) { .camera-ui-bar { gap:10px; padding-inline:14px; }.camera-ui-toggle { padding-inline:10px; }.camera-ui-hint { font-size:15px; } }

@@ -631,3 +631,7 @@ Camera frames are intended to be processed on-device in the browser and are not 
 6. CRANE TACTICS CAM — pinch-and-carry tactical prototype
 
 The reusable asset is the **body-input layer**, not any single game.
+
+## Camera menus / accessible UI
+
+Optional hand navigation covers FEED, launch and results while retaining touch. Primary controls fit the phone viewport. MARU MAGIC keeps its canvas and scroll position after a summon, with retry and next-game controls fixed at the bottom. See [the shared UI specification and A401OP validation](docs/UI_UX_ACCESSIBILITY_V01.md) and [the release checklist](docs/CAMERA_UI_RELEASE_V01.md).

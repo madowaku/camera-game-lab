@@ -150,5 +150,5 @@ export function updateRecords(current, result) {
   return { best, fastestMs: qualifies ? Math.min(previous ?? Infinity, result.elapsedMs) : previous };
 }
 
-// Keep the tested MARU MAGIC API and defaults; share the dwell implementation.
+// Intentional camera dwell, independent of scoring and the renderer.
 export class DwellRetry extends DwellTarget {}
