@@ -16,6 +16,7 @@ test('fast menu dwell completes after 650ms, movement resets its timer', () => {
   selector.update({ x: 61, y: 62 }, 200, rect);
   selector.update({ x: 101, y: 120 }, 400, rect);
   assert.equal(selector.progress, 0);
+  for (let at = 500; at <= 1000; at += 100) assert.equal(selector.update({ x: 101, y: 120 }, at, rect), false);
   assert.equal(selector.update({ x: 101, y: 120 }, 1049, rect), false);
   assert.equal(selector.update({ x: 101, y: 120 }, 1050, rect), true);
 });
