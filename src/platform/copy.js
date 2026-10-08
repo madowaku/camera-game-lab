@@ -1,7 +1,7 @@
 const messages = {
   ja: {
-    discover: "からだで、あそぼう。", swipe: "スワイプして、次のあそび", play: "PLAY", players: "人", seconds: "約{n}秒",
-    favorite: "お気に入り", share: "シェア", info: "ゲーム情報", close: "閉じる", back: "フィードへ戻る", next: "NEXT GAME", retry: "RETRY", shareResult: "SHARE RESULT",
+    discover: "からだで、あそぼう。", swipe: "スワイプして、次のあそび", play: "あそぶ", players: "人", seconds: "約{n}秒", previous: "前のゲーム",
+    favorite: "お気に入り", share: "シェア", info: "ゲーム情報", close: "閉じる", back: "ゲームを選ぶ", next: "次のゲーム", retry: "もう一度", shareResult: "結果をシェア",
     input: "使うもの", duration: "プレイ時間", privacy: "カメラのこと", privacyText: "映像と音声は端末内で処理し、このアプリでは録画・送信しません。初回はMediaPipeモデルをダウンロードします。MediaPipe自体が利用状況を送信する場合があります。",
     search: "ゲーム・入力方法を検索", all: "すべて", empty: "まだ実験中。この条件のゲームは準備中です。", collection: "コレクション", inputFilter: "入力方法", explore: "次の実験を探そう。",
     onboarding: "からだが、コントローラー。", onboardingDetail: "スワイプで見つける。\nPLAYで、はじめる。", gotIt: "さあ、あそぼう →",
@@ -9,7 +9,7 @@ const messages = {
     rotate: "ふたりが映るように、横向きがおすすめ。", rotateDetail: "そのまま続けることもできます。", ready: "準備ができたら自動でスタート", saved: "お気に入りに追加", removed: "お気に入りから削除", copied: "共有テキストとURLをコピーしました", shared: "共有しました", copyManually: "リンクを選択してコピー", notFound: "この実験は見つかりませんでした。", completed: "実験完了！", nextHint: "次は、何であそぶ？", feedLabel: "ゲームの縦フィード。上下キーでも移動できます。", preview: "プレビュー", photoResume: "PHOTO MODE用にカメラを準備中…",
   },
   en: {
-    discover: "PLAY WITH YOUR REAL WORLD.", swipe: "SWIPE FOR YOUR NEXT EXPERIMENT", play: "PLAY", players: "P", seconds: "~{n} SEC",
+    discover: "PLAY WITH YOUR REAL WORLD.", swipe: "SWIPE FOR YOUR NEXT EXPERIMENT", play: "PLAY", players: "P", seconds: "~{n} SEC", previous: "Previous",
     favorite: "Favorite", share: "Share", info: "Game information", close: "Close", back: "Back to feed", next: "NEXT GAME", retry: "RETRY", shareResult: "SHARE RESULT",
     input: "YOUR CONTROLLER", duration: "ROUND LENGTH", privacy: "YOUR CAMERA", privacyText: "Images and audio are processed on your device, never recorded or uploaded by this app. MediaPipe models download on first use. MediaPipe itself may send usage metrics.",
     search: "Search games or inputs", all: "ALL", empty: "Still in the lab. No games match these filters yet.", collection: "COLLECTION", inputFilter: "INPUT", explore: "FIND YOUR NEXT EXPERIMENT.",

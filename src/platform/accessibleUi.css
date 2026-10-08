@@ -1,0 +1,108 @@
+/* Shared menu hierarchy: the artwork flexes; main actions always come first. */
+/* Dormant cached games keep their CSS loaded. Isolate shared menus from their
+   route themes, including older :has selectors that match hidden game hosts. */
+.platform.platform-menu,.platform.platform-menu .platform-game {
+  --pl-bg:#10120f !important; --pl-surface:#1b1e18 !important; --pl-text:#f4f5e9 !important; --pl-muted:#a9b09e !important; --pl-border:#363c30 !important;
+  background:var(--pl-bg) !important; color:var(--pl-text) !important;
+}
+.platform.platform-menu { min-height:100dvh; }
+.platform.platform-menu .platform-game { max-width:none; width:100%; padding:0; }
+.platform.platform-menu .platform-header { display:flex !important; position:relative; width:100%; height:calc(72px + env(safe-area-inset-top)); padding:env(safe-area-inset-top) 20px 0; background:var(--pl-bg); border-bottom:1px solid var(--pl-border); }
+.platform.platform-menu .platform-header .platform-brand { display:flex !important; }
+.platform.platform-menu .platform-header nav { display:flex !important; }
+.platform.platform-menu .platform-locale { width:44px; height:44px; color:var(--pl-text); font-size:16px; border:1px solid var(--pl-border); }
+.platform.platform-menu .game-topbar { display:flex !important; height:auto; margin:auto; padding:6px 18px; }
+.platform.platform-menu .game-topbar :is(.game-back,.game-info,.game-music) { color:var(--pl-text); margin-right:0; }
+.platform.platform-menu .game-topbar .game-back { font-size:16px; }
+.platform.platform-menu .game-topbar .game-music { background:var(--pl-surface); border:1px solid var(--pl-border); font-size:14px; }
+.platform.platform-menu .launch-panel { width:min(100%,980px); padding:8px 20px max(16px,env(safe-area-inset-bottom)); margin:auto; }
+.platform .platform-header { height:calc(72px + env(safe-area-inset-top)); gap:16px; position:relative; }
+.platform .platform-header nav a { font:800 16px/1.4 var(--pl-font); }
+.platform .platform-locale { font-size:16px; }
+.platform--feed { height:100dvh; display:grid; grid-template-rows:auto auto minmax(0,1fr); }
+.platform--feed #platform-view { min-height:0; }
+.platform--feed .lab-feed { height:100%; scroll-snap-type:y mandatory; }
+.platform--feed .feed-card { height:100%; min-height:0; padding:14px 20px max(12px,env(safe-area-inset-bottom)); display:flex; gap:0; }
+.platform .game-preview { flex:1 1 0; min-height:64px; margin:0 0 14px; overflow:hidden; border-radius:18px; }
+.platform .game-preview :is(.game-artwork,.game-artwork--generated,.preview-asset) { width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; aspect-ratio:auto; }
+.platform .game-preview :is(.preview-coordinate,.preview-input,.preview-caption,.preview-orbit) { display:none; }
+.platform .feed-copy { padding-right:0; }
+.platform .feed-copy h1 { font-size:clamp(28px,7vw,44px); line-height:1.1; margin:0 0 10px; overflow-wrap:anywhere; }
+.platform .feed-copy p { font-size:18px; line-height:1.5; min-height:0; }
+.platform .feed-facts { margin:12px 0; font:600 16px/1.4 var(--pl-font); }
+.platform .feed-facts span+span::before { margin:0 8px; }
+.platform .action-rail { top:20px; right:26px; bottom:auto; gap:8px; }
+.platform .action-rail button { width:48px; height:48px; background:#10120fe8; }
+.platform .feed-play { min-height:64px; border-radius:16px; font:800 26px/1.3 var(--pl-font); flex:none; }
+.platform .feed-foot { flex:none; gap:8px; margin-top:8px; }
+.platform .feed-foot > span { display:block; font:600 16px var(--pl-font); }
+.platform .feed-foot button { display:flex; align-items:center; justify-content:center; min-height:52px; margin:0; padding:8px 10px; border:1px solid var(--pl-border); border-radius:12px; color:var(--pl-text); font:700 16px/1.4 var(--pl-font); }
+.platform .feed-foot button:last-child { margin-left:auto; }
+.platform .feed-foot button:first-child { margin-right:auto; }
+.platform .game-topbar { gap:12px; padding-block:6px; }
+.platform .game-back { font-size:16px; color:var(--pl-text); }
+.platform .game-name { display:none; }
+.platform .game-music { margin-left:auto; font-size:14px; }
+.platform .launch-panel { width:min(100%,980px); padding:8px 20px max(16px,env(safe-area-inset-bottom)); }
+.platform .launch-overview { display:flex; flex-direction:column; padding:0; margin:0 auto; max-width:520px; min-height:0; gap:0; background:transparent; border:0; color:var(--pl-text); overflow:visible; }
+.platform .launch-art { position:relative; display:grid; place-items:center; height:clamp(64px,22dvh,220px); flex:none; overflow:hidden; border-radius:20px; background:color-mix(in srgb,var(--accent) 14%,var(--pl-surface)); color:var(--accent); margin:0 0 12px; }
+.platform .launch-art :is(img,svg) { height:100%; width:100%; object-fit:contain; max-height:100%; max-width:100%; }
+.platform .launch-art :is(.preview-coordinate,.preview-input,.preview-caption,.preview-orbit) { display:none; }
+.platform .launch-overview .launch-heading h1 { font:800 clamp(26px,6.5vw,42px)/1.15 var(--pl-font); margin:0 0 8px; text-wrap:balance; overflow-wrap:anywhere; color:var(--pl-text); }
+.platform .launch-overview .launch-heading p { font:700 18px/1.5 var(--pl-font); margin:0; color:var(--pl-text); }
+.platform .launch-facts { font:600 16px/1.5 var(--pl-font); margin:12px 0; color:var(--pl-muted); }
+.platform .launch-overview .launch-main-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; margin:0; }
+.platform .launch-overview .launch-main-actions button { min-height:52px; border-radius:14px; padding:10px 14px; font:700 16px/1.4 var(--pl-font); background:var(--pl-surface); border:1px solid var(--pl-border); color:var(--pl-text); width:auto; margin:0; }
+.platform .launch-overview .launch-main-actions .launch-camera { grid-column:1/-1; min-height:64px; font-size:24px; text-align:center; display:block; background:var(--accent); color:var(--pl-bg); border-color:var(--accent); }
+.platform .launch-overview .launch-main-actions .launch-howto { grid-column:2; grid-row:2; }
+.platform .launch-overview .launch-main-actions .launch-howto { font-size:16px !important; min-height:52px !important; font-weight:700 !important; }
+.platform .launch-overview .launch-main-actions .launch-demo { grid-column:1; grid-row:2; }
+.platform .launch-overview .launch-status { font:600 16px/1.5 var(--pl-font); min-height:0; margin:10px 0; color:var(--pl-text); }
+.platform .launch-overview .launch-status:empty { display:none; }
+.platform .launch-camera-notice { font:400 16px/1.5 var(--pl-font); margin:12px 0 0; color:var(--pl-muted); }
+.platform .launch-settings { margin-top:12px; color:var(--pl-text); font:16px/1.6 var(--pl-font); }
+.platform .launch-settings > summary { min-height:48px; align-content:center; padding:8px 12px; border:1px solid var(--pl-border); border-radius:12px; }
+.platform .launch-options { padding-top:12px; }
+.platform .launch-options :where(div,section) { position:static; display:block; padding:0; margin:0 0 12px; width:auto; max-width:none; height:auto; min-height:0; transform:none; }
+.platform .launch-options [role="group"] { display:flex; flex-wrap:wrap; gap:8px; }
+.platform .launch-options :is(button,select) { min-height:48px; padding:10px 14px; font:700 16px/1.4 var(--pl-font); margin:0; }
+.platform .launch-options :is(p,small,label) { font-size:16px; line-height:1.6; }
+.platform .launch-options [hidden] { display:none !important; }
+.platform .platform-result [data-result-action] { min-height:56px; font:700 18px/1.4 var(--pl-font); border-radius:14px; }
+.platform .platform-result [data-result-action="retry"] { min-height:64px; font-size:24px; }
+.platform .platform-result [data-result-action="next"] { border:1px solid var(--pl-border); color:var(--pl-text); background:var(--pl-surface); }
+.platform .result-navigation { display:grid; grid-template-columns:1fr; gap:10px; margin:0 0 20px; padding:0 0 20px; border-bottom:1px solid var(--pl-border); }
+.platform .result-navigation button { width:100%; margin:0; }
+.platform .result-navigation [data-result-action="retry"] { color:var(--pl-bg); background:var(--accent); border:1px solid var(--accent); }
+.platform .inline-round-controls { position:fixed; z-index:60; left:0; right:0; bottom:0; width:min(100%,560px); margin:0 auto; padding:12px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)); display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; background:#10120ff5; border-top:1px solid #363c30; }
+.platform .inline-round-controls button { min-height:64px; padding:8px; border:1px solid #363c30; border-radius:14px; background:#1b1e18; color:#f4f5e9; font:700 20px/1.4 var(--pl-font); }
+.platform .inline-round-controls [data-inline-action="retry"] { background:var(--accent); color:#10120f; }
+.platform .inline-round-controls[hidden] { display:none !important; }
+.platform-inline-result .game-cache { padding-bottom:calc(172px + env(safe-area-inset-bottom)); }
+.platform-inline-result .maru-again { display:none; }
+.platform .platform-sheet :is(p,dd,dt,li,label) { font-size:18px; }
+.platform .sheet-close { width:52px; height:52px; }
+.platform .explore-search label,.platform .explore-filters button,.platform .explore-count,.platform .explore-card p { font-size:16px; }
+@media(min-width:900px) {
+  .platform .launch-overview { max-width:none; display:grid; grid-template-columns:1.1fr 1fr; column-gap:36px; align-content:start; }
+  .platform .launch-art { grid-column:1; grid-row:1/7; height:min(60dvh,540px); margin:0; }
+  .platform .launch-overview > :not(.launch-art) { grid-column:2; }
+  .platform .launch-overview .launch-heading h1 { font-size:40px; }
+}
+@media(max-height:740px) and (max-width:899px) {
+  .platform .launch-art { height:clamp(56px,12dvh,90px); margin-bottom:8px; }
+  .platform .launch-overview .launch-heading h1 { font-size:26px; }
+  .platform .launch-overview .launch-heading p { font-size:17px; }
+  .platform .launch-facts { margin:8px 0; }
+  .platform .feed-copy h1 { font-size:28px; }
+  .platform .feed-copy p { font-size:16px; }
+  .platform .feed-facts { margin:8px 0; }
+}
+/* Zoom and very short landscape screens may scroll; controls precede extras. */
+@media(max-height:500px) {
+  .platform--feed .lab-feed { scroll-snap-type:y proximity; }
+  .platform--feed .feed-card { height:auto; min-height:100%; }
+  .platform .game-preview { min-height:64px; flex-basis:64px; }
+  .platform .launch-art { display:none; }
+}
+@media(prefers-reduced-motion:reduce) { .platform .launch-art * { animation:none !important; } }

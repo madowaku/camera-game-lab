@@ -21,10 +21,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
 
-      - name: Test duo input and game rules
+      - name: Test all games and shared UI
         run: npm test

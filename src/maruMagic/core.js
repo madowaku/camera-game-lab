@@ -1,3 +1,4 @@
+import { DwellTarget } from '../cameraUi/core.js';
 // Score v0.1: screen-space geometry only. No camera, renderer, time or input source.
 export const SIZE = 600;
 export const RULES = Object.freeze({ holdMs: 300, stillPx: 14, startPx: 20, timeoutMs: 8000, graceMs: 550, minRadius: 42 });
@@ -150,14 +151,4 @@ export function updateRecords(current, result) {
 }
 
 // Intentional camera dwell, independent of scoring and the renderer.
-export class DwellRetry {
-  constructor({ holdMs = 700, tolerancePx = 24, maxGapMs = 150 } = {}) { this.holdMs = holdMs; this.tolerancePx = tolerancePx; this.maxGapMs = maxGapMs; this.reset(); }
-  reset() { this.anchor = null; this.startedAt = null; this.lastAt = null; this.progress = 0; }
-  update(point, at, target) {
-    if (!Number.isFinite(at) || !Number.isFinite(point?.x) || !Number.isFinite(point?.y) || !inside(point, target)) { this.reset(); return false; }
-    if (!this.anchor || distance(point, this.anchor) > this.tolerancePx || at - this.lastAt > this.maxGapMs) { this.anchor = { ...point }; this.startedAt = at; }
-    this.lastAt = at; this.progress = clamp((at - this.startedAt) / this.holdMs);
-    if (this.progress >= 1) { this.reset(); return true; }
-    return false;
-  }
-}
+export class DwellRetry extends DwellTarget {}

@@ -26,7 +26,7 @@ export function releaseResources(instance) {
 
 // One cached controller per module avoids accumulating its existing global event
 // listeners. Dormant controllers have no stream, model, timer or AudioContext.
-export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onReplay, onGameEvent }) {
+export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onReplay, onGameEvent, onMenuFrame }) {
   const cache = new Map();
   let generation = 0, current = null;
   function closeAudio(instance) {
@@ -57,14 +57,22 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
       try { instance = factory(host, locale, { onExit, onReplay: () => { if (current === entry && entry.enabled) onReplay?.(entry.game); } }); }
       catch (error) { host.remove(); throw error; }
       entry = { instance, host, enabled: false, autoStart: false, lastPhase: null, game };
+      if (game.module === 'maruMagic') {
+        const processHand = instance.input.onResult;
+        instance.input.onResult = (frame, at) => {
+          processHand(frame, at);
+          if (current === entry && entry.enabled && instance.snapshot().menuPhase === 'result') onMenuFrame?.(frame, at);
+        };
+      }
       entry.motion = new MotionDirector(host);
       cache.set(game.module, entry);
       const observe = () => {
         if (current !== entry || !entry.enabled) return;
         const snapshot = snapshotOf(instance, game.module);
         entry.motion.update(instance, entry.game, snapshot);
-        if (entry.lastPhase !== snapshot.phase) {
+        if (entry.lastPhase !== snapshot.phase || entry.lastMenuPhase !== snapshot.menuPhase) {
           entry.lastPhase = snapshot.phase;
+          entry.lastMenuPhase = snapshot.menuPhase;
           onState(snapshot, entry.game);
         }
         const start = host.querySelector(entry.game.startSelector ?? startSelectors[game.module] ?? ".no-auto-start");
@@ -119,6 +127,8 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
   return {
     prepare, begin, stop,
     snapshot() { return current?.enabled ? snapshotOf(current.instance, current.game.module) : null; },
+    setMenuUi(enabled) { if (current?.game.module === 'maruMagic') current.instance.menuUiEnabled = enabled; },
+    retryInline() { if (current?.game.module === 'maruMagic') current.instance.again(true); },
     setLocale(locale) { current?.instance.setLocale(locale); },
     releaseResult() { if (current) { current.autoStart = false; current.motion.stop(); releaseResources(current.instance); closeAudio(current.instance); } },
     retry(source) {
