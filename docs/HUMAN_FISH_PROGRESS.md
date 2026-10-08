@@ -27,6 +27,16 @@ than fabricated reaction footage.
 
 ## Verification completed
 
+Visibility refinement, 2026-10-09: food markers are larger, with opaque dark
+backings, bright outlines and readable food/point badges. Shrimp and golden food
+have distinct shapes. The nearest food within the existing bite range displays
+`パクッ！` / `BITE!`. Oxygen is now in the top HUD so it cannot hide bottom
+treasures; deep prize badges sit above their markers. Existing game rules are
+unchanged. Human Fish's 19 unit checks and the production build passed. Browser
+QA passed 19 checks at 1440×900, 390×844 and 320×740, including real touch eating,
+breathing, locale changes and reduced motion. Evidence: ignored
+`output/playwright/human-fish-food-*.png` and `human-fish-food-qa.js`.
+
 `npm test`: **527 passed, 0 failed**. Human Fish has 19 rule/input/director/audio
 tests, including exact oxygen exhaustion time, managed 45-second survival,
 surface breathing priority, mouth edge/recovery, deep temptation costs, three
