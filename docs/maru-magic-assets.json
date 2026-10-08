@@ -1,0 +1,45 @@
+{
+  "experiment": "EXP-062",
+  "game": "MARU MAGIC / まる召喚",
+  "date": "2026-10-08",
+  "images": [
+    {
+      "path": "src/maruMagic/assets/spirits-v1.webp",
+      "tool": "built-in image_gen",
+      "asset": "Single 2x2 transparent spirit atlas",
+      "original": "C:/Users/hiro/.codex/generated_images/01a11bc1-b590-7901-9d30-ed854ab11488/exec-4e087444-44f8-4096-a12c-682d185db0a0.png",
+      "processing": "Uncropped 1254x1254 RGBA; encoded to WebP quality 93, method 6, preserving alpha. Grid frames computed from actual dimensions.",
+      "preview": "public/previews/maru-magic.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: ONE production game sprite atlas, square transparent PNG, exact 2 by 2 grid of four equal square cells, for a gentle funny summoning game MARU MAGIC.\nPrimary request: Four small lovable magical spirits in a cohesive tactile storybook illustration style with soft gouache texture, crisp silhouettes, warm expressive faces. Top left: an asymmetrical potato spirit, tan lumpy potato body, tiny sprout crown, stubby feet, comically pompous proud expression, tiny golden cape. Top right: a round mint-green frog spirit, plump cheeks, cheerful big eyes, tiny feet and smiling face. Bottom left: a golden five-point star spirit with a happy face and tiny luminous sparkling accents. Bottom right: a pearl-white luminous light spirit, small round teardrop-shaped body with arms, serene happy eyes, gold halo, two graceful glowing wings. No other characters.\nComposition: each character exactly centered at 25%/25%, 75%/25%, 25%/75%, 75%/75% respectively; same scale; each fits entirely inside central 70% of its own quadrant with generous clear margins, no overlap across quadrant boundaries, full bodies. No visible grid lines. Only these four sprites on actual alpha transparency, no ground, no shadow rectangles, no backgrounds. No text, numbers, labels, logos, watermark. Readable and charming on a dark midnight blue game canvas. Each cell is a separate isolated sprite, suitable for direct atlas frame rendering.",
+      "sha256": "3880db58184f248aebac12e19f48369a059fbd397057dcc9c3c735f027c1eae1"
+    }
+  ],
+  "sounds": [
+    {
+      "path": "src/maruMagic/assets/book-open.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/bookOpen.ogg",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "sha256": "953390534377222bee89ac8cd9e60a58fdc037c71a4d7c18c43cd647c7f34ba8"
+    },
+    {
+      "path": "src/maruMagic/assets/coins.ogg",
+      "source": "C:/Dev/AssetsShared/Audio/SE/kenney_rpg-audio/Audio/handleCoins.ogg",
+      "license": "CC0 1.0",
+      "url": "https://kenney.nl/assets/rpg-audio",
+      "sha256": "8a91f969e932df709df80ee124d86a51389eed9b67f22e5e716bc2bbf60d8dab"
+    }
+  ],
+  "music": {
+    "sharedTrack": "handSpell",
+    "title": "The maze of aqua",
+    "creator": "蒲鉾さちこ",
+    "url": "https://opentracks.com/bgm/detail/23061",
+    "license": "https://opentracks.com/help/articles/license/",
+    "creatorTerms": "https://opentracks.com/creator/detail/418",
+    "checked": "2026-10-08",
+    "provenance": "docs/hand-spell-assets.json",
+    "processing": "Reuses the already converted lazy inline game-background audio. No new download or song alteration. Unchanged pitch, tempo and arrangement. Silent during summoning, pause and exit."
+  },
+  "originalAudio": "Readiness chime and four summoning motifs including legendary fanfare are original Web Audio synthesis in src/maruMagic/audio.js."
+}

@@ -1,3 +1,14 @@
+# EXP-062: MARU MAGIC / まる召喚
+
+Open `#/game/solo-maru-magic` or `#maru-magic`. Hold your index fingertip still,
+wait for the filling ring and READY cue, then draw one circle to summon a spirit.
+Includes fair 75/15/10 geometry scoring, four Imagegen spirits, tier-specific SE,
+licensed background music, touch practice, JA/EN, immediate retry, loss recovery,
+and independent best score / fastest complete 80+ circle records.
+See [implementation and physical A401OP verification](docs/MARU_MAGIC_PROGRESS.md),
+[MVP specification](docs/specs/EXP-062_MARU_MAGIC_SPEC_v0.1.md) and
+[assets and generation prompt](docs/maru-magic-assets.json).
+
 # THE CAMERA IS IT — Stage Pack v0.2
 
 `#/game/outcam-the-camera-is-it` now includes Stage 001–010, shared camera rules,

@@ -9,6 +9,13 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-maru-magic", exp: "EXP-062", collection: "SOLO", category: "SOLO", renderer: "phaser",
+    titleJa: "MARU MAGIC / まる召喚", titleEn: "MARU MAGIC", subtitleJa: "まるを描くと、何かが生まれる。", subtitleEn: "One circle. A little life.",
+    input: ["HAND"], duration: 8, untimed: true, accent: "#e7c78c", tags: ["circle", "magic", "drawing", "円", "召喚", "指先"],
+    aliases: ["#maru-magic", "#maru"], module: "maruMagic", demo: true, motif: "hand", previewType: "image", previewAsset: "/previews/maru-magic.webp",
+    privacyJa: "インカメラで人差し指先端だけを端末内で認識します。マイク・録画・映像の保存・外部送信は使いません。初回に手の認識モデルを読み込みます。最高得点と80点以上の完成した円の最速記録だけ端末保存。練習はカメラとモデル不要です。",
+    privacyEn: "Front camera tracks one index fingertip locally. No microphone, recording, saved video or uploads. The hand model downloads on first use. Only your best score and fastest complete 80+ circle are saved locally. Touch practice needs neither camera nor models.",
+    loadPresentation: () => import("../maruMagic/presentation.js"), load: () => import("../maruMagic/view.js").then(m => m.createView) }),
   define({ id: "solo-human-fish", exp: "EXP-059", collection: "SOLO", category: "SOLO",
     titleJa: "HUMAN FISH", titleEn: "HUMAN FISH", subtitleJa: "美しい水槽で、人面魚として生き延びる。欲張るほど息が苦しくなる。", subtitleEn: "Live as a human fish. The greedier you get, the harder it is to breathe.",
     input: ["FACE", "MOUTH"], duration: 45, accent: "#98dec6", tags: ["aquarium", "survival", "creator", "人面魚", "水槽", "欲張り", "呼吸"],
