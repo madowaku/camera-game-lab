@@ -95,7 +95,7 @@ export class MotionDirector {
   stop() {
     this.clear(); this.layer?.remove(); this.layer = null;
     this.game = null; this.previous = null; this.variant = null; this.labPreset = null;
-    delete this.host.dataset.motionLab; delete this.host.dataset.motionLabPreset;
+    if (this.host.dataset) { delete this.host.dataset.motionLab; delete this.host.dataset.motionLabPreset; }
   }
   destroy() { this.stop(); this.reduced?.removeEventListener('change', this.onPreference); document.removeEventListener('visibilitychange', this.onVisibility); }
 }
