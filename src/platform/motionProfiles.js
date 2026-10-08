@@ -56,6 +56,11 @@ export function motionSampleOf(instance, game, snapshot) {
   const g = instance.game ?? {}, module = game.module;
   let success = 0, combo = g.combo ?? 0, point = null, special = null;
   switch (module) {
+    // EXP-062: trigger only on a completed summoning, never during tracing.
+    case 'maruMagic':
+      success = g.phase === 'summoned' && g.result ? 1 : 0;
+      if (g.result?.circle) point = { x: g.result.circle.x / 600, y: g.result.circle.y / 600 };
+      break;
     case 'humanFish': success = g.foods ?? 0; point = g.player; break;
     case 'sonicInk': point = instance.tip; break; // Game owns its loop and note cues.
     case 'handSpell':
