@@ -1,0 +1,13 @@
+.camera-ui { position:fixed; inset:auto 0 0; z-index:20; pointer-events:none; font:700 12px/1.35 system-ui,sans-serif; color:#f4f5e9; }
+.camera-ui button { pointer-events:auto; border:1px solid #6d8766; background:#1b261c; color:#f4f5e9; border-radius:999px; min-height:44px; }
+.camera-ui-toggle { position:fixed; bottom:calc(15px + env(safe-area-inset-bottom)); left:calc(12px + env(safe-area-inset-left)); padding:0 14px; box-shadow:0 5px 16px #0008; }
+.camera-ui-nav { position:fixed; top:45%; right:calc(8px + env(safe-area-inset-right)); transform:translateY(-50%); display:grid; gap:8px; }
+.camera-ui-nav button { width:48px; height:48px; font-size:22px; background:#283327ee; }
+.camera-ui-hint { position:fixed; top:calc(94px + env(safe-area-inset-top)); left:12px; right:12px; text-align:center; font-size:11px; background:#162118e8; border:1px solid #627c55; border-radius:9px; padding:8px; pointer-events:none; }
+.camera-ui-cursor { position:fixed; left:0; top:0; width:44px; height:44px; margin:-22px 0 0 -22px; border-radius:50%; pointer-events:none; background:conic-gradient(#d7ff3f var(--dwell,0%),#ffffff40 0); padding:4px; box-shadow:0 0 0 2px #111d; }
+.camera-ui-cursor span { display:block; width:100%; height:100%; border-radius:50%; background:#263825e8; border:2px solid #f0ffe0; }
+.camera-ui-hover { outline:3px solid #d7ff3f !important; outline-offset:3px; }
+.camera-ui-status { position:fixed; bottom:calc(68px + env(safe-area-inset-bottom)); left:12px; right:12px; text-align:center; margin:0; font-size:11px; pointer-events:none; }
+.camera-ui-status:empty { display:none; }
+.camera-ui [hidden] { display:none !important; }
+@media (prefers-reduced-motion:reduce) { .camera-ui * { transition:none !important; } }
