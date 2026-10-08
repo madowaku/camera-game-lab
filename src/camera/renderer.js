@@ -25,7 +25,19 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
     if (state?.pulseMs > 0) { ctx.shadowColor = '#e4ffc1'; ctx.shadowBlur = reducedMotion ? 8 : 22; }
     if (p.rule === 'FOCUS_HOLD' && !p.active) { ctx.shadowColor = '#c7edac'; ctx.shadowBlur = 18 * state.focusMs / (p.holdMs ?? 500); }
     ctx.strokeStyle = heat > .45 ? '#ffffff' : '#bddc99';
-    if (p.rule && !p.active) { ctx.setLineDash([7, 6]); ctx.strokeRect(p.x, p.y, p.width, p.height); ctx.restore(); continue; }
+    if (p.rule && !p.active) {
+      ctx.setLineDash([7, 6]); ctx.strokeRect(p.x, p.y, p.width, p.height);
+      if (p.rule === 'FOCUS_HOLD' && p.centerHold) {
+        // Persistent target + filling ring makes the hold action legible.
+        ctx.globalAlpha = 1; ctx.setLineDash([]); ctx.lineWidth = 4;
+        const cx = p.x + p.width / 2, cy = p.y - 28;
+        ctx.strokeStyle = '#829e79'; ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#ecffc0'; ctx.beginPath();
+        ctx.arc(cx, cy, 16, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * state.focusMs / (p.holdMs ?? 500));
+        ctx.stroke();
+      }
+      ctx.restore(); continue;
+    }
     if (p.rule === 'AFTERIMAGE' && !state.visible) {
       ctx.strokeStyle = '#dceac77f'; ctx.strokeRect(p.x - 3, p.y + 4, p.width + 6, p.height);
     }
@@ -66,6 +78,15 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
   ctx.fillStyle = "#19352c"; ctx.fillRect(4, -11, 4, 5); ctx.fillRect(-5, -11, 4, 5);
   ctx.strokeStyle = "#ede9cb"; ctx.lineWidth = 5; ctx.lineCap = "round";
   ctx.beginPath(); ctx.moveTo(-6, 10); ctx.lineTo(-6 - walk, 20); ctx.moveTo(6, 10); ctx.lineTo(6 + walk, 20); ctx.stroke(); ctx.restore();
+  // A memory timer stays near the walker even when the remembered platform leaves frame.
+  const remembered = game.index === 6 ? game.platforms[1] : null;
+  if (remembered && r.support === 1 && !remembered.ruleState.visible && remembered.ruleState.memoryMs > 0) {
+    const seconds = remembered.ruleState.memoryMs / (remembered.memoryMs ?? 2500);
+    ctx.save(); ctx.strokeStyle = '#d9ffaf'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(r.x, r.y - 51, 17, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * seconds); ctx.stroke();
+    ctx.font = '13px monospace'; ctx.fillStyle = '#e8ffbe'; ctx.textAlign = 'center';
+    ctx.fillText('MEMORY', r.x, r.y - 80); ctx.restore();
+  }
   // The next landing point is a restrained directional clue, never auto-tracking.
   const next = game.platforms[Math.min(r.support + 1, game.platforms.length - 1)];
   if (next) {
