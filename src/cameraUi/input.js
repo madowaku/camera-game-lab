@@ -1,15 +1,6 @@
 import { HandLandmarker } from '@mediapipe/tasks-vision';
 import { BodyInput } from '../input/bodyInput.js';
 
-// Feed overlay uses the whole camera sensor frame, mirrored once for intuitive motion.
-// Unlike a rendered video cover-crop, no pixels need to be cropped here.
-export function projectHandCursor(result, width, height) {
-  const tip = result?.landmarks?.[0]?.[8];
-  if (!(width > 0 && height > 0) || !Number.isFinite(tip?.x) || !Number.isFinite(tip?.y)) return null;
-  const x = (1 - tip.x) * width, y = tip.y * height;
-  return x >= 0 && x <= width && y >= 0 && y <= height ? { x, y } : null;
-}
-
 export class CameraUiInput extends BodyInput {
   createRecognizer(vision, delegate) {
     return HandLandmarker.createFromOptions(vision, {
