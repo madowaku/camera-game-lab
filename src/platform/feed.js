@@ -1,6 +1,7 @@
 import { titleOf, subtitleOf } from "./experiments.js";
 import { copy, escapeHtml as esc, inputLabel } from "./copy.js";
 import { previewMarkup, activatePreview } from "./preview.js";
+import { mountCameraUi } from "../cameraUi/feedController.js";
 
 export function mountFeed(root, { order, locale, favorites, events, initialId, onAction, onView }) {
   const t = (key, values) => copy(locale, key, values);
@@ -36,7 +37,7 @@ export function mountFeed(root, { order, locale, favorites, events, initialId, o
   };
   // Cards may exceed a short/zoomed viewport; use their real positions.
   const topOf = (index) => cards[index].offsetTop - cards[0].offsetTop;
-  const move = (index) => scroller.scrollTo({ top: topOf(Math.max(0, Math.min(cards.length - 1, index))), behavior: motion.matches ? "instant" : "smooth" });
+  const move = (index, fast = false) => scroller.scrollTo({ top: topOf(Math.max(0, Math.min(cards.length - 1, index))), behavior: fast || motion.matches ? "instant" : "smooth" });
   scroller.addEventListener("scroll", () => {
     if (disposed || raf) return;
     raf = requestAnimationFrame(() => {
@@ -61,5 +62,6 @@ export function mountFeed(root, { order, locale, favorites, events, initialId, o
   resize.observe(scroller);
   document.addEventListener("visibilitychange", sync); motion.addEventListener("change", sync);
   scroller.scrollTo({ top: topOf(current), behavior: "instant" }); view(current);
-  return { destroy() { disposed = true; controller.abort(); resize.disconnect(); cancelAnimationFrame(raf); document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync); cards.forEach((card) => activatePreview(card, false)); }, get id() { return order[current].id; } };
+  const cameraUi = mountCameraUi(root, { locale, onNavigate: direction => move(current + direction, true) });
+  return { destroy() { cameraUi.destroy(); disposed = true; controller.abort(); resize.disconnect(); cancelAnimationFrame(raf); document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync); cards.forEach((card) => activatePreview(card, false)); }, get id() { return order[current].id; } };
 }
