@@ -1,5 +1,5 @@
 export const SOFT_SERVE_RULES = Object.freeze({
-  readyMs: 450, recoveryMs: 450, rate: .64, swirlHeight: .034,
+  readyMs: 450, readyLossGraceMs: 150, recoveryMs: 450, rate: .64, swirlHeight: .034,
   maxServeMs: 20000, maxRoundMs: 39000, meltPerSecond: 2.45,
   exitDistance: .235, exitMs: 550, biteSize: 1, contactMs: 130,
 });
@@ -14,7 +14,7 @@ export class SoftServeGame {
   reset(source = "demo") {
     Object.assign(this, { source, phase: "ready", cone: { x: .5, y: .72 }, amount: 0,
       maxAmount: 0, eaten: 0, melt: 0, stability: 1, lean: 0, segments: [],
-      elapsedMs: 0, serveMs: 0, readyMs: 0, awayMs: 0, recoveryMs: 0,
+      elapsedMs: 0, serveMs: 0, readyMs: 0, readyLossMs: 0, awayMs: 0, recoveryMs: 0,
       paused: false, manualPause: false, missing: false, wasMissing: false,
       contactMs: 0, separationMs: 0, biteArmed: true, bites: 0, losses: 0,
       qualitySum: 0, qualityWeight: 0, lastSegment: -1, result: null, effect: null, completedShape: null });
@@ -38,6 +38,15 @@ export class SoftServeGame {
     if (this.phase === "result") return;
     const dt = Math.min(100, Math.max(0, ms));
     const tracked = validPoint(input?.hand) && (this.phase !== "eat" || this.source === "demo" || validPoint(input?.mouth));
+    // Short hand-detection gaps while attaching do not erase deliberate hold.
+    // Never count unobserved time toward the hold, and expire it after 150 ms.
+    if (!tracked && this.phase === "ready" && !this.manualPause && ms <= 500) {
+      this.readyLossMs += dt;
+      this.missing = true; this.paused = true; this.wasMissing = false;
+      if (this.readyLossMs > this.rules.readyLossGraceMs) this.readyMs = 0;
+      return;
+    }
+    if (tracked) this.readyLossMs = 0;
     if (!tracked || this.manualPause || ms > 500) {
       if (!tracked && !this.wasMissing && this.phase !== "ready") this.losses++;
       this.wasMissing = !tracked; this.missing = !tracked; this.paused = true;
