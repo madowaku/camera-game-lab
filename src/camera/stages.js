@@ -1,7 +1,7 @@
 const floor = (x, y, width, jump = false) => ({ x, y, width, height: 24, jump });
 export const stages = [
   { title: "LOOK AHEAD", hint: "ahead", start: { x: 120, y: 980 }, camera: { x: 400, y: 870 },
-    platforms: [floor(0, 1000, 430), floor(430, 1000, 420), floor(850, 1000, 400), floor(1250, 1000, 420), floor(1670, 1000, 400), floor(2070, 1000, 500)] },
+    platforms: [floor(0, 1000, 430), floor(430, 1000, 420), floor(850, 1000, 400), floor(1250, 1000, 230)] },
   { title: "DON'T FORGET BEHIND", hint: "both", start: { x: 120, y: 980 }, camera: { x: 400, y: 870 },
     platforms: [floor(0, 1000, 400, true), floor(560, 1000, 300, true), floor(1040, 1000, 300, true), floor(1520, 1000, 300, true), floor(2000, 1000, 520)] },
   { title: "LOOK UP", hint: "up", start: { x: 120, y: 980 }, camera: { x: 400, y: 1000 },
@@ -16,8 +16,8 @@ const ruled = (id, x, width, rule, options = {}) => ({ ...floor(x, 1000, width),
 const chapterStage = (title, hint, platforms, options = {}) => ({ title, hint,
   start: { x: 120, y: 980 }, camera: { x: 400, y: 870 }, warmupRules: false, platforms, ...options });
 stages.push(
-  chapterStage('FOCUS', 'focus', [floor(0, 1000, 430), ruled('PLATFORM_06_A', 430, 250, 'FOCUS_HOLD'), floor(680, 1000, 650)]),
-  chapterStage('AFTERIMAGE', 'memory', [floor(0, 1000, 430), ruled('PLATFORM_07_A', 430, 260, 'AFTERIMAGE'), ruled('PLATFORM_07_EXIT', 1450, 500, 'VISIBLE')]),
+  chapterStage('FOCUS', 'focus', [floor(0, 1000, 430), ruled('PLATFORM_06_A', 430, 250, 'FOCUS_HOLD', { centerHold: true, holdRadius: 96 }), floor(680, 1000, 650)], { tutorialGate: true }),
+  chapterStage('AFTERIMAGE', 'memory', [floor(0, 1000, 430), ruled('PLATFORM_07_A', 430, 260, 'AFTERIMAGE', { memoryMs: 2500 }), ruled('PLATFORM_07_EXIT', 980, 620, 'VISIBLE', { anchor: { x: 1510, y: 1000 } })], { tutorialGate: true }),
   chapterStage("DON'T STARE", 'stare', [floor(0, 1000, 900), ruled('PLATFORM_08_A', 900, 100, 'OVEREXPOSE'), floor(1000, 1000, 400), ruled('PLATFORM_08_B', 1400, 100, 'OVEREXPOSE'), floor(1500, 1000, 550)]),
   chapterStage('TWO AT ONCE', 'linked', [floor(0, 1000, 430), ruled('BRIDGE_09', 430, 400, 'LINKED', { linkedGroup: 'A' }), floor(830, 1000, 550)], {
     anchors: [{ id: 'A1', linkedGroup: 'A', x: 300, y: 610, width: 0 }, { id: 'A2', linkedGroup: 'A', x: 1000, y: 610, width: 0 }],
