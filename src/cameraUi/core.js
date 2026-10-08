@@ -57,3 +57,11 @@ export class AirSwipe {
     return dy < 0 ? 1 : -1;
   }
 }
+
+// Whole-frame mirrored landmark projection; no camera or DOM dependency.
+export function projectHandCursor(result, width, height) {
+  const tip = result?.landmarks?.[0]?.[8];
+  if (!(width > 0 && height > 0) || !Number.isFinite(tip?.x) || !Number.isFinite(tip?.y)) return null;
+  const x = (1 - tip.x) * width, y = tip.y * height;
+  return x >= 0 && x <= width && y >= 0 && y <= height ? { x, y } : null;
+}
