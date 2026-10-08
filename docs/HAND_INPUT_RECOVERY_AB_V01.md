@@ -57,5 +57,5 @@ barehandsに倣って正しいポーズ/誤認しやすいポーズの比率メ�
 - `node --test test/handPointStabilizer.test.js test/softServe.test.js test/maruMagic.test.js`
 - `npm test`
 - `npm run build`
-- GitHub Actionsの Hand input checks が緑になった後、A401OPで比較。
+- 既存GitHub Actionsの Build と Camera UI checks が緑になった後、A401OPで比較。
 - 自動テストと合成入力だけでは認識精度・遊び心地の保証にならない。
