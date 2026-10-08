@@ -40,7 +40,7 @@ test("looking away loses the walker with grace instead of instant failure", () =
   assert.equal(g.phase, "playing"); g.step(1500);
   assert.equal(g.attempts.at(-1).reason, "lost");
 });
-test("the original five framing puzzles clear with automatic movement in 15–30 seconds each", () => {
+test("the original five framing puzzles clear, with stage 001 shortened", () => {
   const g = new CameraIsItGame(); g.start("camera", true);
   for (let tick = 0; tick < 12000 && g.phase !== "result"; tick++) {
     const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
@@ -49,7 +49,7 @@ test("the original five framing puzzles clear with automatic movement in 15–30
   }
   assert.equal(g.phase, "stage-clear"); assert.equal(g.completed, 5);
   assert.equal(g.source, "camera"); assert.ok(g.receipts.every((r) => r.background));
-  for (const row of g.receipts) assert.ok(row.seconds >= 15 && row.seconds <= 30, JSON.stringify(row));
+  for (const row of g.receipts) assert.ok(row.seconds >= (row.stage === 1 ? 8 : 15) && row.seconds <= 30, JSON.stringify(row));
   assert.equal(stages[3].title, "TWO WORLDS");
 });
 test("a paused world freezes movement, fade and time", () => {
