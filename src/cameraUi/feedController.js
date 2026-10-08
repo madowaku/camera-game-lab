@@ -1,5 +1,4 @@
-import { DwellTarget, AirSwipe } from './core.js';
-import { CameraUiInput, projectHandCursor } from './input.js';
+import { DwellTarget, AirSwipe, projectHandCursor } from './core.js';
 import { createFeedControls } from './feedDom.js';
 
 // FEED-only: opt-in camera, explicit target allowlist, no artificial pointer events.
@@ -10,7 +9,7 @@ export function mountCameraUi(root, { locale = 'ja', onNavigate } = {}) {
   const abort = new AbortController();
   const dwell = new DwellTarget({ holdMs: 650, tolerancePx: 22, maxGapMs: 160 });
   const swipe = new AirSwipe();
-  let active = false, starting = false, disposed = false, target = null, locked = null;
+  let active = false, starting = false, disposed = false, target = null, locked = null, input = null;
 
   const clear = () => {
     dwell.reset(); swipe.reset();
@@ -50,16 +49,8 @@ export function mountCameraUi(root, { locale = 'ja', onNavigate } = {}) {
       onNavigate?.(direction);
     }
   };
-  const input = new CameraUiInput(video, {
-    onResult,
-    onStatus(code) {
-      if (disposed) return;
-      if (code === 'ERROR') stop(ui.ja ? 'カメラ接続が終了しました' : 'Camera connection ended');
-      if (code === 'READY') status.textContent = '';
-    }
-  });
   function stop(message = '') {
-    active = false; starting = false; input.stop(); clear();
+    active = false; starting = false; input?.stop(); input = null; clear();
     ui.show(false); ui.setLabel(false); status.textContent = message;
   }
   toggle.addEventListener('click', async () => {
@@ -67,8 +58,19 @@ export function mountCameraUi(root, { locale = 'ja', onNavigate } = {}) {
     if (active) { stop(); return; }
     starting = true; ui.setLabel(false, true); status.textContent = '';
     try {
+      // Keep MediaPipe completely outside the initial FEED chunk.
+      const { CameraUiInput } = await import('./input.js');
+      if (disposed || !starting) return;
+      input = new CameraUiInput(video, {
+        onResult,
+        onStatus(code) {
+          if (disposed) return;
+          if (code === 'ERROR') stop(ui.ja ? 'カメラ接続が終了しました' : 'Camera connection ended');
+          if (code === 'READY') status.textContent = '';
+        }
+      });
       await input.start();
-      if (disposed || !starting) { input.stop(); return; }
+      if (disposed || !starting) { input?.stop(); return; }
       starting = false; active = true; clear(); ui.show(true); ui.setLabel(true);
     } catch (error) {
       if (disposed) return;
