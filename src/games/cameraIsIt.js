@@ -48,7 +48,10 @@ export class CameraIsItGame {
       if (p.rule) {
         const was = p.ruleState.solid;
         updateRule(p, p.ruleState, anchorVisible(p, this.camera, VIEW), dt, counts[p.linkedGroup] ?? 0);
-        p.active = p.ruleState.solid; p.opacity = p.ruleState.opacity;
+        p.active = p.ruleState.solid;
+        // The focus target must remain visible as an outline before it is centered.
+        const inFrame = p.centerHold && anchorVisible({ ...p, centerHold: false }, this.camera, VIEW);
+        p.opacity = inFrame && !p.active ? Math.max(.28, p.ruleState.opacity) : p.ruleState.opacity;
         if (!was && p.active) this.activationCount++;
         continue;
       }
@@ -89,6 +92,12 @@ export class CameraIsItGame {
     if (!r.airborne) {
       r.x += WALK_SPEED * sec; r.y = support.y - r.height / 2;
       const next = this.platforms[r.support + 1];
+      // Intro lessons stop before an unready route instead of forcing a blind fall.
+      if (this.stage.tutorialGate && next && !next.active && r.x >= support.x + support.width - 52) {
+        r.x = support.x + support.width - 52;
+        this.warning = next.rule === 'FOCUS_HOLD' ? 'focusWait' : 'memoryWait';
+        return;
+      }
       if (next && r.x >= support.x + support.width - 36) {
         if (next.x <= support.x + support.width && next.y === support.y) {
           if (r.x >= next.x) { if (next.active) r.support++; else { return this.failStage(next); } }

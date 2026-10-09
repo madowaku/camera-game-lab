@@ -25,6 +25,7 @@ test('all five new stages have a camera-only solution', () => {
     for (let i = 0; i < 2000 && g.phase !== 'stage-clear' && g.phase !== 'result'; i++) {
       const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
       let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
+      if (index === 5 && r.support <= 1) x = 555;
       if (index === 7) x = r.x - 370;
       if (index === 6 && r.support === 1 && r.x > 615) x = 1300;
       if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {
@@ -39,6 +40,25 @@ test('all five new stages have a camera-only solution', () => {
     assert.equal(g.attempts?.length ?? 0, 0, `stage ${index + 1} should be solvable without death`);
   }
 });
+test('006 requires intentional center framing and stops to teach the action', () => {
+  const g = new CameraIsItGame(); g.loadStage(5);
+  g.step(9000);
+  assert.equal(g.phase, 'playing');
+  assert.equal(g.platforms[1].active, false);
+  assert.ok(g.runner.x < 430, 'walker waits before inactive focus platform');
+  g.setCamera({ x: 555, y: 870 }, true); g.step(550);
+  assert.ok(g.platforms[1].active, 'filling the focus ring activates the bridge');
+});
+test('007 grants a safe edge stop and visible afterimage before the landing', () => {
+  const g = new CameraIsItGame(); g.loadStage(6);
+  g.step(9000);
+  assert.equal(g.phase, 'playing');
+  assert.ok(g.runner.x < 690, 'walker waits for the landing to be framed');
+  g.setCamera({ x: 1100, y: 870 }, true); g.step(16);
+  assert.ok(g.platforms[2].active, 'far landing visible');
+  assert.ok(g.platforms[1].active, 'launch platform remembered');
+  assert.equal(g.platforms[1].ruleState.visible, false);
+});
 test('007 needs the remembered launch surface when framing the distant landing', () => {
   const g = new CameraIsItGame(); g.start(); g.loadStage(6); g.phase = 'playing';
   g.runner.support = 1; g.runner.x = 650;
@@ -52,6 +72,7 @@ test('001–010 play continuously and produce ten receipts', () => {
   for (let i = 0; i < 15000 && g.phase !== 'result'; i++) {
     const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
     let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
+    if (g.index === 5 && r.support <= 1) x = 555;
     if (g.index === 7) x = r.x - 370;
     if (g.index === 6 && r.support === 1 && r.x > 615) x = 1300;
     if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {

@@ -66,6 +66,7 @@ export function anchorVisible(object, camera, view) {
   const x = object.anchor?.x ?? object.x + object.width / 2;
   const y = object.anchor?.y ?? object.y;
   const margin = .07;
-  return Math.abs(x - camera.x) <= view.width * (.5 + margin)
+  const horizontalLimit = object.centerHold ? (object.holdRadius ?? 96) : view.width * (.5 + margin);
+  return Math.abs(x - camera.x) <= horizontalLimit
     && Math.abs(y - camera.y) <= view.height * (.5 + margin);
 }
