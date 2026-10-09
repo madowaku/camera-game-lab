@@ -55,8 +55,10 @@
 @keyframes motion-caption { 0% { opacity:0; translate:0 16px; scale:.78; rotate:-6deg; } 18% { opacity:1; scale:1.06; rotate:1deg; } 30%,70% { opacity:1; translate:0 0; scale:1; rotate:0deg; } 100% { opacity:0; translate:0 -12px; scale:.96; } }
 @keyframes motion-score { from { opacity:0; scale:.85; } 55% { opacity:1; scale:1.045; } to { opacity:1; scale:1; } }
 
-/* Camera Motion Lab B. Scoped to three opt-in routes, native controls unchanged.
+/* Camera Motion Lab B. Scoped to eligible opt-in routes, native controls unchanged.
    Pure CSS timing: no extra animation loop, WebGL context or media request. */
+[data-motion-lab="B"] .motion-burst--lab { animation-duration:860ms; }
+[data-motion-lab-preset="sigil"] .motion-burst--lab { animation-duration:920ms; }
 [data-motion-lab="B"] .motion-burst--lab::before,
 [data-motion-lab="B"] .motion-burst--lab::after {
   content:"";position:absolute;left:var(--burst-x);top:var(--burst-y);
@@ -105,6 +107,64 @@
 }
 [data-motion-lab-preset="beat"] .motion-lab-glyph {
   font-size:32px;color:#faffc5;animation-duration:450ms;
+}
+
+/* AIR SLASH: two clean cuts, with a wider crossing at combo / X-SLASH. */
+[data-motion-lab-preset="cut"] .motion-burst--lab { --cut-width:180px; }
+[data-motion-lab-preset="cut"] :is(.motion-burst--combo,.motion-burst--special) { --cut-width:260px; }
+[data-motion-lab-preset="cut"] .motion-burst--lab :is(.motion-ring,.motion-ray) { display:none; }
+[data-motion-lab-preset="cut"] .motion-burst--lab::before,
+[data-motion-lab-preset="cut"] .motion-burst--lab::after {
+  width:var(--cut-width);height:5px;margin:-2px calc(var(--cut-width) / -2);
+  border:0;border-radius:50%;background:linear-gradient(90deg,transparent,currentColor 30%,#fff8dc 50%,currentColor 70%,transparent);
+  --cut-angle:-32deg;animation:motion-lab-cut 490ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="cut"] .motion-burst--lab::after { --cut-angle:32deg;animation-delay:55ms; }
+
+/* TILT TURBO: brief outward speed lines leave the road and car readable. */
+[data-motion-lab-preset="speed"] .motion-burst--lab :is(.motion-ring,.motion-ray) { display:none; }
+[data-motion-lab-preset="speed"] .motion-burst--lab::before,
+[data-motion-lab-preset="speed"] .motion-burst--lab::after {
+  width:68px;height:3px;margin:-1px -34px;border:0;border-radius:2px;
+  background:currentColor;box-shadow:0 -16px 0 -1px #fff5d4,0 16px 0 -1px currentColor;
+  --speed-side:-1;animation:motion-lab-speed 570ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="speed"] .motion-burst--lab::after { --speed-side:1;animation-delay:0ms; }
+
+/* NOTE BLASTER: short musical pulse; firing or missing alone never triggers it. */
+[data-motion-lab-preset="pulse"] .motion-burst--lab::before {
+  width:118px;height:118px;margin:-59px;border:3px solid currentColor;animation-duration:500ms;
+}
+[data-motion-lab-preset="pulse"] .motion-burst--lab::after {
+  width:152px;height:152px;margin:-76px;border:1px solid #fff5d4;animation-duration:610ms;
+}
+[data-motion-lab-preset="pulse"] .motion-burst--lab .motion-ring { display:none; }
+[data-motion-lab-preset="pulse"] .motion-burst--lab .motion-ray { width:4px;height:12px; }
+[data-motion-lab-preset="pulse"] .motion-lab-glyph { color:#fff8dc;animation-duration:490ms; }
+
+/* PALM PONG: hollow ripples keep the ball visible; Phaser owns rally captions. */
+[data-motion-lab-preset="rebound"] .motion-burst--lab :is(.motion-ray,.motion-ring) { display:none; }
+[data-motion-lab-preset="rebound"] .motion-burst--lab::before,
+[data-motion-lab-preset="rebound"] .motion-burst--lab::after {
+  width:76px;height:76px;margin:-38px;border:3px solid currentColor;
+  animation:motion-lab-rebound 440ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="rebound"] .motion-burst--lab::after { border:1px solid #fff5d4;animation-delay:65ms; }
+
+@keyframes motion-lab-cut {
+  0% {opacity:0;transform:rotate(var(--cut-angle)) scaleX(.15)}
+  18% {opacity:.95;transform:rotate(var(--cut-angle)) scaleX(1)}
+  100% {opacity:0;transform:rotate(var(--cut-angle)) scaleX(1.25) scaleY(.2)}
+}
+@keyframes motion-lab-speed {
+  0% {opacity:0;transform:translateX(calc(var(--speed-side) * 45px)) skewX(-24deg) scaleX(.25)}
+  15% {opacity:.85}
+  100% {opacity:0;transform:translateX(calc(var(--speed-side) * 140px)) skewX(-24deg) scaleX(1.4)}
+}
+@keyframes motion-lab-rebound {
+  0% {opacity:0;scale:.35 .65}
+  16% {opacity:.9;scale:.8 1.05}
+  100% {opacity:0;scale:1.65}
 }
 @keyframes motion-lab-halo {
   0% {opacity:0;scale:.25;rotate:-24deg}

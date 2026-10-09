@@ -1,5 +1,5 @@
 import { motionProfiles, motionSampleOf, motionCue } from './motionProfiles.js';
-import { motionLabVariant, motionLabPreset } from './cameraMotionLab.js';
+import { motionLabVariant, motionLabPreset, motionLabPoint, MOTION_LAB_GLYPHS } from './cameraMotionLab.js';
 
 const activePhases = new Set(['playing', 'locked', 'clear', 'stage-clear']);
 const artSelector = '.arcade-hero,.ss-hero,.ne-cover,.hp-cover,.bw-entry-hero,.pp-entry-art,.td-cover,.pw-cover,.wipe-cover,.hc-cover,.cc-cover,.tt-cover,.as-cover,.dl-cover,.hs-cover';
@@ -69,7 +69,8 @@ export class MotionDirector {
         label = '';
       }
     }
-    this.burst(cue.kind, label, sample.point);
+    const point = this.variant === 'B' ? motionLabPoint(this.labPreset, instance, sample.point) : sample.point;
+    this.burst(cue.kind, label, point);
   }
   burst(kind, label, point) {
     if (!this.layer || this.reduced.matches || document.hidden) return;
@@ -78,13 +79,16 @@ export class MotionDirector {
     const el = document.createElement('div');
     const enhanced = this.variant === 'B' && kind !== 'start';
     el.className = `motion-burst motion-burst--${kind}${enhanced ? ' motion-burst--lab' : ''}`;
-    el.style.setProperty('--burst-x', `${Math.min(.8, Math.max(.2, point.x)) * 100}%`);
-    el.style.setProperty('--burst-y', `${Math.min(.78, Math.max(.26, point.y)) * 100}%`);
+    // Spatial accents stay on the confirmed contact, even near a stage edge.
+    // The clipped layer contains the geometry; captions keep their safe inset.
+    const atContact = enhanced && ['cut', 'pulse', 'rebound'].includes(this.labPreset);
+    el.style.setProperty('--burst-x', `${(atContact ? point.x : Math.min(.8, Math.max(.2, point.x))) * 100}%`);
+    el.style.setProperty('--burst-y', `${(atContact ? point.y : Math.min(.78, Math.max(.26, point.y))) * 100}%`);
     el.innerHTML = '<i class="motion-ring"></i><i class="motion-ring motion-ring--echo"></i>' +
       Array.from({ length: 8 }, (_, i) => `<i class="motion-ray" style="--ray:${i};--angle:${i * 45}deg"></i>`).join('');
-    if (enhanced) {
+    if (enhanced && MOTION_LAB_GLYPHS[this.labPreset]) {
       const glyph = document.createElement('i'); glyph.className = 'motion-lab-glyph';
-      glyph.textContent = this.labPreset === 'sigil' ? '✦' : this.labPreset === 'rune' ? '✧' : '♫';
+      glyph.textContent = MOTION_LAB_GLYPHS[this.labPreset];
       el.append(glyph);
     }
     if (label) { const caption = document.createElement('b'); caption.className = 'motion-caption'; caption.textContent = label; el.append(caption); }
