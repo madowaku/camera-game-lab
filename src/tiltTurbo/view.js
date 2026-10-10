@@ -14,7 +14,7 @@ export class TiltTurboView {
     this.root=root;this.locale=locale;this.listeners=new Set();this.options={drive:'hands',courseId:'toy-town',carId:'roadster'};this.keys=new Set();this.pointers=new Map();this.generation=0;this.phase='idle';
     this.game=new TiltTurboGame();this.signal=new TiltSignal();this.audio=new TiltTurboAudio();
     root.innerHTML=`<section class="tt-play"><div class="tt-toolbar"><span class="tt-source"></span><div><button class="tt-sfx" type="button" aria-pressed="true">SE ON</button><button class="tt-pause" type="button">Ⅱ</button></div></div>
-      <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
+      <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><div class="tt-framing-hud" hidden aria-live="polite"><strong class="tt-framing-title"></strong><p class="tt-framing-state"></p><p class="tt-framing-tip"></p></div><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
       <div class="tt-overlay" hidden role="status"><h2></h2><p></p><button class="tt-resume" type="button" hidden></button><button class="tt-retry-camera" type="button" hidden></button><button class="tt-demo" type="button" hidden></button></div></div>
       <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><div class="tt-live" aria-live="polite" role="status"></div></section>`;
     this.debugEnabled=new URLSearchParams(location.search).get('debug')==='1';
@@ -24,7 +24,7 @@ export class TiltTurboView {
   createCameraInput(drive) {
     const Input = drive==='hands'?TiltTurboHandsInput:TiltTurboInput;
     return new Input(this.video,{onResult:packet=>{
-      if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
+      if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at,handsDetected:packet.hands ?? 0};
     },onStatus:(status,error)=>{
       if(!this.active||this.source!=='camera')return;this.status=status;
       if(status==='ERROR'&&this.phase==='playing'){this.packet=null;this.motion={tracked:false,ready:true,roll:0,steering:0};this.render();}
@@ -108,6 +108,26 @@ export class TiltTurboView {
   draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,drive:this.drive,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
   render(){
     const t=this.t;if(!this.$('.tt-hint'))return;
+    // Camera framing is physical: image processing cannot recover palms
+    // outside the lens. Show the actual mirrored FOV during hand calibration
+    // rather than asking the player to raise both arms to face height.
+    const framing = this.source==='camera' && this.drive==='hands' && this.phase==='calibration' && !this.game.paused;
+    const hidesCamera = this.options.creator && this.options.faceMode==='HIDE';
+    this.video.hidden=!(framing && !hidesCamera);
+    const frameHud=this.$('.tt-framing-hud');frameHud.hidden=!framing;
+    if(framing){
+      const seen = this.packet && performance.now()-this.packet.at<=250 ? this.packet.hands ?? 0 : 0;
+      const ready = this.currentMotion?.ready && this.currentMotion?.tracked;
+      this.$('.tt-framing-title').textContent=this.locale==='ja'?'胸の高さでハンドルを持とう':'HOLD THE WHEEL AT CHEST HEIGHT';
+      this.$('.tt-framing-state').textContent=ready
+        ? (this.locale==='ja'?'両手OK！そのまま小さく回そう':'BOTH HANDS READY! TURN GENTLY')
+        : seen>=2 ? (this.locale==='ja'?'両手を左右に少し離して':'SPREAD YOUR HANDS APART')
+          : seen===1 ? (this.locale==='ja'?'もう片方の手も映そう':'SHOW YOUR OTHER HAND')
+            : (this.locale==='ja'?'両手が映る位置にスマホを調整':'AIM THE PHONE TO SEE BOTH HANDS');
+      this.$('.tt-framing-tip').textContent=this.locale==='ja'
+        ? 'みぞおちでOK。映らなければスマホを少し下向きに、または少し遠くへ。'
+        : 'Lower hands are OK. Tilt the phone down or move it back if needed.';
+    }
     const hud=this.$('.tt-feel-debug');hud.hidden=!this.debugEnabled;
     if(this.debugEnabled){const m=this.currentMotion,d=m?.debug??(this.source==='demo'?{raw:m?.roll,stable:m?.roll,feel:m?.steering}:null),number=(n,unit)=>Number.isFinite(n)?`${n.toFixed(3)}${unit}`:'LOST';
       hud.textContent=`RAW    ${m?.tracked?number(d?.raw,'°'):'LOST'}\nSTABLE ${m?.tracked?number(d?.stable,'°'):'LOST'}\nFEEL   ${m?.tracked?number(d?.feel,' steering'):'LOST'}\nINPUT ${this.source?.toUpperCase()??'—'} · 70ms / ±5° / exponent .85`;}
