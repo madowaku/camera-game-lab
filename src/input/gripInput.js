@@ -14,12 +14,19 @@ export class GripInput extends BodyInput {
   }
   processResult(result, timestamp) {
     const frame = this.grip.update(result, timestamp);
-    if (this.comparison) {
-      this.lastComparison = this.comparison.update(result, timestamp,
-        (this.video.videoWidth || 1) / (this.video.videoHeight || 1));
-      this.onComparison(this.lastComparison);
-    }
+    // A gameplay callback has priority even if the optional diagnostics fail.
     this.onFrame(frame);
+    if (this.comparison) {
+      try {
+        const aspect = (this.video.videoWidth || 1) / (this.video.videoHeight || 1);
+        this.lastComparison = this.comparison.update(result, timestamp, aspect);
+        this.onComparison(this.lastComparison);
+      } catch (error) {
+        console.warn("Gesture A/B diagnostics disabled after an error:", error);
+        this.comparison = null;
+        this.lastComparison = null;
+      }
+    }
   }
   stop() {
     super.stop();
