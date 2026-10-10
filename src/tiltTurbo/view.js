@@ -1,5 +1,7 @@
 import { TiltTurboGame } from './core.js';
 import { TiltSignal, steeringForRoll } from './input.js';
+import { WheelSignal } from './wheel.js';
+import { TiltTurboHandsInput } from '../input/tiltTurboHandsInput.js';
 import { TiltTurboInput } from '../input/tiltTurboInput.js';
 import { TiltTurboRenderer, W, H } from './renderer.js';
 import { TiltTurboAudio } from './audio.js';
@@ -9,7 +11,7 @@ import './tiltTurbo.css';
 export const createView = (root, locale) => new TiltTurboView(root, locale);
 export class TiltTurboView {
   constructor(root, locale) {
-    this.root=root;this.locale=locale;this.listeners=new Set();this.options={};this.keys=new Set();this.pointers=new Map();this.generation=0;this.phase='idle';
+    this.root=root;this.locale=locale;this.listeners=new Set();this.options={drive:'hands',courseId:'toy-town',carId:'roadster'};this.keys=new Set();this.pointers=new Map();this.generation=0;this.phase='idle';
     this.game=new TiltTurboGame();this.signal=new TiltSignal();this.audio=new TiltTurboAudio();
     root.innerHTML=`<section class="tt-play"><div class="tt-toolbar"><span class="tt-source"></span><div><button class="tt-sfx" type="button" aria-pressed="true">SE ON</button><button class="tt-pause" type="button">Ⅱ</button></div></div>
       <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
@@ -17,7 +19,11 @@ export class TiltTurboView {
       <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><div class="tt-live" aria-live="polite" role="status"></div></section>`;
     this.debugEnabled=new URLSearchParams(location.search).get('debug')==='1';
     this.$=s=>root.querySelector(s);this.video=this.$('video');this.canvas=this.$('.tt-canvas');this.capture=this.$('.tt-capture');this.renderer=new TiltTurboRenderer(this.canvas);
-    this.input=new TiltTurboInput(this.video,{onResult:packet=>{
+    this.input=this.createCameraInput('head');
+  }
+  createCameraInput(drive) {
+    const Input = drive==='hands'?TiltTurboHandsInput:TiltTurboInput;
+    return new Input(this.video,{onResult:packet=>{
       if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
     },onStatus:(status,error)=>{
       if(!this.active||this.source!=='camera')return;this.status=status;
@@ -26,14 +32,14 @@ export class TiltTurboView {
     }});
   }
   get t(){return copy(this.locale);}
-  configure(options={}){this.options={creator:!!options.creator,faceMode:options.faceMode??'ORIGINAL'};}
+  configure(options={}){this.options={creator:!!options.creator,faceMode:options.faceMode??'ORIGINAL',drive:options.drive==='head'?'head':'hands',courseId:options.courseId??'toy-town',carId:options.carId??'roadster'};}
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   notify(){this.listeners.forEach(fn=>fn(this.snapshot()));}
   snapshot(){return {phase:this.phase==='ending'?'playing':this.phase==='calibration'?'countdown':this.phase,source:this.source,paused:this.game.paused,elapsed:this.game.elapsed,result:this.phase==='result'?{...this.game.result,source:this.source,creator:this.creatorResult}:null};}
   setLocale(locale){this.locale=locale;this.render();}
   activate(){this.active=true;this.phase='idle';this.render();}
   setup(source){
-    this.releaseInputs();this.active=true;this.source=source;this.phase='loading';this.game.reset();this.signal.reset();this.creatorResult=null;this.packet=null;this.motion={tracked:false,ready:false};this.manualPause=false;this.prep=0;this.countdown=0;this.ending=0;
+    this.releaseInputs();this.active=true;this.source=source;this.phase='loading';this.drive=this.options.drive;this.game=new TiltTurboGame(this.options);this.signal=this.drive==='hands'?new WheelSignal():new TiltSignal();this.input=this.createCameraInput(this.drive);this.creatorResult=null;this.packet=null;this.motion={tracked:false,ready:false};this.manualPause=false;this.prep=0;this.countdown=0;this.ending=0;
     this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(this.options.creator)this.creator=new CreatorMode(this.capture,{profile:{brand:'TILT TURBO'},faceMode:this.options.faceMode,reducedMotion:true});
     this.bind();this.audio.arm();this.render();this.notify();return this.generation;
@@ -99,18 +105,18 @@ export class TiltTurboView {
     if(this.active)this.frameId=requestAnimationFrame(this.loop);
   };
   faceBox(){const p=this.packet?.points;if(!p||performance.now()-this.packet.at>250)return null;return {left:Math.min(...p.map(q=>q.x)),right:Math.max(...p.map(q=>q.x)),top:Math.min(...p.map(q=>q.y)),bottom:Math.max(...p.map(q=>q.y)),eyeLeft:p[33],eyeRight:p[263],mouth:p[13]};}
-  draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
+  draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,drive:this.drive,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
   render(){
     const t=this.t;if(!this.$('.tt-hint'))return;
     const hud=this.$('.tt-feel-debug');hud.hidden=!this.debugEnabled;
     if(this.debugEnabled){const m=this.currentMotion,d=m?.debug??(this.source==='demo'?{raw:m?.roll,stable:m?.roll,feel:m?.steering}:null),number=(n,unit)=>Number.isFinite(n)?`${n.toFixed(3)}${unit}`:'LOST';
       hud.textContent=`RAW    ${m?.tracked?number(d?.raw,'°'):'LOST'}\nSTABLE ${m?.tracked?number(d?.stable,'°'):'LOST'}\nFEEL   ${m?.tracked?number(d?.feel,' steering'):'LOST'}\nINPUT ${this.source?.toUpperCase()??'—'} · 70ms / ±5° / exponent .85`;}
-    this.$('.tt-source').textContent=`${this.source==='demo'?t.demo:t.camera}${this.options.creator?' · CREATOR':''}`;
+    this.$('.tt-source').textContent=`${this.source==='demo'?t.demo:this.drive==='hands'?t.wheelCamera:t.camera} · ${this.game.course[this.locale==='ja'?'ja':'en']}${this.options.creator?' · CREATOR':''}`;
     this.$('.tt-sfx').textContent=`SE ${this.audio.enabled?'ON':'OFF'}`;this.$('.tt-sfx').setAttribute('aria-pressed',String(this.audio.enabled));
     const playable=['calibration','countdown','playing'].includes(this.phase);
     this.$('.tt-pause').disabled=!playable;this.$('.tt-pause').textContent=this.manualPause?'▶':'Ⅱ';this.$('.tt-pause').setAttribute('aria-label',this.manualPause?t.resume:t.pause);
     this.$('.tt-practice').hidden=this.source!=='demo';this.root.querySelectorAll('[data-steer]').forEach(b=>{b.disabled=!playable||this.game.paused;b.setAttribute('aria-label',Number(b.dataset.steer)<0?t.left:t.right);});
-    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · HIT ${this.game.hits} · NEAR ${this.game.near}`);
+    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:this.drive==='hands'?t.wheelHint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · HIT ${this.game.hits} · NEAR ${this.game.near}`);
     const label=this.phase==='error'?t.error:this.phase==='loading'?t.loading:this.manualPause?t.paused:'';this.$('.tt-overlay').hidden=!label;this.$('.tt-overlay h2').textContent=label;
     this.$('.tt-overlay p').textContent=this.phase==='error'?t.errorHint:this.phase==='loading'?this.status==='REQUESTING_CAMERA'?t.permission:t.model:'';
     this.$('.tt-resume').hidden=!this.manualPause;this.$('.tt-resume').textContent=t.resume;this.$('.tt-retry-camera').hidden=this.phase!=='error';this.$('.tt-retry-camera').textContent=t.retryCamera;
