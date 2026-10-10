@@ -29,6 +29,7 @@ export class GestureEngine {
     this.lastClockAt = null;
     this.lastInferenceAt = null;
     this.events = [];
+    this.pendingEvents = [];
     this.disposed = false;
     this.metrics = { inferenceCount: 0, rejectedFrames: 0, rejectedHands: 0,
       lossCount: 0, ambiguousCount: 0, gapMaxMs: 0 };
@@ -38,6 +39,7 @@ export class GestureEngine {
     this.states.clear();
     this.resolver.reset();
     this.events = [];
+    this.pendingEvents = [];
     this.disposed = true;
   }
   ensureState(id) {
@@ -56,7 +58,16 @@ export class GestureEngine {
     return true;
   }
   emit(type, id, atMs, extra = {}) {
-    this.events.push({ type, trackId: id, atMs, ...extra });
+    const event = { type, trackId: id, atMs, ...extra };
+    this.events.push(event);
+    this.pendingEvents.push(event);
+    if (this.pendingEvents.length > 100) this.pendingEvents.shift();
+  }
+  // Use for gameplay side effects. Safe even if rendering advances before dispatch.
+  drainEvents() {
+    const events = this.pendingEvents.map(e => ({ ...e }));
+    this.pendingEvents = [];
+    return events;
   }
   update(rawObservations, atMs, options = {}) {
     if (!this.validClock(atMs) || (this.lastInferenceAt !== null && atMs <= this.lastInferenceAt)) {
@@ -100,6 +111,7 @@ export class GestureEngine {
       }
       const wasLost = state.status === STATUS.LOST;
       state.status = STATUS.TRACKING;
+      state.wasTracking = true;
       state.lastSeenAt = atMs;
       state.observation = obs;
       if (wasLost) this.emit('TRACK_RETURNED', id, atMs);
@@ -119,6 +131,8 @@ export class GestureEngine {
       if (state.status !== STATUS.LOST) this.interrupt(state, atMs, STATUS.LOST);
     } else if (state.status !== STATUS.AMBIGUOUS && state.status !== STATUS.LOST) {
       state.status = STATUS.GRACE;
+      if (state.wasTracking !== false) this.emit('TRACK_GRACE', state.id, atMs);
+      state.wasTracking = false;
       state.observation = null;
       // Freeze the action and cannot re-emit it while unobserved.
       for (const gesture of state.gestures.values()) gesture.interrupt();
