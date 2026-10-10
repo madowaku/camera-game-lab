@@ -2,7 +2,7 @@ const messages = {
   ja: {
     eyebrowTensionDuel: "CAMERA GAME LAB / EXP-021 · TENSION",
     modeTensionDuel: "TENSION DUEL",
-    leadTensionDuel: "指でネットを張れ！ 一台のカメラで、二人の15秒ラリー。",
+    leadTensionDuel: "指でネットを張れ！ 一台のカメラで、二人の5点先取対戦。",
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",
@@ -135,7 +135,7 @@ const messages = {
   en: {
     eyebrowTensionDuel: "CAMERA GAME LAB / EXP-021 · TENSION",
     modeTensionDuel: "TENSION DUEL",
-    leadTensionDuel: "Stretch the net between your fingers! Two players, one camera, a 15-second rally.",
+    leadTensionDuel: "Stretch the net between your fingers! Two players, one camera, first to five wins.",
     eyebrowHandBeat: "CAMERA GAME LAB / EXP-001",
     eyebrowFingerGun: "CAMERA GAME LAB / EXP-002",
     eyebrowEatDontEat: "CAMERA GAME LAB / EXP-003",

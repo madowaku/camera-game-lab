@@ -52,8 +52,8 @@ test('crossing the center during a catch cancels the return instead of carrying 
 });
 test('rotation clears old spring contact geometry while preserving score and clock', () => {
   const m=createMatch();m.ball={x:.218,y:.28,vx:-.34,vy:0};stepMatch(m,[net(.2,.28,.21),null],.02);
-  const time=m.remaining,relativeY=m.ball.y/m.height;assert.ok(m.capture);
-  resizeMatch(m,.75);assert.equal(m.capture,null);assert.ok(m.ball.vx>0);assert.equal(m.remaining,time);assert.deepEqual(m.score,[0,0]);assert.ok(Math.abs(m.ball.y/.75-relativeY)<1e-10);
+  const time=m.elapsed,relativeY=m.ball.y/m.height;assert.ok(m.capture);
+  resizeMatch(m,.75);assert.equal(m.capture,null);assert.ok(m.ball.vx>0);assert.equal(m.elapsed,time);assert.deepEqual(m.score,[0,0]);assert.ok(Math.abs(m.ball.y/.75-relativeY)<1e-10);
 });
 test('high speed movement cannot tunnel through a net and only reflects once', () => {
   const m=createMatch(); m.ball={x:.24,y:.28,vx:-CONFIG.maxSpeed,vy:0};
@@ -104,7 +104,7 @@ for (const player of [0, 1]) test(`P${player + 1} cannot hit in the opponent hal
   const nets = [null, null]; nets[player] = net(x);
   m.ball = { x: x - Math.sign(vx) * .03, y: .28, vx, vy: 0 };
   assert.equal(stepMatch(m, nets, .1).filter(e => e.type === 'hit').length, 0);
-  assert.equal(m.hits, 0); assert.ok(m.remaining < 15);
+  assert.equal(m.hits, 0); assert.ok(m.elapsed > 0);
   const home = player ? .8 : .2;
   nets[player] = net(home); m.ball = { x: home - Math.sign(vx) * .03, y: .28, vx, vy: 0 };
   assert.equal(stepMatch(m, nets, .1).filter(e => e.type === 'hit').length, 1);
@@ -116,11 +116,17 @@ for (const side of ['left','right']) test(`${side} exit awards opponent one poin
   assert.equal(m.ball.x,.5); stepMatch(m,[null,null],.81);
   assert.equal(Math.sign(m.ball.vx),side==='left'?-1:1);
 });
-test('15-second match transitions exactly once and retries get fresh state', () => {
-  const m=createMatch(); for(let i=0;i<150;i++) stepMatch(m,[null,null],.1);
-  stepMatch(m,[null,null],.001); assert.equal(m.phase,'result'); assert.equal(m.remaining,0);
-  const score=[...m.score]; assert.deepEqual(stepMatch(m,[null,null],1),[]); assert.deepEqual(m.score,score);
-  assert.deepEqual(createMatch().score,[0,0]);
+test('a match has no time limit and cannot end just because 15 seconds pass', () => {
+  const m=createMatch();m.ball.vx=0;m.ball.vy=0;
+  stepMatch(m,[null,null],60);assert.equal(m.phase,'playing');assert.deepEqual(m.score,[0,0]);assert.ok(Math.abs(m.elapsed-60)<1e-8);
+});
+for (const winner of [0,1]) test(`P${winner+1}'s fifth goal ends exactly once, with no extra serve, and retry clears the match`, () => {
+  const m=createMatch();m.score=[4,4];m.ball={x:winner?-.02:1.02,y:m.height/2,vx:winner?-.34:.34,vy:0};
+  const events=stepMatch(m,[null,null],1);
+  assert.equal(m.phase,'result');assert.equal(m.score[winner],5);assert.equal(m.score[1-winner],4);assert.equal(m.serve,0);
+  assert.equal(events.filter(e=>e.type==='point').length,1);assert.equal(events.filter(e=>e.type==='end').length,1);assert.equal(events.at(-1).player,winner);
+  assert.ok(m.elapsed<1);const ended=structuredClone(m);assert.deepEqual(stepMatch(m,[null,null],10),[]);assert.deepEqual(m,ended);
+  const fresh=createMatch();assert.deepEqual(fresh.score,[0,0]);assert.equal(fresh.elapsed,0);assert.equal(fresh.phase,'playing');
 });
 test('assignment retains players across detector permutations and brief center crossing', () => {
   const a={...net(.49),seenAt:100}, b={...net(.8),seenAt:100};
@@ -144,27 +150,27 @@ test('cover projection matches mirrored video with crop and uses isotropic world
   const a=project({x:.4,y:.5},1280,720,800,450), b=project({x:.5,y:.5},1280,720,800,450);
   assert.ok(Math.abs(Math.hypot(a.x-b.x,a.y-b.y)-.1)<1e-10);
 });
-test('five simulated rallies complete with finite speed and valid scores', () => {
+test('five long simulated rallies continue beyond 15 seconds with finite speed and valid scores', () => {
   for(let round=0;round<5;round++) {
     const m=createMatch();
-    for(let frame=0;frame<1801;frame++) {
+    for(let frame=0;frame<3601;frame++) {
       const nets=[net(.18,m.ball.y,.105,.05),net(.82,m.ball.y,.15,-.05)];
       stepMatch(m,nets,1/120);
       assert.ok(Math.hypot(m.ball.vx,m.ball.vy)<=CONFIG.maxSpeed+1e-8);
     }
-    assert.equal(m.phase,'result'); assert.ok(m.hits>=6); assert.ok(m.score.every(Number.isInteger));
+    assert.equal(m.phase,'playing'); assert.ok(m.elapsed>30); assert.ok(m.hits>=12); assert.ok(m.score.every(Number.isInteger));
   }
 });
 
-test('rotation preserves relative ball position, speed, points and remaining time', () => {
+test('rotation preserves relative ball position, speed, points and active play time', () => {
   const match = createMatch();
   match.ball.y = match.height * .7;
-  match.score = [2, 1]; match.remaining = 8.5;
+  match.score = [2, 1]; match.elapsed = 8.5;
   const velocity = { vx: match.ball.vx, vy: match.ball.vy };
   assert.equal(resizeMatch(match, .75), true);
   assert.ok(Math.abs(match.ball.y / match.height - .7) < 1e-10);
   assert.deepEqual({ vx: match.ball.vx, vy: match.ball.vy }, velocity);
-  assert.deepEqual(match.score, [2, 1]); assert.equal(match.remaining, 8.5);
+  assert.deepEqual(match.score, [2, 1]); assert.equal(match.elapsed, 8.5);
   assert.equal(resizeMatch(match, NaN), false);
   assert.equal(resizeMatch(match, 0), false);
   assert.equal(resizeMatch(match, .75), false);

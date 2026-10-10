@@ -1,5 +1,5 @@
 // World units are fractions of arena width; y uses the same scale as x.
-export const CONFIG = Object.freeze({ duration: 15, serveDelay: .8, readyTime: 3,
+export const CONFIG = Object.freeze({ winningScore: 5, serveDelay: .8, readyTime: 3,
   holdMs: 250, fadeMs: 180, radius: .014, speed: .34, maxSpeed: .64, minSpeed: .22,
   thresholds: [.07, .13, .18], margins: [.025, .019, .012, .007], goalInset: .1, goalDepth: .035 });
 export const STATES = ['SLACK', 'NORMAL', 'TENSION', 'OVER'];
@@ -43,7 +43,7 @@ export function reflection(net, player, contact) {
   return { vx: direction * Math.cos(angle) * speed, vy: Math.sin(angle) * speed };
 }
 export function createMatch(height = 9 / 16) {
-  return { height, remaining: CONFIG.duration, phase: 'playing', score: [0, 0],
+  return { height, elapsed: 0, phase: 'playing', score: [0, 0],
     ball: { x: .5, y: height / 2, vx: -CONFIG.speed, vy: .035 },
     serve: 0, serveDirection: -1, locked: null, capture: null, hits: 0, rally: 0, bestRally: 0 };
 }
@@ -71,18 +71,17 @@ export function netInOwnHalf(net, player) {
 export function stepMatch(match, nets, seconds) {
   if (match.phase !== 'playing') return [];
   const events = [];
-  let time = Math.min(Math.max(0, seconds), match.remaining);
-  match.remaining = Math.max(0, match.remaining - time);
+  let time = Math.max(0, seconds);
   // Small fixed substeps prevent a fast ball skipping a thin net.
   while (time > 1e-8) {
-    const dt = Math.min(time, 1 / 240); time -= dt;
+    const dt = Math.min(time, 1 / 240); time -= dt; match.elapsed += dt;
     if (match.serve > 0) {
       match.serve = Math.max(0, match.serve - dt);
       if (match.serve === 0) match.ball.vx = match.serveDirection * CONFIG.speed;
       continue;
     }
     const ball = match.ball;
-    const at = CONFIG.duration - match.remaining - time;
+    const at = match.elapsed;
     if (match.capture) {
       const capture = match.capture, net = nets[capture.player];
       if (!net?.active || !netInOwnHalf(net, capture.player)) {
@@ -121,10 +120,14 @@ export function stepMatch(match, nets, seconds) {
     if (inGoal && (ball.x < goal.depth - CONFIG.radius || ball.x > 1 - goal.depth + CONFIG.radius)) {
       const winner = ball.x < .5 ? 1 : 0;
       match.score[winner]++; match.rally = 0; match.locked = null;
+      events.push({ type: 'point', player: winner });
+      if (match.score[winner] >= CONFIG.winningScore) {
+        match.phase = 'result'; match.serve = 0; ball.vx = 0; ball.vy = 0;
+        events.push({ type: 'end', player: winner }); break;
+      }
       match.serveDirection = winner === 1 ? -1 : 1;
       match.ball = { x: .5, y: match.height / 2, vx: 0, vy: .035 };
       match.serve = CONFIG.serveDelay;
-      events.push({ type: 'point', player: winner });
       continue;
     }
     if (match.locked !== null) {
@@ -146,7 +149,6 @@ export function stepMatch(match, nets, seconds) {
       }
     }
   }
-  if (match.remaining <= 1e-8) { match.remaining = 0; match.phase = 'result'; events.push({ type: 'end' }); }
   return events;
 }
 // Match both detections to previous positions globally, independent of result order.

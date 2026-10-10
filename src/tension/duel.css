@@ -19,7 +19,7 @@
 .td-player[data-crossed="true"] small { color: #ffaaaa; font-weight: 750; }
 .td-score { display: flex; flex-direction: column; align-items: center; background: #101c25e8; border: 1px solid #52616a; border-radius: 14px; padding: 6px 22px; color: var(--td-ink); font-variant-numeric: tabular-nums; }
 .td-score strong { font-size: 28px; line-height: 1.1; letter-spacing: .08em; }
-.td-timer { font-size: 13px; }
+.td-target { font-size: 13px; }
 .td-rally { margin-top: 3px; color: #bccbd3; font-size: 11px; }
 .td-card { position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%); width: min(88%, 620px); text-align: center; color: var(--td-ink); padding: 16px 20px; border-radius: 18px; background: #101c25ed; border: 1px solid #fff2; }
 .td-card-label { display: inline-block; font-size: 11px; font-weight: 750; letter-spacing: .08em; color: var(--td-p1); margin-bottom: 6px; }

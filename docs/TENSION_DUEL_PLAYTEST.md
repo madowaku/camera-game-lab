@@ -1,7 +1,7 @@
 # TENSION DUEL Human Playtest v0.1
 
 ## Setup
-Two people, one front camera, landscape phone, one hand per person. Open the HTTPS Tension Duel link in Safari on iPhone or Chrome on Android, allow camera access, and tap **カメラで遊ぶ / Play with camera**. If offered, use **大きく表示 / Play fullscreen**; supported browsers also lock landscape. Give only the instruction shown on screen: left player makes a C, right player makes its mirror, with both openings toward the center. Play five 15-second rounds. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
+Two people, one front camera, landscape phone, one hand per person. Open the HTTPS Tension Duel link in Safari on iPhone or Chrome on Android, allow camera access, and tap **カメラで遊ぶ / Play with camera**. If offered, use **大きく表示 / Play fullscreen**; supported browsers also lock landscape. Give only the instruction shown on screen: left player makes a C, right player makes its mirror, with both openings toward the center. Play five matches, each first to five points with no time limit. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
 
 ## Camera smoke test (not yet performed)
 - Start grants camera access and opens the front camera; two hands produce exactly two nets.
@@ -12,7 +12,8 @@ Two people, one front camera, landscape phone, one hand per person. Open the HTT
 - A short tracking gap under 250ms does not flicker; a longer gap fades the affected net and pauses the match.
 - Reappearance resumes the same score/time; brief movement across center does not exchange players.
 - Camera interruption shows recovery text. Back stops all video tracks. Retry does not request permission again.
-- Pause freezes ball, score and clock, including midway through an elastic catch. Resume continues that same catch; switching JA/EN preserves the round.
+- A rally can continue beyond 15 seconds. Neither score below five can end the match; either player's fifth goal ends it once, shows the correct winner and does not start another serve. Retry resets to 0:0.
+- Pause freezes ball, score and elastic motion, including midway through a catch. Resume continues that same catch; switching JA/EN preserves the match.
 - Rotate between portrait and landscape during a round: the ball stays inside the new arena, camera nets reattach to fingertips and no points are awarded during recovery.
 - Two hands on the same side do not start the countdown. A fingertip outside the preview shows the readiness hint instead of starting play.
 - Keep both endpoints in the player's half to start. Touching the center line is allowed; straddling it is not.

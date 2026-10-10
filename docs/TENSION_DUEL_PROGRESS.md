@@ -167,8 +167,7 @@ Verification:
 - Production build passes; existing court/audio assets remain PWA precached.
 - Actual in-app Chromium: deterministic controller harness checks top/bottom
   light, wide stretch/recoil, narrow release, goal scoring and corner bounce.
-  Local JPEG evidence is in ignored `output/playwright/tension-wide-spring.jpg`
-  and `tension-wide-spring-court.jpg`.
+  Local JPEG evidence is in ignored `output/playwright/tension-wide-spring.jpg`.
 - Actual app at 844 × 390 landscape and 390 × 844 portrait: wide/narrow controls,
   pause, rotation, JA/EN, resume, completed practice round (1:0, four returns,
   best rally three), retry reset and no horizontal overflow.
@@ -176,3 +175,22 @@ Verification:
   mute stops music and effects. No console errors/warnings observed in the
   checked app and harness flows. Audible feel and physical phone hand tracking
   still need the hardware playtest.
+
+## First-to-five follow-up — 2026-10-10
+
+- Removed the 15-second limit. The first player to reach five points wins; the
+  fifth goal ends the match once without another serve. The HUD shows the point
+  target instead of a countdown, and JA/EN onboarding, retry, rules and the lab
+  description explain the new format.
+- Active elapsed time now drives spring motion independently of a deadline.
+  Tracking loss, pause and rotation retain their existing behavior.
+- 83 unit tests pass, including either player's 5:4 victory, a 60-second match
+  with no timeout, and five continuous 30-second rallies. All 43 UI checks pass;
+  five simulated first-to-five matches continue beyond 15 seconds, then finish
+  via deliberate native-control misses, with 11–12 returns before scoring.
+- Production build passes. Actual Chromium practice reaches 0:5, shows P2's
+  win, and retry resets to 0:0. Portrait/landscape and JA/EN show the new target.
+  The deterministic browser harness also retains the visible wide catch after
+  the elapsed-time refactor, with current JPEG evidence in ignored
+  `output/playwright/tension-five-point-spring.jpg`. Real phone hand tracking
+  remains unverified.

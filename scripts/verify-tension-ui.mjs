@@ -53,7 +53,7 @@ check('native range changes tension and angle',()=>{const stretch=root.querySele
 const results=[];
 for(let round=0;round<5;round++){
   if(round) {$('.td-start').click();duel.tick(now+=20);$('.td-skip').click();duel.tick(now+=20);}
-  for(let frame=0;frame<901;frame++){
+  for(let frame=0;frame<1001;frame++){
     // UI control input, tracking the ball only for these simulated playtests.
     for(let p=0;p<2;p++){
       const input=root.querySelector(`input[data-player="${p}"][data-kind="position"]`);
@@ -61,9 +61,14 @@ for(let round=0;round<5;round++){
     }
     now+=1000/60;duel.tick(now);
   }
-  assert.equal(duel.phase,'result',JSON.stringify({remaining:duel.match.remaining,nets:duel.nets}));assert.ok(duel.match.hits>=3);results.push({score:duel.match.score,hits:duel.match.hits,bestRally:duel.match.bestRally});
+  assert.equal(duel.phase,'playing');assert.ok(duel.match.elapsed>15);assert.ok(duel.match.hits>=3);
+  // Deliberately miss through native controls to complete a first-to-five match.
+  for(const input of root.querySelectorAll('input[data-kind="angle"]')){input.value='0';input.dispatchEvent(new window.Event('input'));}
+  for(const input of root.querySelectorAll('input[data-kind="position"]')){input.value='5';input.dispatchEvent(new window.Event('input'));}
+  for(let frame=0;frame<3600 && duel.phase==='playing';frame++)duel.tick(now+=1000/60);
+  assert.equal(duel.phase,'result',JSON.stringify({score:duel.match.score,nets:duel.nets}));assert.equal(Math.max(...duel.match.score),5);results.push({score:duel.match.score,hits:duel.match.hits,bestRally:duel.match.bestRally});
 }
-check('five UI-driven simulated rounds finish and retry resets match',()=>{assert.equal(results.length,5);assert.equal($('.td-start').textContent,'もう一度・15秒');});
+check('five UI-driven first-to-five matches continue beyond 15 seconds, finish and reset on retry',()=>{assert.equal(results.length,5);assert.equal($('.td-start').textContent,'もう一度・5点先取');assert.equal($('.td-target').textContent,'5点先取');});
 check('canvas draws net curves, endpoint nodes and hit effects',()=>{assert.ok(commands.some(c=>c[0]==='quadraticCurveTo'));assert.ok(commands.some(c=>c[0]==='arc'));});
 duel.ready();duel.tick(now+=20);$('.td-skip').click();duel.tick(now+=20);
 duel.fake.forEach(f=>f.y=.04);duel.tick(now+=2000);
@@ -86,18 +91,18 @@ const realNow=performance.now();duel.nets=rules.updateNets([null,null],[n(.2)],r
 check('one hand waits and countdown cannot advance with mirrored player guidance',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.countdown,3);assert.match($('.td-hint').textContent,/Show C on the left and its mirror on the right/);});
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+10);duel.countdown=.01;duel.tick(realNow+30);
 check('two injected hands begin the camera round',()=>assert.equal(duel.phase,'playing'));
-const remaining=duel.match.remaining;duel.tick(realNow+600);
-check('tracking loss pauses the camera round and fades nets',()=>{assert.equal(duel.match.remaining,remaining);assert.match($('.td-hint').textContent,/Show C on the left and its mirror on the right/);assert.ok(duel.nets.every(n=>!n.active));});
+const elapsed=duel.match.elapsed;duel.tick(realNow+600);
+check('tracking loss pauses the camera round and fades nets',()=>{assert.equal(duel.match.elapsed,elapsed);assert.match($('.td-hint').textContent,/Show C on the left and its mirror on the right/);assert.ok(duel.nets.every(n=>!n.active));});
 check('tracking loss silences music and reacquisition restarts it',()=>{assert.equal(musicStates.at(-1),false);});
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+650);duel.tick(realNow+650);
-check('first reacquisition frame never charges paused time',()=>assert.equal(duel.match.remaining,remaining));
+check('first reacquisition frame never charges paused time',()=>assert.equal(duel.match.elapsed,elapsed));
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+670);duel.tick(realNow+670);
-check('tracking reacquisition resumes the existing round',()=>{assert.ok(duel.match.remaining<remaining);assert.equal(musicStates.at(-1),true);});
+check('tracking reacquisition resumes the existing round',()=>{assert.ok(duel.match.elapsed>elapsed);assert.equal(musicStates.at(-1),true);});
 duel.phase='result';const startsBeforeRetry=starts;await duel.start();
 check('camera retry reuses the running input without requesting it again',()=>{assert.equal(duel.phase,'ready');assert.equal(starts,startsBeforeRetry);});
 duel.countdown=.01;duel.tick(realNow+690);duel.tick(realNow+710);
-Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new window.Event('visibilitychange'));const hiddenTime=duel.match.remaining;duel.tick(realNow+800);
-check('hidden document freezes round and silences music',()=>{assert.equal(duel.match.remaining,hiddenTime);assert.equal(musicStates.at(-1),false);});
+Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new window.Event('visibilitychange'));const hiddenTime=duel.match.elapsed;duel.tick(realNow+800);
+check('hidden document freezes round and silences music',()=>{assert.equal(duel.match.elapsed,hiddenTime);assert.equal(musicStates.at(-1),false);});
 Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new window.Event('visibilitychange'));
 for(const [width,height] of [[360,202.5],[800,450],[1280,720]]){viewport={width,height};duel.draw(realNow+800);assert.equal(duel.canvas.width,width);}
 check('canvas dimensions follow narrow and landscape arena sizes',()=>assert.equal(duel.canvas.width,1280));
@@ -109,19 +114,19 @@ check('wall glow expires after its brief impact instead of accumulating',()=>ass
 duel.fake[0].distance=.21;duel.fake[0].y=duel.height/2;duel.tick(now+=20);
 duel.match.ball={x:duel.fake[0].x+.018,y:duel.fake[0].y,vx:-.34,vy:0};duel.tick(now+=20);
 assert.ok(duel.match.capture);
-$('.td-pause').click();const pausedTime=duel.match.remaining,pausedBall={...duel.match.ball};
+$('.td-pause').click();const pausedTime=duel.match.elapsed,pausedBall={...duel.match.ball};
 const pausedCatch=structuredClone(duel.match.capture);
 duel.tick(now+=5000);
-check('pause button freezes ball and clock and offers resume',()=>{assert.equal(duel.phase,'paused');assert.equal(duel.match.remaining,pausedTime);assert.deepEqual(duel.match.ball,pausedBall);assert.equal($('.td-start').textContent,'Resume');assert.equal(musicStates.at(-1),false);});
+check('pause button freezes ball and active play time and offers resume',()=>{assert.equal(duel.phase,'paused');assert.equal(duel.match.elapsed,pausedTime);assert.deepEqual(duel.match.ball,pausedBall);assert.equal($('.td-start').textContent,'Resume');assert.equal(musicStates.at(-1),false);});
 check('pausing during a wide catch preserves spring deformation and release timing',()=>assert.deepEqual(duel.match.capture,pausedCatch));
 $('.td-start').click();duel.tick(now+=2000);duel.tick(now+=20);
-check('resume preserves score and does not consume paused time',()=>{assert.equal(duel.phase,'playing');assert.ok(Math.abs(duel.match.remaining-(pausedTime-.02))<1e-8);assert.deepEqual(duel.match.score,[0,0]);});
+check('resume preserves score and does not consume paused time',()=>{assert.equal(duel.phase,'playing');assert.ok(Math.abs(duel.match.elapsed-(pausedTime+.02))<1e-8);assert.deepEqual(duel.match.score,[0,0]);});
 duel.tick(now+=100);duel.tick(now+=100);
 check('resuming finishes the existing elastic catch once and releases toward the opponent',()=>{assert.equal(duel.match.capture,null);assert.equal(duel.match.hits,1);assert.ok(duel.match.ball.vx>0);});
 window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 check('Escape pauses without leaving the game',()=>assert.equal(duel.phase,'paused'));
 viewport={width:390,height:292.5};duel.tick(now+=20);
-check('portrait rotation updates world height while preserving the paused clock',()=>{assert.equal(duel.match.height,.75);assert.ok(duel.match.ball.y>=rules.CONFIG.radius && duel.match.ball.y<=.75-rules.CONFIG.radius);});
+check('portrait rotation updates world height while the match stays paused',()=>{assert.equal(duel.phase,'paused');assert.equal(duel.match.height,.75);assert.ok(duel.match.ball.y>=rules.CONFIG.radius && duel.match.ball.y<=.75-rules.CONFIG.radius);});
 check('practice provenance remains on the HUD and result',()=>{assert.equal($('.td-mode').textContent,'Camera-free practice');duel.phase='result';duel.render();assert.equal($('.td-card-label').textContent,'Practice result');});
 duel.mode='camera';duel.ready();duel.nets=rules.updateNets([null,null],[n(.7),n(.85)],now);duel.tick(now+=20);
 check('two hands on the same side cannot bypass player setup',()=>{assert.equal(duel.countdown,3);assert.equal(duel.phase,'ready');});
@@ -129,9 +134,9 @@ const live=geometry=>({...geometry,active:true,opacity:1,seenAt:now});
 duel.nets=[live(rules.geometry({x:.45,y:.23},{x:.53,y:.34})),live(n(.8))];duel.countdown=.01;duel.tick(now+=20);
 check('a net straddling center cannot start even when its center is in its own half',()=>{assert.equal(duel.nets[0].center.x,.49);assert.equal(duel.countdown,3);assert.match($('.td-p1 small').textContent,/Back from center/);});
 duel.nets=[live(n(.2)),live(n(.8))];duel.countdown=.01;duel.tick(now+=20);duel.tick(now+=20);
-const beforeCrossing=duel.match.remaining;
+const beforeCrossing=duel.match.elapsed;
 duel.nets=[live(n(.53)),live(n(.8))];duel.tick(now+=20);
-check('crossing shows an arrow warning, disables that net and keeps the clock running',()=>{assert.equal(duel.phase,'playing');assert.ok(duel.match.remaining<beforeCrossing);assert.equal($('.td-p1').dataset.crossed,'true');assert.match($('.td-hint').textContent,/P1 ← Return to your half/);assert.equal(musicStates.at(-1),true);});
+check('crossing shows an arrow warning, disables that net and keeps play running',()=>{assert.equal(duel.phase,'playing');assert.ok(duel.match.elapsed>beforeCrossing);assert.equal($('.td-p1').dataset.crossed,'true');assert.match($('.td-hint').textContent,/P1 ← Return to your half/);assert.equal(musicStates.at(-1),true);});
 duel.nets=[live(n(.2)),live(n(.8))];duel.tick(now+=20);
 check('returning home clears the crossing warning without restarting the match',()=>{assert.equal($('.td-p1').dataset.crossed,'false');assert.doesNotMatch($('.td-hint').textContent,/Return to your half/);assert.equal(duel.phase,'playing');});
 duel.startDemo();duel.tick(now+=20);duel.stage.setPointerCapture=()=>{};

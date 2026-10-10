@@ -23,7 +23,7 @@ export class TensionDuel {
         <img class="td-court" src="/artwork/tension-duel-court.webp" alt="" width="1280" height="720" hidden>
         <img class="td-artwork" src="/artwork/tension-duel-intro.webp" alt="" width="1536" height="864" fetchpriority="high">
         <video class="td-video" autoplay muted playsinline aria-hidden="true"></video><canvas class="td-canvas" aria-hidden="true"></canvas>
-        <div class="td-hud"><span class="td-player td-p1">P1 <small></small></span><div class="td-score"><strong>0 : 0</strong><span class="td-timer">15s</span><span class="td-rally"></span></div><span class="td-player td-p2">P2 <small></small></span></div>
+        <div class="td-hud"><span class="td-player td-p1">P1 <small></small></span><div class="td-score"><strong>0 : 0</strong><span class="td-target">5点先取</span><span class="td-rally"></span></div><span class="td-player td-p2">P2 <small></small></span></div>
         <div class="td-card"><span class="td-card-label"></span><h2></h2><p></p><div class="td-summary"></div></div>
         <div class="td-ready-panel" hidden><strong class="td-countdown"></strong><span class="td-ready-copy"></span></div>
         <div class="td-point" hidden aria-hidden="true"></div>
@@ -230,7 +230,6 @@ export class TensionDuel {
     this.wallImpacts = this.wallImpacts.filter(hit => now - hit.at < 480).slice(-8);
     this.audio.setMusic(this.phase === 'playing' && usable && !document.hidden);
     this.$('.td-score strong').textContent = this.match.score.join(' : ');
-    this.$('.td-timer').textContent = `${Math.ceil(this.match.remaining)}s`;
     this.$('.td-rally').textContent = `${this.t.rallyLive} ${this.match.rally}`;
     this.$('.td-point').hidden = this.phase !== 'playing' || now - this.pointAt > 650;
     this.$('.td-point').textContent = `P${(this.pointPlayer ?? 0) + 1} +1`;
@@ -263,6 +262,7 @@ export class TensionDuel {
     this.$('.td-mode').textContent = this.mode === 'demo' ? t.mode : t.cameraMode;
     this.$('.td-mode').dataset.mode = this.mode;
     this.$('.td-length').textContent = t.matchLength;
+    this.$('.td-target').textContent = t.matchLength;
     this.$('.td-tip').textContent = intro || result ? t.ruleTip : t.returnTip;
     this.$('.td-ready-panel').hidden = this.phase !== 'ready';
     this.$('.td-controls').hidden = this.mode !== 'demo' || intro;
@@ -344,7 +344,7 @@ export class TensionDuel {
       const n = this.nets[p]; if (!n?.opacity) continue;
       c.save(); c.globalAlpha = n.opacity * (crossed[p] ? .35 : 1); c.strokeStyle = crossed[p] ? '#ff8f8f' : colors[p]; c.fillStyle = c.strokeStyle; c.shadowColor = c.strokeStyle; c.shadowBlur = crossed[p] ? 0 : 12;
       if (crossed[p]) c.setLineDash([.008, .008]);
-      const impact = this.impacts[p], age = impact ? CONFIG.duration - this.match.remaining - impact.at : 1;
+      const impact = this.impacts[p], age = impact ? this.match.elapsed - impact.at : 1;
       const response = netResponse(n), snap = impact && !crossed[p] ? netDeflection(impact.response, age) : 0;
       const direction = impact?.direction ?? { x: p ? 1 : -1, y: 0 };
       const rest = response.stretch * .08;
