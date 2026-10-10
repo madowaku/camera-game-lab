@@ -46,7 +46,7 @@ export function drawPortrait(canvas,shape) {
   const vh=Math.min(h/(.034*shape.amount+.26),w*2.4),vw=Math.min(w*1.4,vh*.72);
   drawFood(c,shape,{w:vw,h:vh,x:w*.5,y:h*.86-Math.min(vw*.13,vh*.17)*1.85});
 }
-export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reducedMotion=false,locale="ja",animation=null,quietReaction=false}={}) {
+export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reducedMotion=false,locale="ja",animation=null,quietReaction=false,visualGuide=null}={}) {
   const s=surface(canvas);if(!s)return;const {c,w,h}=s,x=game.cone.x*w,y=game.cone.y*h;
   const serving=game.phase==="serve",ready=game.phase==="ready",eating=game.phase==="eat";
   if(demo){
@@ -69,6 +69,28 @@ export function drawSoftServe(canvas,game,{demo=true,mouth=null,open=false,reduc
     c.strokeStyle="#a9404d";c.lineWidth=5;c.beginPath();c.arc(x,cy,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*game.attachmentProgress);c.stroke();
     c.fillStyle="#583a2d";c.font="800 "+Math.max(13,w*.04)+"px 'Yu Gothic',sans-serif";c.textAlign="center";
     c.fillText(game.readyMs>0?"HOLD…":locale==="ja"?"✋ 中央へ":"✋ TO THE MIDDLE",x,cy-radius-14);
+  }
+  // P2 B draws an honest visual-only coach. Eligibility and game cone stay untouched.
+  if (ready && !game.paused && visualGuide?.raw && visualGuide?.assisted) {
+    const rawX=visualGuide.raw.x*w,rawY=visualGuide.raw.y*h;
+    const guideX=visualGuide.assisted.x*w, guideY=visualGuide.assisted.y*h;
+    c.save();
+    c.lineWidth=2;
+    c.strokeStyle=visualGuide.aligned?"#408f6e":"#a9404d";
+    c.setLineDash([5,6]);
+    c.beginPath();c.moveTo(w*.5,h*.25);c.lineTo(w*.5,h*.83);c.stroke();
+    if(visualGuide.displacement>.002){
+      c.strokeStyle="#8f745bbb";c.beginPath();c.moveTo(rawX,rawY);c.lineTo(guideX,guideY);c.stroke();
+    }
+    c.setLineDash([]);
+    c.fillStyle=visualGuide.aligned?"#408f6e":"#fffaf0";
+    ellipse(c,rawX,rawY,Math.max(4,w*.013),Math.max(4,w*.013));
+    c.strokeStyle=visualGuide.aligned?"#2b7357":"#a9404d";
+    c.beginPath();c.arc(guideX,guideY,w*.040,0,Math.PI*2);c.stroke();
+    c.font="700 "+Math.max(11,w*.03)+"px 'Yu Gothic',sans-serif";
+    c.textAlign="center";c.fillStyle=visualGuide.aligned?"#246349":"#6c4a3e";
+    c.fillText(visualGuide.aligned?(locale==="ja"?"その位置でキープ":"HOLD HERE"):(locale==="ja"?"中央に合わせて":"MOVE TO CENTER"),w*.5,h*.91);
+    c.restore();
   }
   if(animation?.attachmentAge<650){
     c.save();c.globalAlpha=1-clamp((animation.attachmentAge-350)/300);
