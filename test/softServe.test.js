@@ -150,8 +150,11 @@ test("camera eating accepts a deliberate near-mouth approach hidden by the hand"
   const g = served("camera", 3); g.completeServe();
   const near = () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true });
   advance(g, 100, near); assert.equal(g.bites, 0);
-  advance(g, 200, { ...center, mouth: null, open: false });
+  advance(g, 180, { ...center, mouth: null, open: false });
   assert.equal(g.bites, 1); assert.equal(g.paused, false);
+  // Once the bite is consumed, further missing frames pause normally.
+  advance(g, 20, { ...center, mouth: null, open: false });
+  assert.equal(g.paused, true);
   const amount = g.amount;
   advance(g, 400, { ...center, mouth: null, open: false });
   assert.equal(g.amount, amount); assert.equal(g.bites, 1);
