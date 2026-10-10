@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project, resizeMatch, usableNet, netInOwnHalf } from '../src/tension/rules.js';
+import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project, resizeMatch, usableNet, netInOwnHalf, goalBounds, netResponse, netDeflection } from '../src/tension/rules.js';
 const net = (x, y=.28, distance=.105, angle=0) => ({ ...geometry({ x:x-Math.sin(angle)*distance/2, y:y-Math.cos(angle)*distance/2 }, { x:x+Math.sin(angle)*distance/2, y:y+Math.cos(angle)*distance/2 }), active:true });
 test('tension boundaries include exact thresholds without pixel dependence', () => {
   assert.deepEqual([0,.069,.07,.129,.13,.179,.18,.3].map(tension),[0,0,1,1,2,2,3,3]);
@@ -19,9 +19,41 @@ test('arcade reflection sends the ball toward the opponent, changes with tilt, a
   const reversed=geometry(tilted.index,tilted.thumb);
   assert.ok(Math.abs(reflection(tilted,0,tilted.center).vy-reflection(reversed,0,reversed.center).vy)<1e-10);
 });
-test('tension speed is bounded and does not compound with incoming ball velocity', () => {
-  const speeds=[.05,.1,.15,.2].map(d=>{const n=net(.2,.28,d), v=reflection(n,0,n.center);return Math.hypot(v.vx,v.vy);});
-  assert.ok(speeds[0]<speeds[1] && speeds[1]<speeds[2]); assert.ok(speeds.every(v=>v<=CONFIG.maxSpeed));
+test('pinching continuously increases return speed, with no jump at the display-state thresholds', () => {
+  const speeds=[.015,.05,.1,.15,.2,.3].map(d=>{const n=net(.2,.28,d), v=reflection(n,0,n.center);return Math.hypot(v.vx,v.vy);});
+  assert.ok(speeds.every((speed,i)=>i===0||speed<=speeds[i-1]));
+  assert.ok(speeds.every(v=>v>=CONFIG.minSpeed && v<=CONFIG.maxSpeed));
+  for (const boundary of CONFIG.thresholds) assert.ok(Math.abs(netResponse(net(.2,.28,boundary-.0001)).speed-netResponse(net(.2,.28,boundary+.0001)).speed)<.001);
+});
+test('spreading gives a deeper, longer elastic catch and a longer settling recoil', () => {
+  const narrow=netResponse(net(.2,.28,.03)), wide=netResponse(net(.2,.28,.21));
+  assert.ok(wide.hold>narrow.hold*3 && wide.settle>narrow.settle*3);
+  assert.ok(netDeflection(wide,wide.hold/2)>netDeflection(narrow,narrow.hold/2)*5);
+  assert.ok(netDeflection(wide,wide.hold+wide.settle/12)<0);
+  assert.equal(netDeflection(wide,wide.hold+wide.settle),0);
+});
+for (const player of [0,1]) test(`P${player+1} catches and stretches the ball before release; pinching returns sooner and faster`, () => {
+  const run=distance=>{
+    const m=createMatch(), x=player ? .8 : .2, vx=player ? .34 : -.34, nets=[null,null];nets[player]=net(x,.28,distance);
+    m.ball={x:x-Math.sign(vx)*.018,y:.28,vx,vy:0};
+    const events=stepMatch(m,nets,.02);assert.equal(events.filter(e=>e.type==='hit').length,1);assert.ok(m.capture);assert.equal(m.ball.vx,0);
+    stepMatch(m,nets,.03);const holding=Boolean(m.capture);
+    const released=stepMatch(m,nets,.2);assert.equal(m.capture,null);assert.equal(m.hits,1);assert.deepEqual(m.score,[0,0]);
+    return {holding,speed:Math.hypot(m.ball.vx,m.ball.vy),released};
+  };
+  const narrow=run(.03),wide=run(.21);
+  assert.equal(narrow.holding,false);assert.equal(wide.holding,true);assert.ok(narrow.speed>wide.speed*2);
+  assert.equal(wide.released.filter(e=>e.type==='release').length,1);
+});
+test('crossing the center during a catch cancels the return instead of carrying the ball into the opponent half', () => {
+  const m=createMatch(), nets=[net(.2,.28,.21),net(.8)];m.ball={x:.218,y:.28,vx:-.34,vy:0};
+  stepMatch(m,nets,.02);assert.ok(m.capture);nets[0]=net(.6,.28,.21);
+  const events=stepMatch(m,nets,.02);assert.equal(m.capture,null);assert.ok(m.ball.vx<0);assert.equal(events.filter(e=>e.type==='release').length,0);assert.equal(m.hits,1);
+});
+test('rotation clears old spring contact geometry while preserving score and clock', () => {
+  const m=createMatch();m.ball={x:.218,y:.28,vx:-.34,vy:0};stepMatch(m,[net(.2,.28,.21),null],.02);
+  const time=m.remaining,relativeY=m.ball.y/m.height;assert.ok(m.capture);
+  resizeMatch(m,.75);assert.equal(m.capture,null);assert.ok(m.ball.vx>0);assert.equal(m.remaining,time);assert.deepEqual(m.score,[0,0]);assert.ok(Math.abs(m.ball.y/.75-relativeY)<1e-10);
 });
 test('high speed movement cannot tunnel through a net and only reflects once', () => {
   const m=createMatch(); m.ball={x:.24,y:.28,vx:-CONFIG.maxSpeed,vy:0};
@@ -43,6 +75,20 @@ for (const wall of ['top', 'bottom']) test(`${wall} wall reflects the puck, pres
   assert.equal(Math.sign(m.ball.vy), wall === 'top' ? 1 : -1);
   assert.ok(Math.abs(Math.hypot(m.ball.vx, m.ball.vy) - speed) < 1e-10);
   assert.deepEqual(m.score, [0, 0]);
+});
+for (const side of ['left','right']) for (const section of ['above','below']) test(`${side} side outside the goal (${section}) reflects instead of scoring`, () => {
+  const m=createMatch(), goal=goalBounds(m.height), vx=side==='left'?-.34:.34;
+  m.ball={x:side==='left'?goal.depth+CONFIG.radius+.002:1-goal.depth-CONFIG.radius-.002,y:section==='above'?goal.top/2:(goal.bottom+m.height)/2,vx,vy:0};
+  const events=stepMatch(m,[null,null],.05);
+  assert.deepEqual(m.score,[0,0]);assert.equal(events.filter(e=>e.type==='wall').length,1);assert.equal(events[0].wall,side);
+  assert.equal(Math.sign(m.ball.vx),-Math.sign(vx));assert.ok(Math.abs(Math.hypot(m.ball.vx,m.ball.vy)-Math.abs(vx))<1e-10);
+});
+test('the visible goal stays centered at 80% of arena height, and a puck overlapping its post cannot score', () => {
+  for (const height of [9/16,.75]) {
+    const goal=goalBounds(height);assert.ok(Math.abs((goal.bottom-goal.top)/height-.8)<1e-10);
+    const m=createMatch(height);m.ball={x:goal.depth+CONFIG.radius+.001,y:goal.top+CONFIG.radius*.6,vx:-.34,vy:0};
+    stepMatch(m,[null,null],.1);assert.deepEqual(m.score,[0,0]);assert.ok(m.ball.vx>0);
+  }
 });
 test('center line checks both net endpoints and permits touching the line', () => {
   assert.equal(netInOwnHalf(net(.5), 0), true);

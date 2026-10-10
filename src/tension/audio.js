@@ -45,15 +45,23 @@ export class DuelAudio {
     this.offset = (this.offset + this.context.currentTime - this.startedAt) % source.buffer.duration;
     this.music = null; source.stop(); source.disconnect(); gain.disconnect();
   }
-  effect(type, state = 1) {
+  effect(type, state = 1, opening = state / 3) {
     if (!this.enabled || this.context?.state !== 'running') return;
     const buffer = this.buffers.get(type === 'end' ? 'start' : type);
     const gain = this.context.createGain(), now = this.context.currentTime;
-    let source;
+    let source, stopAt = now + .21;
     if (buffer) {
       source = this.context.createBufferSource(); source.buffer = buffer;
-      source.playbackRate.value = type === 'hit' ? [.85, 1, 1.13, 1.22][state] : type === 'end' ? .85 : 1;
-      gain.gain.value = type === 'wall' ? .24 : type === 'hit' ? .55 : .42;
+      source.playbackRate.value = type === 'hit' ? 1.3 - opening * .55 : type === 'end' ? .85 : 1;
+      gain.gain.value = type === 'wall' ? .24 : type === 'hit' ? .2 : .42;
+    } else if (type === 'release') {
+      const duration = .12 + opening * .42, pitch = 620 - opening * 360;
+      source = this.context.createOscillator(); source.type = 'triangle';
+      source.frequency.setValueAtTime(pitch * 1.3, now);
+      for (let beat = 1; beat <= 8; beat++) source.frequency.exponentialRampToValueAtTime(pitch * (1 + (beat % 2 ? -.2 : .16) * (1 - beat / 9)), now + duration * beat / 8);
+      gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(.055 + opening * .035, now + .008);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      stopAt = now + duration + .01;
     } else {
       source = this.context.createOscillator(); source.type = 'sine';
       source.frequency.setValueAtTime(type === 'hit' ? [180, 300, 450, 510][state] : type === 'wall' ? 140 : 540, now);
@@ -64,7 +72,7 @@ export class DuelAudio {
     source.connect(gain).connect(this.context.destination);
     this.effects.add(source);
     source.onended = () => { this.effects.delete(source); source.disconnect(); gain.disconnect(); };
-    source.start(); if (!buffer) source.stop(now + .21);
+    source.start(); if (!buffer) source.stop(stopAt);
   }
   stopEffects() { for (const source of this.effects) source.stop(); this.effects.clear(); }
   reset() { this.wanted = false; this.stopMusic(); this.offset = 0; this.stopEffects(); }

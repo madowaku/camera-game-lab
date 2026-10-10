@@ -136,3 +136,43 @@ Verification:
 Physical camera play, two-person framing and the audible loop seam/volume on
 real iPhone/Android hardware still require the human playtest. Browser checks
 and synthetic hands do not certify those device-specific results.
+
+## Elastic net, goal mesh and wall light follow-up — 2026-10-10
+
+- Each side goal now occupies the central 80% of arena height. A colored pocket,
+  diamond mesh and two posts make its mouth visible; the remaining upper/lower
+  10% sections are solid walls. Only a whole puck entering the mouth scores for
+  the opposite player. Drawing and collision use the same normalized bounds.
+- Wall impacts briefly light the struck rail with a cyan/white beam and an
+  expanding ring, fading over 480 ms rather than accumulating.
+- Finger nets are elastic catches: spreading increases deformation and holding
+  time, followed by settling recoil; pinching shortens the catch and raises
+  return speed continuously. At the practice limits, wide spacing holds for
+  168 ms and releases at .22 arena-widths/s; narrow spacing holds for 28 ms and
+  releases at .64 arena-widths/s. Tilt still controls direction.
+- Elastic motion follows active match time, freezing on pause/tracking loss.
+  Crossing center cancels an ongoing attacking return; rotation clears stale
+  catch geometry without changing score or clock.
+- Softer catch SE and an original synthesized spring release cue reinforce the
+  elasticity. Wide releases have a lower, longer boing. JA/EN instructions and
+  state labels explain spreading versus pinching; mirrored C guidance remains.
+
+Verification:
+
+- 81 unit tests pass, including inverse continuous speed, both players' catches,
+  deformation/recoil, crossing/rotation during a catch and all four side-wall
+  sections outside the goal.
+- 43 DOM/stub-canvas UI checks pass, including five synthetic rounds with nine
+  returns each, wall-light expiry and pausing/resuming midway through a catch.
+- Production build passes; existing court/audio assets remain PWA precached.
+- Actual in-app Chromium: deterministic controller harness checks top/bottom
+  light, wide stretch/recoil, narrow release, goal scoring and corner bounce.
+  Local JPEG evidence is in ignored `output/playwright/tension-wide-spring.jpg`
+  and `tension-wide-spring-court.jpg`.
+- Actual app at 844 × 390 landscape and 390 × 844 portrait: wide/narrow controls,
+  pause, rotation, JA/EN, resume, completed practice round (1:0, four returns,
+  best rally three), retry reset and no horizontal overflow.
+- Actual Web Audio decodes all five files and runs both spring release cues;
+  mute stops music and effects. No console errors/warnings observed in the
+  checked app and harness flows. Audible feel and physical phone hand tracking
+  still need the hardware playtest.

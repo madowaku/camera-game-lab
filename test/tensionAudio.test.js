@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { DuelAudio } from '../src/tension/audio.js';
 
 class FakeNode {
-  constructor() { this.gain = { setValueAtTime() {}, exponentialRampToValueAtTime() {} }; this.frequency = this.gain; this.playbackRate = {}; }
+  constructor() { this.gain = { setValueAtTime() {}, exponentialRampToValueAtTime() {} }; this.frequency = { events:[], setValueAtTime(...args) {this.events.push(args);}, exponentialRampToValueAtTime(...args) {this.events.push(args);} }; this.playbackRate = {}; }
   connect(node) { return node; }
   disconnect() {}
   start(...args) { this.started = args; }
-  stop() { this.stopped = true; }
+  stop(at) { this.stopped = true; this.stoppedAt = at; }
 }
 class FakeAudio {
   constructor() { this.state = 'suspended'; this.currentTime = 0; this.sources = []; this.destination = {}; }
@@ -74,4 +74,11 @@ test('missing audio files and unsupported audio keep play available', async () =
   await audio.unlock(); audio.setMusic(true); assert.ok(!audio.music);
   audio.effect('hit'); assert.equal(audio.context.sources.length, 1);
   assert.ok(audio.context.sources[0].started); audio.suspend(); assert.equal(audio.wanted, false);
+});
+test('wide spring releases have a lower, longer boing and mute stops the spring tone', async () => {
+  const audio=new DuelAudio({Audio:FakeAudio,fetchAudio:async()=>response});await audio.unlock();
+  audio.effect('release',0,0);const narrow=audio.context.sources.at(-1);
+  audio.effect('release',3,1);const wide=audio.context.sources.at(-1);
+  assert.ok(wide.stoppedAt>narrow.stoppedAt*3);assert.ok(wide.frequency.events[0][0]<narrow.frequency.events[0][0]);
+  assert.equal(wide.type,'triangle');audio.setEnabled(false);assert.equal(audio.effects.size,0);
 });

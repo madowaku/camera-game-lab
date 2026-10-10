@@ -1,7 +1,7 @@
 // World units are fractions of arena width; y uses the same scale as x.
 export const CONFIG = Object.freeze({ duration: 15, serveDelay: .8, readyTime: 3,
   holdMs: 250, fadeMs: 180, radius: .014, speed: .34, maxSpeed: .64, minSpeed: .22,
-  thresholds: [.07, .13, .18], power: [.7, 1, 1.2, 1.25], margins: [.025, .019, .012, .007] });
+  thresholds: [.07, .13, .18], margins: [.025, .019, .012, .007], goalInset: .1, goalDepth: .035 });
 export const STATES = ['SLACK', 'NORMAL', 'TENSION', 'OVER'];
 export const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 export function tension(distance) { return CONFIG.thresholds.findIndex(t => distance < t) < 0 ? 3 : CONFIG.thresholds.findIndex(t => distance < t); }
@@ -9,6 +9,20 @@ export function geometry(thumb, index) {
   const center = { x: (thumb.x + index.x) / 2, y: (thumb.y + index.y) / 2 };
   const distance = Math.hypot(index.x - thumb.x, index.y - thumb.y);
   return { thumb, index, center, distance, angle: Math.atan2(index.y - thumb.y, index.x - thumb.x), state: tension(distance) };
+}
+export function goalBounds(height) { return { top: height * CONFIG.goalInset, bottom: height * (1 - CONFIG.goalInset), depth: CONFIG.goalDepth }; }
+export function netResponse(net) {
+  const opening = clamp((net.distance - .03) / .18, 0, 1);
+  return { opening, speed: clamp(CONFIG.maxSpeed - opening * (CONFIG.maxSpeed - CONFIG.minSpeed), CONFIG.minSpeed, CONFIG.maxSpeed),
+    hold: .028 + opening * .14, stretch: .01 + opening * .065, settle: .18 + opening * .48 };
+}
+// A wide membrane catches/deforms before releasing; recoil then settles over
+// active-play time, so pausing does not skip the spring animation.
+export function netDeflection(response, elapsed) {
+  if (elapsed < 0) return 0;
+  if (elapsed < response.hold) return Math.sin(Math.PI * elapsed / response.hold) * response.stretch;
+  const phase = (elapsed - response.hold) / response.settle;
+  return phase >= 1 ? 0 : -response.stretch * .42 * Math.sin(phase * Math.PI * 6) * Math.exp(-phase * 4);
 }
 export function closest(point, a, b) {
   const dx = b.x - a.x, dy = b.y - a.y;
@@ -25,18 +39,21 @@ export function reflection(net, player, contact) {
   const direction = player === 0 ? 1 : -1;
   const offset = (contact.y - net.center.y) / Math.max(.02, net.distance / 2);
   const angle = clamp(-tilt * direction * .85 + offset * .25, -.95, .95);
-  const speed = clamp(CONFIG.speed * CONFIG.power[net.state], CONFIG.minSpeed, CONFIG.maxSpeed);
+  const speed = netResponse(net).speed;
   return { vx: direction * Math.cos(angle) * speed, vy: Math.sin(angle) * speed };
 }
 export function createMatch(height = 9 / 16) {
   return { height, remaining: CONFIG.duration, phase: 'playing', score: [0, 0],
     ball: { x: .5, y: height / 2, vx: -CONFIG.speed, vy: .035 },
-    serve: 0, serveDirection: -1, locked: null, hits: 0, rally: 0, bestRally: 0 };
+    serve: 0, serveDirection: -1, locked: null, capture: null, hits: 0, rally: 0, bestRally: 0 };
 }
 // Rotation changes the visible arena, not the score, clock or ball speed.
 export function resizeMatch(match, height) {
   if (!Number.isFinite(height) || height <= CONFIG.radius * 2 || height === match.height) return false;
   match.ball.y = clamp(match.ball.y / match.height * height, CONFIG.radius, height - CONFIG.radius);
+  // Finish a catch before remapping: old contact geometry belongs to the old
+  // camera projection and must never pull the puck after rotation.
+  if (match.capture) { Object.assign(match.ball, match.capture.velocity); match.capture = null; }
   match.height = height;
   return true;
 }
@@ -65,6 +82,23 @@ export function stepMatch(match, nets, seconds) {
       continue;
     }
     const ball = match.ball;
+    const at = CONFIG.duration - match.remaining - time;
+    if (match.capture) {
+      const capture = match.capture, net = nets[capture.player];
+      if (!net?.active || !netInOwnHalf(net, capture.player)) {
+        Object.assign(ball, capture.incoming); match.capture = null;
+      } else {
+        capture.elapsed = Math.min(capture.response.hold, capture.elapsed + dt);
+        const stretch = netDeflection(capture.response, capture.elapsed);
+        ball.x = clamp(capture.origin.x + capture.direction.x * stretch, CONFIG.goalDepth + CONFIG.radius, 1 - CONFIG.goalDepth - CONFIG.radius);
+        ball.y = clamp(capture.origin.y + capture.direction.y * stretch, CONFIG.radius, match.height - CONFIG.radius);
+        if (capture.elapsed >= capture.response.hold) {
+          Object.assign(ball, capture.origin, capture.velocity); match.capture = null;
+          events.push({ type: 'release', player: capture.player, state: capture.state, opening: capture.response.opening, at });
+        }
+        continue;
+      }
+    }
     ball.x += ball.vx * dt; ball.y += ball.vy * dt;
     if (ball.y < CONFIG.radius) {
       ball.y = 2 * CONFIG.radius - ball.y; ball.vy = Math.abs(ball.vy);
@@ -73,6 +107,25 @@ export function stepMatch(match, nets, seconds) {
     if (ball.y > match.height - CONFIG.radius) {
       ball.y = 2 * (match.height - CONFIG.radius) - ball.y; ball.vy = -Math.abs(ball.vy);
       events.push({ type: 'wall', wall: 'bottom', point: { x: ball.x, y: match.height } });
+    }
+    const goal = goalBounds(match.height);
+    const inGoal = ball.y - CONFIG.radius >= goal.top && ball.y + CONFIG.radius <= goal.bottom;
+    if (!inGoal && ball.x < goal.depth + CONFIG.radius) {
+      ball.x = 2 * (goal.depth + CONFIG.radius) - ball.x; ball.vx = Math.abs(ball.vx);
+      events.push({ type: 'wall', wall: 'left', point: { x: goal.depth, y: ball.y } });
+    }
+    if (!inGoal && ball.x > 1 - goal.depth - CONFIG.radius) {
+      ball.x = 2 * (1 - goal.depth - CONFIG.radius) - ball.x; ball.vx = -Math.abs(ball.vx);
+      events.push({ type: 'wall', wall: 'right', point: { x: 1 - goal.depth, y: ball.y } });
+    }
+    if (inGoal && (ball.x < goal.depth - CONFIG.radius || ball.x > 1 - goal.depth + CONFIG.radius)) {
+      const winner = ball.x < .5 ? 1 : 0;
+      match.score[winner]++; match.rally = 0; match.locked = null;
+      match.serveDirection = winner === 1 ? -1 : 1;
+      match.ball = { x: .5, y: match.height / 2, vx: 0, vy: .035 };
+      match.serve = CONFIG.serveDelay;
+      events.push({ type: 'point', player: winner });
+      continue;
     }
     if (match.locked !== null) {
       const net = nets[match.locked];
@@ -83,18 +136,14 @@ export function stepMatch(match, nets, seconds) {
       if (!net?.active || !netInOwnHalf(net, player) || match.locked === player || (player === 0 ? ball.vx >= 0 : ball.vx <= 0)) continue;
       const point = closest(ball, net.thumb, net.index);
       if (point.distance <= CONFIG.radius + CONFIG.margins[net.state]) {
-        Object.assign(ball, reflection(net, player, point));
+        const response = netResponse(net), incoming = { vx: ball.vx, vy: ball.vy }, speed = Math.hypot(ball.vx, ball.vy);
+        const direction = { x: ball.vx / speed, y: ball.vy / speed };
+        match.capture = { player, state: net.state, response, incoming, direction, elapsed: 0,
+          origin: { x: ball.x, y: ball.y }, velocity: reflection(net, player, point) };
+        ball.vx = 0; ball.vy = 0;
         match.locked = player; match.hits++; match.rally++; match.bestRally = Math.max(match.bestRally, match.rally);
-        events.push({ type: 'hit', player, point, state: net.state }); break;
+        events.push({ type: 'hit', player, point, state: net.state, response, direction, at }); break;
       }
-    }
-    if (ball.x < -CONFIG.radius || ball.x > 1 + CONFIG.radius) {
-      const winner = ball.x < 0 ? 1 : 0;
-      match.score[winner]++; match.rally = 0; match.locked = null;
-      match.serveDirection = winner === 1 ? -1 : 1;
-      match.ball = { x: .5, y: match.height / 2, vx: 0, vy: .035 };
-      match.serve = CONFIG.serveDelay;
-      events.push({ type: 'point', player: winner });
     }
   }
   if (match.remaining <= 1e-8) { match.remaining = 0; match.phase = 'result'; events.push({ type: 'end' }); }

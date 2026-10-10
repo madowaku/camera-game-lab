@@ -1,5 +1,5 @@
 import { DuelInput } from './handInput.js';
-import { CONFIG, clamp, geometry, updateNets, createMatch, stepMatch, resizeMatch, usableNet, netInOwnHalf } from './rules.js';
+import { CONFIG, clamp, geometry, updateNets, createMatch, stepMatch, resizeMatch, usableNet, netInOwnHalf, goalBounds, netResponse, netDeflection } from './rules.js';
 import { DuelAudio } from './audio.js';
 import { copy } from './messages.js';
 import './duel.css';
@@ -16,6 +16,7 @@ export class TensionDuel {
   constructor(root, locale = 'ja', { onExit } = {}) {
     Object.assign(this, { root, locale, onExit, active: false, phase: 'intro', mode: 'camera', nets: [null, null], match: createMatch(), impacts: [null, null], status: '', countdown: 0, generation: 0, sound: true, advancing: false, trail: [], pointAt: -Infinity });
     this.fake = [{ x: .18, y: .28, angle: 0, distance: .105 }, { x: .82, y: .28, angle: 0, distance: .105 }];
+    this.wallImpacts = [];
     this.audio = new DuelAudio();
     root.innerHTML = `<div class="td-shell">
       <section class="td-stage">
@@ -66,7 +67,7 @@ export class TensionDuel {
       if (this.mode !== 'demo' || !this.pointers?.has(e.pointerId)) return;
       const r = this.stage.getBoundingClientRect(), player = this.pointers.get(e.pointerId), f = this.fake[player];
       const span = Math.abs(Math.sin(f.angle) * f.distance / 2);
-      f.x = clamp((e.clientX - r.left) / r.width, player ? .5 + span : .025 + span, player ? .975 - span : .5 - span);
+      f.x = clamp((e.clientX - r.left) / r.width, player ? .5 + span : CONFIG.goalDepth + .02 + span, player ? 1 - CONFIG.goalDepth - .02 - span : .5 - span);
       f.y = clamp((e.clientY - r.top) / r.width, .03, this.height - .03);
       this.syncControls();
     };
@@ -141,7 +142,7 @@ export class TensionDuel {
     this.wakeLock = null;
     if (sentinel && !sentinel.released) { try { await sentinel.release(); } catch { /* The browser may already have released it. */ } }
   }
-  tone(type, state = 1) { this.audio.effect(type, state); }
+  tone(type, state = 1, opening) { this.audio.effect(type, state, opening); }
   async start() {
     this.prepareAudio();
     if (this.phase === 'paused') return this.resume();
@@ -168,7 +169,7 @@ export class TensionDuel {
     this.prepareAudio(); this.generation++; clearTimeout(this.timeout); this.input.stop(); this.mode = 'demo';
     this.fake.forEach((f, p) => { f.x = p ? .82 : .18; f.y = this.height / 2; f.angle = 0; f.distance = .105; }); this.syncControls(); this.ready();
   }
-  ready() { this.audio.reset(); this.phase = 'ready'; this.countdown = CONFIG.readyTime; this.status = ''; this.match = createMatch(this.height); this.impacts = [null, null]; this.wallImpact = null; this.last = null; this.advancing = false; this.trail = []; this.pointAt = -Infinity; this.render(); }
+  ready() { this.audio.reset(); this.phase = 'ready'; this.countdown = CONFIG.readyTime; this.status = ''; this.match = createMatch(this.height); this.impacts = [null, null]; this.wallImpacts = []; this.last = null; this.advancing = false; this.trail = []; this.pointAt = -Infinity; this.render(); }
   pause() {
     if (this.phase !== 'playing') return;
     this.phase = 'paused'; this.advancing = false; this.audio.setMusic(false); this.audio.stopEffects(); void this.releaseWakeLock(); this.pointers.clear(); this.render();
@@ -182,7 +183,7 @@ export class TensionDuel {
     // Camera cover-cropping also changes on rotation. Await a fresh projection
     // rather than colliding against endpoints from the previous viewport.
     if (this.mode === 'camera') this.nets = [null, null];
-    this.impacts = [null, null]; this.trail = []; this.advancing = false;
+    this.impacts = [null, null]; this.wallImpacts = []; this.trail = []; this.advancing = false;
     this.syncControls();
   }
   syncControls() {
@@ -196,7 +197,7 @@ export class TensionDuel {
     this.fitArena();
     if (this.mode === 'demo') {
       this.nets = this.fake.map((f, p) => { const dx = Math.sin(f.angle) * f.distance / 2, dy = Math.cos(f.angle) * f.distance / 2;
-        f.x = clamp(f.x, p ? .5 + Math.abs(dx) : .025 + Math.abs(dx), p ? .975 - Math.abs(dx) : .5 - Math.abs(dx));
+        f.x = clamp(f.x, p ? .5 + Math.abs(dx) : CONFIG.goalDepth + .02 + Math.abs(dx), p ? 1 - CONFIG.goalDepth - .02 - Math.abs(dx) : .5 - Math.abs(dx));
         f.y = clamp(f.y, Math.abs(dy) + .006, this.height - Math.abs(dy) - .006);
         return { ...geometry({ x:f.x-dx, y:f.y-dy }, { x:f.x+dx, y:f.y+dy }), active:true, opacity:1, seenAt:now }; });
     } else this.nets = this.nets.map(n => !n ? null : { ...n, active: now - n.seenAt <= CONFIG.holdMs, opacity: clamp(1 - (now - n.seenAt - CONFIG.holdMs) / CONFIG.fadeMs, 0, 1) });
@@ -215,9 +216,9 @@ export class TensionDuel {
         // The elapsed interval may have begun with missing hands. Never charge
         // that paused interval to the match, or jump after a stalled frame.
         for (const event of stepMatch(this.match, this.nets, this.advancing ? Math.min(dt, .1) : 0)) {
-          this.tone(event.type, event.state);
-          if (event.type === 'hit') this.impacts[event.player] = { at:now, point:event.point, state:event.state };
-          if (event.type === 'wall') this.wallImpact = { at:now, point:event.point };
+          this.tone(event.type, event.state, event.opening ?? event.response?.opening);
+          if (event.type === 'hit') { this.impacts[event.player] = { ...event }; this.trail = []; }
+          if (event.type === 'wall') this.wallImpacts.push({ at:now, point:event.point, wall:event.wall });
           if (event.type === 'point') { this.pointAt = now; this.pointPlayer = event.player; this.trail = []; }
           if (event.type === 'end') { this.phase = 'result'; void this.releaseWakeLock(); this.render(); this.$('.td-start').focus({ preventScroll: true }); }
         }
@@ -226,6 +227,7 @@ export class TensionDuel {
       } else this.setHint(document.hidden ? this.t.hidden : this.t.lost);
       if (!usable || document.hidden) this.advancing = false;
     }
+    this.wallImpacts = this.wallImpacts.filter(hit => now - hit.at < 480).slice(-8);
     this.audio.setMusic(this.phase === 'playing' && usable && !document.hidden);
     this.$('.td-score strong').textContent = this.match.score.join(' : ');
     this.$('.td-timer').textContent = `${Math.ceil(this.match.remaining)}s`;
@@ -261,7 +263,7 @@ export class TensionDuel {
     this.$('.td-mode').textContent = this.mode === 'demo' ? t.mode : t.cameraMode;
     this.$('.td-mode').dataset.mode = this.mode;
     this.$('.td-length').textContent = t.matchLength;
-    this.$('.td-tip').textContent = t.ruleTip;
+    this.$('.td-tip').textContent = intro || result ? t.ruleTip : t.returnTip;
     this.$('.td-ready-panel').hidden = this.phase !== 'ready';
     this.$('.td-controls').hidden = this.mode !== 'demo' || intro;
     this.$('.td-how summary').textContent = t.how; this.$('.td-guide').textContent = t.guide;
@@ -285,56 +287,81 @@ export class TensionDuel {
     const c = this.ctx; c.setTransform(width, 0, 0, width, 0, 0); c.clearRect(0, 0, 1, this.height);
     const colors = ['#7be4ec','#ffbe86'];
     if (!['ready', 'playing', 'paused'].includes(this.phase)) return;
-    // Court lines use the same projection as the camera fingertips. Only the
-    // top/bottom are solid rails; the full side edges are open scoring goals.
+    // Court geometry and physics share the same goal mouth bounds.
+    const goal = goalBounds(this.height);
     const crossed = this.nets.map((n, p) => usableNet(n, this.height) && !netInOwnHalf(n, p));
     c.save();
     for (let p = 0; p < 2; p++) { c.fillStyle = colors[p]; c.globalAlpha = .035; c.fillRect(p * .5, 0, .5, this.height); }
     c.globalAlpha = 1; c.strokeStyle = '#e3f1fa'; c.lineWidth = .008;
-    for (const y of [.004, this.height - .004]) { c.beginPath(); c.moveTo(0, y); c.lineTo(1, y); c.stroke(); }
+    for (const y of [.004, this.height - .004]) { c.beginPath(); c.moveTo(goal.depth, y); c.lineTo(1 - goal.depth, y); c.stroke(); }
+    for (const x of [goal.depth, 1 - goal.depth]) {
+      for (const [top, bottom] of [[0, goal.top], [goal.bottom, this.height]]) { c.beginPath(); c.moveTo(x, top); c.lineTo(x, bottom); c.stroke(); }
+    }
     c.strokeStyle = '#d2e5ee40'; c.lineWidth = .002;
-    for (const y of [.014, this.height - .014]) { c.beginPath(); c.moveTo(0, y); c.lineTo(1, y); c.stroke(); }
+    for (const y of [.014, this.height - .014]) { c.beginPath(); c.moveTo(goal.depth, y); c.lineTo(1 - goal.depth, y); c.stroke(); }
     c.strokeStyle = crossed.some(Boolean) ? '#ff8f8f' : '#e5f0ee90'; c.lineWidth = .003; c.setLineDash([.009, .009]);
     c.beginPath(); c.moveTo(.5, .015); c.lineTo(.5, this.height - .015); c.stroke(); c.setLineDash([]);
     c.globalAlpha = .4; c.lineWidth = .002;
     c.beginPath(); c.arc(.5, this.height / 2, .065, 0, Math.PI * 2); c.stroke();
     for (let p = 0; p < 2; p++) {
       const scoredHere = this.pointPlayer === 1 - p && now - this.pointAt < 650;
-      c.fillStyle = colors[p]; c.globalAlpha = scoredHere ? .3 : .09;
-      c.fillRect(p ? .976 : 0, .015, .024, this.height - .03);
-      c.strokeStyle = colors[p]; c.globalAlpha = scoredHere ? 1 : .65; c.lineWidth = .003; c.setLineDash([.005, .009]);
-      c.beginPath(); c.moveTo(p ? .994 : .006, .018); c.lineTo(p ? .994 : .006, this.height - .018); c.stroke(); c.setLineDash([]);
-      c.save(); c.globalAlpha = .85; c.translate(p ? .976 : .024, this.height / 2); c.rotate(p ? Math.PI / 2 : -Math.PI / 2);
+      const back = p ? .998 : .002, mouth = p ? 1 - goal.depth : goal.depth;
+      const left = p ? mouth : back, depth = Math.abs(mouth - back);
+      c.fillStyle = colors[p]; c.globalAlpha = scoredHere ? .38 : .11;
+      c.fillRect(left, goal.top, depth, goal.bottom - goal.top);
+      c.save(); c.beginPath(); c.rect(left, goal.top, depth, goal.bottom - goal.top); c.clip();
+      c.strokeStyle = colors[p]; c.globalAlpha = scoredHere ? .9 : .5; c.lineWidth = .0012;
+      for (let y = goal.top - depth; y <= goal.bottom + depth; y += .018) {
+        for (const slope of [-1, 1]) { c.beginPath(); c.moveTo(back, y); c.lineTo(mouth, y + slope * depth); c.stroke(); }
+      }
+      c.restore(); c.globalAlpha = 1; c.strokeStyle = colors[p]; c.lineWidth = .004;
+      c.beginPath(); c.moveTo(mouth, goal.top); c.lineTo(back, goal.top); c.lineTo(back, goal.bottom); c.lineTo(mouth, goal.bottom); c.stroke();
+      c.globalAlpha = .75; c.lineWidth = .002; c.setLineDash([.006, .01]);
+      c.beginPath(); c.moveTo(mouth, goal.top); c.lineTo(mouth, goal.bottom); c.stroke(); c.setLineDash([]);
+      c.globalAlpha = 1; c.fillStyle = '#fff9ed';
+      for (const y of [goal.top, goal.bottom]) { c.beginPath(); c.arc(mouth, y, .005, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = colors[p]; c.save(); c.globalAlpha = .9; c.translate((mouth + back) / 2, this.height / 2); c.rotate(p ? Math.PI / 2 : -Math.PI / 2);
       c.font = `700 ${Math.max(.013, 10 / r.width)}px system-ui`; c.textAlign = 'center'; c.textBaseline = 'middle';
       c.fillText(`${this.t.goal} · P${2 - p} +1`, 0, 0); c.restore();
     }
-    if (this.wallImpact && now - this.wallImpact.at < 260) {
-      const age = (now - this.wallImpact.at) / 260;
-      c.globalAlpha = 1 - age; c.strokeStyle = '#fff9ed'; c.lineWidth = .003;
-      c.beginPath(); c.arc(this.wallImpact.point.x, this.wallImpact.point.y, .014 + age * .04, 0, Math.PI * 2); c.stroke();
+    for (const hit of this.wallImpacts) {
+      const age = (now - hit.at) / 480, fade = Math.pow(1 - age, 2);
+      if (age < 0 || age >= 1) continue;
+      c.save(); c.globalCompositeOperation = 'lighter'; c.shadowColor = '#9ef7ff'; c.shadowBlur = width * .035;
+      c.strokeStyle = '#7be4ec'; c.globalAlpha = fade * .7; c.lineWidth = .016;
+      c.beginPath();
+      if (hit.wall === 'top' || hit.wall === 'bottom') {
+        const y = hit.wall === 'top' ? .005 : this.height - .005;
+        c.moveTo(clamp(hit.point.x - .13, goal.depth, 1 - goal.depth), y); c.lineTo(clamp(hit.point.x + .13, goal.depth, 1 - goal.depth), y);
+      } else {
+        c.moveTo(hit.point.x, hit.point.y - .035); c.lineTo(hit.point.x, hit.point.y + .035);
+      }
+      c.stroke(); c.globalAlpha = fade; c.strokeStyle = '#fff9ed'; c.lineWidth = .005; c.stroke();
+      c.lineWidth = .003; c.beginPath(); c.arc(hit.point.x, hit.point.y, .018 + age * .06, 0, Math.PI * 2); c.stroke(); c.restore();
     }
     c.restore();
     for (let p=0;p<2;p++) {
       const n = this.nets[p]; if (!n?.opacity) continue;
       c.save(); c.globalAlpha = n.opacity * (crossed[p] ? .35 : 1); c.strokeStyle = crossed[p] ? '#ff8f8f' : colors[p]; c.fillStyle = c.strokeStyle; c.shadowColor = c.strokeStyle; c.shadowBlur = crossed[p] ? 0 : 12;
       if (crossed[p]) c.setLineDash([.008, .008]);
-      const impact = this.impacts[p], age = impact ? (now-impact.at)/1000 : 1;
-      const snap = age < .32 ? Math.sin(age*34)*Math.exp(-age*10)*.045 : 0;
-      const sag = n.state === 0 ? .025 : 0;
-      const mid = { x:n.center.x + snap * (p ? -1 : 1), y:n.center.y + sag };
-      c.lineWidth = [.008,.005,.003,.002][n.state];
+      const impact = this.impacts[p], age = impact ? CONFIG.duration - this.match.remaining - impact.at : 1;
+      const response = netResponse(n), snap = impact && !crossed[p] ? netDeflection(impact.response, age) : 0;
+      const direction = impact?.direction ?? { x: p ? 1 : -1, y: 0 };
+      const rest = response.stretch * .08;
+      const mid = { x:n.center.x + 2 * snap * direction.x + rest * (p ? 1 : -1), y:n.center.y + 2 * snap * direction.y };
+      c.lineWidth = .0035;
       for (let strand=-1;strand<=1;strand++) {
         c.beginPath(); c.moveTo(n.thumb.x,n.thumb.y); c.quadraticCurveTo(mid.x+strand*.004,mid.y+strand*.004,n.index.x,n.index.y); c.stroke();
       }
       for (const point of [n.thumb,n.index]) { c.beginPath(); c.arc(point.x,point.y,.007,0,Math.PI*2); c.fill(); }
       c.setLineDash([]); c.globalAlpha = n.opacity; c.shadowBlur=0; c.font=`600 ${Math.max(.018, 12 / r.width)}px system-ui`; c.textAlign='center';
       c.fillText(crossed[p] ? this.t.returnSide[p] : `P${p + 1} · ${this.t.states[n.state]}`,clamp(n.center.x, .15, .85),clamp(n.center.y-n.distance/2-.024, .13, this.height - .02));
-      if (age < .25 && !crossed[p]) { c.globalAlpha = 1-age/.25; c.lineWidth=.003; c.beginPath(); c.arc(impact.point.x,impact.point.y,.015+age*.15,0,Math.PI*2); c.stroke(); }
+      if (age < .3 && !crossed[p]) { c.globalAlpha = 1-age/.3; c.lineWidth=.002; c.beginPath(); c.arc(impact.point.x,impact.point.y,.015+age*.1,0,Math.PI*2); c.stroke(); }
       c.restore();
     }
     if (['ready','playing','paused'].includes(this.phase)) {
       const b=this.match.ball;
-      if (this.phase === 'playing' && this.advancing && this.match.serve === 0) {
+      if (this.phase === 'playing' && this.advancing && this.match.serve === 0 && !this.match.capture) {
         this.trail.push({ x:b.x, y:b.y }); if (this.trail.length > 9) this.trail.shift();
       }
       c.save(); c.fillStyle='#fff9ed';

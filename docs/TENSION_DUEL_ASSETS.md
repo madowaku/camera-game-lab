@@ -49,6 +49,9 @@ using FFmpeg for Safari compatibility; no cuts or other edits.
 
 Credit is optional for CC0; the game's credits also link both Kenney packs.
 Net tension changes playback pitch; wall effects play quieter than net returns.
+The catch cue is softened, followed by an original procedural Web Audio spring
+tone on release. Wider fingers give a lower, longer boing; narrower fingers give
+a higher, shorter cue. This synthesized sound introduces no third-party asset.
 The public music and SE total 369,944 bytes and are PWA precached. Decoding starts
 only after a player gesture. Music runs only during active play and pauses on
 missing hands, pause, backgrounding, result, or exit. Failed downloads/decoding

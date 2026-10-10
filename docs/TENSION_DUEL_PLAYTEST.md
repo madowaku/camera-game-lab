@@ -8,16 +8,16 @@ Two people, one front camera, landscape phone, one hand per person. Open the HTT
 - Endpoints stay attached to thumb and index tips on a mirrored preview.
 - The left player's C and right player's mirrored C are easy to understand from the on-screen cue.
 - Moving and tilting a hand moves the net immediately without heavy lag.
-- Distance changes slack/normal/tension/over-tension appearance and return speed.
+- Spread fingers: the membrane catches the ball, stretches deeply, then gives a big, slower boing. Pinch fingers: the catch is shorter and the return faster. Check both players and tilt steering.
 - A short tracking gap under 250ms does not flicker; a longer gap fades the affected net and pauses the match.
 - Reappearance resumes the same score/time; brief movement across center does not exchange players.
 - Camera interruption shows recovery text. Back stops all video tracks. Retry does not request permission again.
-- Pause freezes ball, score and clock. Resume and switching JA/EN preserve the round.
+- Pause freezes ball, score and clock, including midway through an elastic catch. Resume continues that same catch; switching JA/EN preserves the round.
 - Rotate between portrait and landscape during a round: the ball stays inside the new arena, camera nets reattach to fingertips and no points are awarded during recovery.
 - Two hands on the same side do not start the countdown. A fingertip outside the preview shows the readiness hint instead of starting play.
 - Keep both endpoints in the player's half to start. Touching the center line is allowed; straddling it is not.
 - During play, cross the center briefly: the affected net dims and shows a return arrow, cannot hit, and the clock continues. Bring it back: the warning clears and returns work again without swapping P1/P2. Missing hands still pause the match.
-- Top/bottom bounces look and sound like walls. Left/right edges are clearly open goals, with a point awarded to the opposite player and a brief goal flash.
+- Top/bottom impacts light the struck rail briefly and play a wall cue. Left/right goal nets fill the central 80% of the edge; the upper/lower 10% sections bounce the ball without scoring. A puck entering a goal awards the opposite player one point and flashes that net.
 - BGM/SE start only after a button press. Confirm volume and loop seam on physical iPhone/Android; mute silences both, tracking loss/pause/backgrounding stops the BGM, and resume continues it. Exit stops all audio.
 - Android performance and thermal behavior remain usable across five rounds.
 - Screen stays awake during a round where the browser supports Screen Wake Lock, then releases on pause/result/exit.

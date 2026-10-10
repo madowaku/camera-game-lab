@@ -25,6 +25,7 @@ let now=0;
 duel.activate();
 check('intro teaches mirrored hand shapes, primary action and tryout are visible',()=>{assert.match($('.td-card h2').textContent,/左はC、右は反対向きのC/);assert.match($('.td-card p').textContent,/開いた側を中央/);assert.equal($('.td-start').textContent,'カメラで遊ぶ');assert.ok(!$('.td-demo').hidden);});
 check('rules explain wall bounce, side goals and center line; licensed music is credited',()=>{assert.match($('.td-guide').textContent,/上下の壁で跳ね返り/);assert.match($('.td-guide').textContent,/中央線を越えたネットは球を返せず/);assert.ok($('.td-credits a[href*="otologic.jp"]'));assert.ok($('.td-credits a[href*="creativecommons.org/licenses/by/4.0"]'));});
+check('Japanese instructions teach wide elastic catches and narrow fast returns',()=>{assert.match($('.td-card p').textContent,/広げてバイーン、狭めて速く/);assert.match($('.td-guide').textContent,/ゴールの上下は壁/);});
 check('readiness prompt and player labels distinguish left C from right mirrored C',()=>{duel.phase='ready';now+=20;duel.tick(now);assert.match($('.td-ready-copy').textContent,/左はC、右は反対向きのC/);assert.equal($('.td-p1 small').textContent,'左はCを映してね');assert.equal($('.td-p2 small').textContent,'右は反対向きのCを映してね');duel.phase='intro';duel.render();});
 check('fullscreen is a visible primary action on browsers that support it',()=>assert.ok($('.td-actions').contains($('.td-full'))));
 let lockedOrientation='', unlockedOrientation=false;
@@ -70,6 +71,7 @@ for(let frame=0;frame<120;frame++) duel.tick(now+=1000/60);
 check('a missed ball updates the visible opponent score',()=>{assert.equal(duel.match.score[1],1);assert.equal($('.td-score strong').textContent,'0 : 1');});
 for(let frame=0;frame<1000;frame++) duel.tick(now+=1000/60);
 check('EN changes actions and preserves mirrored hand instructions',()=>{duel.phase='intro';duel.setLocale('en');assert.equal($('.td-start').textContent,'Play with camera');assert.equal($('.td-demo').textContent,'Try without camera');assert.match($('.td-card h2').textContent,/mirrored C on the right/);assert.equal(root.querySelector('input').getAttribute('aria-label'),'P1 Height');});
+check('English explains spreading for boing and pinching for speed',()=>{assert.match($('.td-guide').textContent,/Spread your fingers for a bigger, longer boing/);assert.match($('.td-guide').textContent,/pinch.*faster/);});
 // Camera failure with the actual UI state handlers, no device/model claims.
 let starts=0;duel.input.start=async()=>{starts++;throw Object.assign(new Error('camera denied'),{name:'NotAllowedError'});};duel.input.stop=()=>{};
 await duel.start(); // mode demo/result is a retry, switch to camera explicitly next.
@@ -100,11 +102,22 @@ Object.defineProperty(document,'hidden',{value:false,configurable:true});documen
 for(const [width,height] of [[360,202.5],[800,450],[1280,720]]){viewport={width,height};duel.draw(realNow+800);assert.equal(duel.canvas.width,width);}
 check('canvas dimensions follow narrow and landscape arena sizes',()=>assert.equal(duel.canvas.width,1280));
 duel.startDemo();duel.tick(now+=20);$('.td-skip').click();duel.tick(now+=20);duel.tick(now+=20);
+duel.match.ball={x:.5,y:rules.CONFIG.radius+.001,vx:0,vy:-.3};duel.tick(now+=20);
+check('a real top bounce creates a visible impact and cannot award a goal',()=>{assert.equal(duel.wallImpacts.length,1);assert.equal(duel.wallImpacts[0].wall,'top');assert.deepEqual(duel.match.score,[0,0]);});
+duel.tick(now+=500);
+check('wall glow expires after its brief impact instead of accumulating',()=>assert.equal(duel.wallImpacts.length,0));
+duel.fake[0].distance=.21;duel.fake[0].y=duel.height/2;duel.tick(now+=20);
+duel.match.ball={x:duel.fake[0].x+.018,y:duel.fake[0].y,vx:-.34,vy:0};duel.tick(now+=20);
+assert.ok(duel.match.capture);
 $('.td-pause').click();const pausedTime=duel.match.remaining,pausedBall={...duel.match.ball};
+const pausedCatch=structuredClone(duel.match.capture);
 duel.tick(now+=5000);
 check('pause button freezes ball and clock and offers resume',()=>{assert.equal(duel.phase,'paused');assert.equal(duel.match.remaining,pausedTime);assert.deepEqual(duel.match.ball,pausedBall);assert.equal($('.td-start').textContent,'Resume');assert.equal(musicStates.at(-1),false);});
+check('pausing during a wide catch preserves spring deformation and release timing',()=>assert.deepEqual(duel.match.capture,pausedCatch));
 $('.td-start').click();duel.tick(now+=2000);duel.tick(now+=20);
 check('resume preserves score and does not consume paused time',()=>{assert.equal(duel.phase,'playing');assert.ok(Math.abs(duel.match.remaining-(pausedTime-.02))<1e-8);assert.deepEqual(duel.match.score,[0,0]);});
+duel.tick(now+=100);duel.tick(now+=100);
+check('resuming finishes the existing elastic catch once and releases toward the opponent',()=>{assert.equal(duel.match.capture,null);assert.equal(duel.match.hits,1);assert.ok(duel.match.ball.vx>0);});
 window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
 check('Escape pauses without leaving the game',()=>assert.equal(duel.phase,'paused'));
 viewport={width:390,height:292.5};duel.tick(now+=20);
