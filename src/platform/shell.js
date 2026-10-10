@@ -192,7 +192,7 @@ export function mountPlatform(app) {
       }
     },
   });
-  function replayRound() {
+  function replayRound(roundAction) {
     if (!session) return;
     cameraUi.setScene('playing');
     app.classList.remove('platform-menu');
@@ -201,7 +201,7 @@ export function mountPlatform(app) {
     session.presentation?.discardResult?.(session.result);
     session.started = false; session.result = null; result.hidden = true; cacheRoot.hidden = false; cacheRoot.classList.remove("platform-has-result");
     armMusic();
-    launcher.retry(session.source);
+    launcher.retry(session.source, session.game.module === 'tensionSolo' ? { roundAction: roundAction ?? 'retry' } : undefined);
     cacheRoot.scrollIntoView({ block: "start", behavior: "instant" });
   }
   result.addEventListener("click", (event) => {
@@ -213,6 +213,7 @@ export function mountPlatform(app) {
       const next = nextExperiment(order, game.id); events.emit("next_game", { id: game.id, nextId: next.id });
       feedId = next.id; navigate(feedRoute(next.id));
     } else if (action === "share") void share(game, { ...session.result, summary: resultSummary(session.result) });
+    else if (action === "change-layout") replayRound('layout');
     else {
       replayRound();
     }

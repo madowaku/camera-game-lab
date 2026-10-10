@@ -1,0 +1,53 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { register } from 'node:module';
+import { JSDOM } from 'jsdom';
+import { experiments } from '../src/platform/experiments.js';
+import { resolveRoute } from '../src/platform/navigation.js';
+import { createLauncher } from '../src/platform/launcher.js';
+import { resultModel, guideFor } from '../src/platform/gamePresentation.js';
+import { trackForGame } from '../src/platform/music.js';
+import { geometry } from '../src/tension/rules.js';
+const game=experiments.find(g=>g.id==='solo-tension-break');
+test('SOLO and DUEL remain independently discoverable with real result/provenance and one music owner',async()=>{
+  assert.equal(resolveRoute('#tension-break').experiment,game);assert.equal(resolveRoute('#tension-solo').experiment,game);assert.equal(resolveRoute(game.route).experiment,game);
+  assert.equal(game.players,1);assert.equal(game.duration,30);assert.equal(game.orientation,'landscape');assert.equal(trackForGame(game,'demo'),null);
+  assert.equal(resolveRoute('#tension-duel').experiment.players,2);assert.match(guideFor(game,'ja').flat().join(' '),/3ミス/);
+  for(const reason of ['clear','time-up','game-over']){const r={reason,score:reason==='clear'?600:0,bricks:reason==='clear'?6:0,lives:2,hits:0,durationMs:13000,source:'demo'};const model=resultModel(game,r,'en');assert.equal(model.title,reason==='clear'?'CLEAR!':reason==='time-up'?'TIME UP':'GAME OVER');assert.match(model.source,/PRACTICE/);assert.match(game.resultShare(r,'ja'),/練習/);}
+  const {resultMarkup}=await import('../src/tension/soloPresentation.js');assert.match(resultMarkup(game,{reason:'time-up',source:'demo'},'ja'),/data-result-action="change-layout"/);
+});
+test('actual SOLO launcher, controls, pause, hand confirmation, result, same-layout retry and change-layout lifecycle',async t=>{
+  const dom=new JSDOM('<section id="cache"></section>',{url:'http://localhost/'}),keys=['window','document','navigator','localStorage','HTMLMediaElement','requestAnimationFrame','cancelAnimationFrame'];
+  const previous=keys.map(k=>Object.getOwnPropertyDescriptor(globalThis,k));for(const k of keys.slice(0,5))Object.defineProperty(globalThis,k,{value:dom.window[k],configurable:true});
+  Object.defineProperty(globalThis,'requestAnimationFrame',{value:()=>1,configurable:true});Object.defineProperty(globalThis,'cancelAnimationFrame',{value:()=>{},configurable:true});
+  Object.defineProperty(document,'hidden',{value:false,configurable:true});let size={width:800,height:450};
+  dom.window.Element.prototype.getBoundingClientRect=()=>({...size,left:0,top:0});dom.window.HTMLCanvasElement.prototype.getContext=()=>new Proxy({},{get:()=>()=>{}});register('../scripts/tension-css-loader.mjs',import.meta.url);
+  t.after(()=>{dom.window.close();keys.forEach((k,i)=>previous[i]?Object.defineProperty(globalThis,k,previous[i]):delete globalThis[k]);});
+  const states=[],launcher=createLauncher(document.querySelector('#cache'),{onState:s=>states.push(s)}),entry=await launcher.prepare(game,'ja'),v=entry.instance;
+  launcher.begin('demo');assert.equal(v.phase,'setup');assert.equal(v.input.running,false);assert.equal(v.audio.context,undefined);
+  v.$('[data-hand="left"]').click();assert.equal(v.setupStep,'layout');assert.equal(localStorage.getItem('camera-game-lab-tension-solo-hand'),'left');v.$('[data-layout="the-gap"]').click();v.$('.tns-confirm-layout').click();assert.equal(v.phase,'ready');
+  let now=0;v.tick(now);v.countdown=.01;v.tick(now+=20);assert.equal(v.phase,'playing');
+  const tilt=v.$('input[data-kind="angle"]');tilt.value='30';tilt.dispatchEvent(new window.Event('input'));const opening=v.$('input[data-kind="opening"]');opening.value='18';opening.dispatchEvent(new window.Event('input'));v.tick(now+=20);assert.ok(v.net.distance>.17);assert.ok(Math.abs(v.fake.angle)>.5);
+  v.$('.tns-pause').click();const elapsed=v.match.elapsed;v.tick(now+=1000);assert.equal(v.match.elapsed,elapsed);v.$('.tns-change-hand').click();assert.equal(v.phase,'confirm-hand');assert.match(v.$('.tns-overlay p').textContent,/リセット/);v.$('.tns-switch-cancel').click();assert.equal(v.handSide,'left');
+  v.$('.tns-change-hand').click();v.$('.tns-switch-confirm').click();assert.equal(v.handSide,'right');assert.equal(v.phase,'ready');assert.equal(v.match.elapsed,0);assert.equal(v.match.layoutId,'the-gap');
+  v.tick(now+=20);v.countdown=.01;v.tick(now+=20);size={width:390,height:292.5};v.tick(now+=20);assert.equal(v.match.height,.75);assert.equal(v.match.lives,3);assert.equal(v.match.bricks.length,6);
+  Object.defineProperty(document,'hidden',{value:true,configurable:true});const frozen=structuredClone(v.match);v.tick(now+=2000);assert.deepEqual(v.match,frozen);Object.defineProperty(document,'hidden',{value:false,configurable:true});v.onVisibility();v.tick(now+=2000);assert.equal(v.match.elapsed,frozen.elapsed);
+  v.setLocale('en');assert.equal(v.$('.tns-pause').textContent,'PAUSE');assert.match(v.$('.tns-mode').textContent,/PRACTICE/);
+  v.match.elapsed=29.99;v.tick(now+=20);assert.equal(v.phase,'result');assert.equal(launcher.snapshot().result.reason,'time-up');assert.equal(states.filter(s=>s.phase==='result').length,1);
+  launcher.releaseResult();assert.equal(v.active,false);assert.equal(v.input.running,false);
+  launcher.retry('demo',{roundAction:'retry'});assert.equal(v.phase,'ready');assert.equal(v.match.layoutId,'the-gap');assert.equal(v.match.lives,3);assert.equal(v.match.elapsed,0);
+  launcher.retry('demo',{roundAction:'layout'});assert.equal(v.phase,'setup');assert.equal(v.setupStep,'layout');assert.equal(v.$('.tns-layouts').hidden,false);
+  launcher.stop();assert.equal(v.active,false);assert.equal(entry.host.hidden,true);
+});
+test('camera READY, loss, positional reacquisition and denial recovery cannot invent time or misses',async t=>{
+  const dom=new JSDOM('<section id="root"></section>',{url:'http://localhost/'}),keys=['window','document','navigator','localStorage','HTMLMediaElement','requestAnimationFrame','cancelAnimationFrame'];
+  const previous=keys.map(k=>Object.getOwnPropertyDescriptor(globalThis,k));for(const k of keys.slice(0,5))Object.defineProperty(globalThis,k,{value:dom.window[k],configurable:true});Object.defineProperty(globalThis,'requestAnimationFrame',{value:()=>1,configurable:true});Object.defineProperty(globalThis,'cancelAnimationFrame',{value:()=>{},configurable:true});Object.defineProperty(document,'hidden',{value:false,configurable:true});
+  dom.window.Element.prototype.getBoundingClientRect=()=>({width:800,height:450,left:0,top:0});dom.window.HTMLCanvasElement.prototype.getContext=()=>new Proxy({},{get:()=>()=>{}});register('../scripts/tension-css-loader.mjs',import.meta.url);
+  t.after(()=>{dom.window.close();keys.forEach((k,i)=>previous[i]?Object.defineProperty(globalThis,k,previous[i]):delete globalThis[k]);});
+  const {TensionSolo}=await import('../src/tension/solo.js'),v=new TensionSolo(document.querySelector('#root'),'ja');v.activate();v.startCamera();
+  v.input.start=async()=>{v.input.running=true;};v.setHand('right');await v.beginRound();let now=0;v.tick(now);v.tick(now=2000);assert.equal(v.phase,'ready');assert.equal(v.countdown,1.5);assert.equal(v.match.elapsed,0);
+  const hand={...geometry({x:.82,y:.2},{x:.82,y:.36}),active:true};v.input.onResult([hand],now);v.tick(now+=20);v.countdown=.01;v.tick(now+=20);assert.equal(v.phase,'playing');
+  v.tick(now+=300);const frozen=structuredClone(v.match);v.tick(now+=1000);assert.deepEqual(v.match,frozen);assert.equal(v.paused,true);
+  v.input.onResult([hand],now);v.tick(now+=20);assert.equal(v.match.elapsed,frozen.elapsed);assert.equal(v.match.lives,3);v.input.onResult([hand],now);v.tick(now+=20);assert.ok(v.match.elapsed>frozen.elapsed);
+  v.cameraFailed({name:'NotAllowedError'});assert.match(v.$('.tns-status').textContent,/許可/);v.$('.tns-demo-recovery').click();assert.equal(v.mode,'demo');assert.equal(v.phase,'ready');v.deactivate();
+});

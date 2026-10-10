@@ -9,6 +9,14 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "solo-tension-break", exp: "EXP-021 SOLO", collection: "SOLO", category: "SOLO", players: 1,
+    titleJa: "TENSION BREAK!", titleEn: "TENSION BREAK!", subtitleJa: "広げて受ける。狙って閉じる。片手のバネで6ブロックを割ろう！", subtitleEn: "Spread. Aim. Pinch. BOING! Six bricks, one hand, thirty seconds.",
+    input: ["HAND", "PINCH"], duration: 30, orientation: "landscape", accent: "#7be4ec", tags: ["brick breaker", "elastic", "solo", "ブロック崩し", "バイーン", "片手"],
+    aliases: ["#tension-break", "#tension-solo"], module: "tensionSolo", demo: true, motif: "hand", audioStrategy: "self", previewType: "image", previewAsset: "/artwork/tension-break-intro.webp",
+    privacyJa: "インカメラで片手の親指と人差し指を端末内で追跡。マイク・録画・映像保存・外部送信は使いません。初回は認識モデルを読み込みます。練習はカメラもモデルも不要。利き手の選択だけ端末に保存します。",
+    privacyEn: "Front camera tracks one thumb/index net on-device. No microphone, recording, saved video or uploads. Model downloads on first use. Practice needs neither camera nor models. Only your hand preference is saved locally.",
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + `TENSION BREAK! · ${r.reason === "clear" ? "CLEAR!" : r.reason === "time-up" ? "TIME UP" : "GAME OVER"} · ${r.bricks}/6 · ${r.score} ${locale === "ja" ? "点" : "PTS"}`,
+    loadPresentation: () => import("../tension/soloPresentation.js"), load: () => import("../tension/solo.js").then(m => m.createView) }),
   define({ id: "duo-tension-duel", exp: "EXP-021", collection: "DUO", category: "DUO", players: 2,
     titleJa: "TENSION DUEL", titleEn: "TENSION DUEL", subtitleJa: "指を広げてバイーーン。狭めて速攻。5点先取のネット対戦。", subtitleEn: "Spread for a big boing. Pinch for speed. First to five wins.",
     input: ["HAND", "PINCH"], duration: 30, untimed: true, orientation: "landscape", accent: "#7be4ec", tags: ["versus", "hockey", "elastic", "対戦", "ホッケー", "バイーン", "5点先取"],
