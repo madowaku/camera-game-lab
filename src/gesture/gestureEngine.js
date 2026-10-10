@@ -60,7 +60,8 @@ export class GestureEngine {
   }
   update(rawObservations, atMs, options = {}) {
     if (!this.validClock(atMs) || (this.lastInferenceAt !== null && atMs <= this.lastInferenceAt)) {
-      this.metrics.rejectedFrames++;
+      if (!this.disposed) this.metrics.rejectedFrames++;
+      this.events = [];
       return this.getSnapshot();
     }
     this.events = [];
@@ -118,6 +119,7 @@ export class GestureEngine {
       if (state.status !== STATUS.LOST) this.interrupt(state, atMs, STATUS.LOST);
     } else if (state.status !== STATUS.AMBIGUOUS && state.status !== STATUS.LOST) {
       state.status = STATUS.GRACE;
+      state.observation = null;
       // Freeze the action and cannot re-emit it while unobserved.
       for (const gesture of state.gestures.values()) gesture.interrupt();
     }
@@ -126,6 +128,7 @@ export class GestureEngine {
     const wasLost = state.status === STATUS.LOST;
     const wasAmbiguous = state.status === STATUS.AMBIGUOUS;
     state.status = status;
+    state.observation = null;
     for (const gesture of state.gestures.values()) gesture.interrupt();
     if (status === STATUS.LOST && !wasLost) {
       this.metrics.lossCount++;
@@ -137,7 +140,7 @@ export class GestureEngine {
     for (const state of this.states.values()) this.markMissing(state, atMs);
   }
   advance(atMs) {
-    if (!this.validClock(atMs)) return this.getSnapshot();
+    if (!this.validClock(atMs)) { this.events = []; return this.getSnapshot(); }
     this.events = [];
     this.lastClockAt = atMs;
     this.markStale(atMs);
