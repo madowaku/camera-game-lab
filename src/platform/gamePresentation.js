@@ -4,6 +4,10 @@ import { artworkMarkup } from './gameArtwork.js';
 
 // Each entrance teaches the actual rules, including calibration and fresh edges.
 export const gameGuides = {
+  'solo-tension-break': {
+    ja: ['広げて受ける。狙って閉じる。バイーン！', ['右手・左手と配置を選ぶ','右手なら画面右、左手なら画面左にネット。1回30秒、6ブロックの3配置から選ぼう'], ['片手でCを作る','親指と人差し指の間にネット。広げて受け、傾けて狙い、狭めて速く返そう'], ['6つ割ればCLEAR!','上下とブロック奥は壁。自分の背後に抜けるとミス。3ミスで終了。手が消えた時は時計も止まる']],
+    en: ['Spread. Aim. Pinch. BOING!', ['Choose a hand and layout','Right hand on screen right; left on screen left. Three layouts, six bricks, thirty seconds'], ['Make a C with one hand','Thumb and index create the net. Spread to catch, tilt to aim, pinch for a fast return'], ['Break all six: CLEAR!','Top, bottom and rear wall bounce. A ball escaping behind your net is a miss. Three misses end the run. Lost tracking pauses time']],
+  },
   'duo-tension-duel': {
     ja: ['指を広げてバイーーン。狭めて速攻。', ['左はC、右は反対向きのC','スマホを横向きに置き、二人でインカメラに片手ずつ。親指と人差し指の開いた側を中央へ'], ['広げてバイーン、狭めて速く','指の間のネットで球を返そう。広げるほど深く伸び、狭めるほど速く返る。傾きで方向を変えよう'], ['自分の陣地から、5点先取','中央線を越えたネットは球を返せない。上下とゴールの角は壁。相手のゴールネットに入れると1点。時間制限なし']],
     en: ['Spread for a big boing. Pinch for speed.', ['C on the left, mirrored C on the right','Place your phone sideways. Each player shows one hand to the front camera, with the opening toward center'], ['Spread for boing, pinch for speed','Catch the puck with your finger net. Wider fingers stretch deeper; narrower fingers return faster. Tilt to aim'], ['Stay in your half. First to five wins','A net crossing center cannot return the puck. Top, bottom and goal corners bounce. Score in the opponent’s goal net. No time limit']],
@@ -95,6 +99,10 @@ export function resultModel(game,r,locale) {
   const metric=(a,b,v)=>({label:say(a,b),value:v}),pct=n=>Number.isFinite(n)?`${Math.round(n)}%`:'—';
   let title=say('ナイスプレイ！','NICE PLAY'),hero=number(r.score),unit=say('点','PTS'),hint=say('もう一回、記録を伸ばそう。','One more round. Can you beat it?'),metrics=[];
   switch(game.id) {
+    case 'solo-tension-break':
+      title=r.reason==='clear'?'CLEAR!':r.reason==='time-up'?'TIME UP':'GAME OVER';
+      hint=say('傾きで狙いを変えて、もう一回。','Tilt to aim somewhere new. One more boing?');
+      metrics=[metric('ブロック','BRICKS',`${number(r.bricks)} / 6`),metric('ライフ','LIVES',number(r.lives)),metric('リターン','RETURNS',number(r.hits)),metric('プレイ時間','PLAY TIME',seconds(r.durationMs))];break;
     case 'duo-tension-duel':
       title=say(`P${r.winner}の勝ち！`,`P${r.winner} WINS!`);
       hero=r.scores?.join(' : ') ?? '—';unit=say('5点先取','FIRST TO FIVE');

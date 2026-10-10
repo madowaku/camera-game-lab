@@ -566,6 +566,17 @@ models require a connection; camera frames stay on-device. See
 and [specification](docs/specs/EXP-044_SOFT_SERVE_SPEC_v0.1.md).
 Physical-device tracking and human game feel remain unverified.
 
+## EXP-021: TENSION BREAK! SOLO
+
+Open `/#tension-break` for a one-hand elastic brick breaker, alongside the
+existing TENSION DUEL. Choose right/left hand and one of three six-brick layouts.
+Spread to catch, tilt to aim and pinch for speed. Thirty active seconds, three
+lives. Tracking loss pauses ball/time; confirmed hand switching restarts safely.
+Labeled mouse/touch practice, JA/EN, pause, result and same-layout retry work
+without camera hardware. See [implementation and verification](docs/TENSION_SOLO_PROGRESS.md)
+and the [pending five-run phone playtest](docs/TENSION_SOLO_PLAYTEST.md).
+Physical camera alignment and human game feel remain unverified.
+
 ## Stack
 
 - Vite

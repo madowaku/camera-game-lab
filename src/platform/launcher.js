@@ -131,9 +131,9 @@ export function createLauncher(cacheRoot, { onState, onExit, onPhotoError, onRep
     retryInline() { if (current?.game.module === 'maruMagic') current.instance.again(true); },
     setLocale(locale) { current?.instance.setLocale(locale); },
     releaseResult() { if (current) { current.autoStart = false; current.motion.stop(); releaseResources(current.instance); closeAudio(current.instance); } },
-    retry(source) {
+    retry(source, options) {
       if (!current) return;
-      ++generation; current.autoStart = false; current.enabled = false; current.gameEventUnsubscribe?.(); current.gameEventUnsubscribe = null; current.motion.stop(); current.instance.deactivate({ retainRenderer: true }); releaseResources(current.instance); closeAudio(current.instance); begin(source, current.options);
+      ++generation; current.autoStart = false; current.enabled = false; current.gameEventUnsubscribe?.(); current.gameEventUnsubscribe = null; current.motion.stop(); current.instance.deactivate({ retainRenderer: true }); releaseResources(current.instance); closeAudio(current.instance); begin(source, { ...current.options, ...options });
     },
   };
 }

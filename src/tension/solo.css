@@ -1,0 +1,106 @@
+.lab:has(.tns-shell) { width: min(100%, 1100px); }
+.tns-shell { --tns-cyan: #7be4ec; --tns-peach: #ffbe86; color: #fff9ed; margin-inline: auto; }
+.tns-shell [hidden] { display: none !important; }
+.tns-setup { max-width: 850px; margin: auto; text-align: center; }
+.tns-poster { position: relative; height: clamp(170px, 30svh, 300px); overflow: hidden; border-radius: 22px; text-align: left; background: #10202c; border: 1px solid #42616b; }
+.tns-poster img { width: 100%; height: 100%; object-fit: cover; opacity: .65; }
+.tns-poster::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #0b172dd9, transparent 70%); }
+.tns-poster h1, .tns-poster > span { position: absolute; z-index: 1; left: 6%; margin: 0; }
+.tns-poster h1 { top: 23%; font-size: clamp(36px, 6vw, 68px); font-weight: 950; line-height: .94; letter-spacing: -.035em; }
+.tns-poster > span { top: 9%; font-size: 11px; letter-spacing: .14em; color: var(--tns-cyan); }
+.tns-tagline { color: var(--tns-peach); font-size: 16px; margin: 14px 0; }
+.tns-setup-title { font-size: clamp(20px, 3vw, 28px); margin: 18px 0; }
+.tns-hands { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 600px; margin: auto; }
+.tns-hands button, .tns-layouts button { background: #11232c; border: 1px solid #46616c; color: #fff9ed; border-radius: 16px; padding: 20px; text-align: left; min-width: 0; }
+.tns-hands b { display: block; font-size: clamp(17px, 2.5vw, 24px); }
+.tns-hands small { display: block; font-size: 16px; margin-top: 12px; color: var(--tns-cyan); }
+.tns-shell [aria-pressed='true'][data-hand], .tns-shell [aria-pressed='true'][data-layout] { border-color: var(--tns-cyan); box-shadow: inset 0 0 0 1px var(--tns-cyan); background: #17333c; }
+.tns-hand-hint { font-size: 13px; line-height: 1.7; color: #c1ced5; }
+.tns-layouts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tns-layouts button { padding: 12px; }
+.tns-layouts b { display: block; font-size: 13px; margin: 10px 0 6px; }
+.tns-layouts small { display: block; font-size: 12px; color: #bdcdd4; line-height: 1.6; }
+.tns-mini { display: block; position: relative; aspect-ratio: 16/9; border-block: 2px solid #c9e6ec; background: #07151d; border-radius: 6px; overflow: hidden; }
+.tns-mini i { position: absolute; width: 7%; height: 10.5%; background: var(--tns-peach); border-radius: 2px; }
+.tns-mini em { position: absolute; top: 36%; left: 18%; width: 2%; height: 25%; background: var(--tns-cyan); border-radius: 3px; }
+.tns-mini[data-side='right'] { transform: scaleX(-1); }
+.tns-setup-actions, .tns-session { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.tns-session { font-size: 12px; margin: 12px 0; }
+.tns-mode { color: var(--tns-cyan); border: 1px solid #45616a; border-radius: 999px; padding: 7px 10px; font-weight: 700; }
+.tns-mode[data-mode='demo'] { color: var(--tns-peach); }
+.tns-session .button { min-height: 44px; font-size: 12px; padding: 8px 14px; }
+.tns-play { max-width: 940px; margin: auto; }
+.tns-hud { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 880px; margin: 0 auto 10px; padding: 0 8px; font-variant-numeric: tabular-nums; }
+.tns-hud > span:first-child { display: flex; gap: 8px; align-items: baseline; }
+.tns-hud small { color: var(--tns-cyan); font-size: 11px; letter-spacing: .09em; }
+.tns-score, .tns-timer { font-size: 26px; letter-spacing: .04em; }
+.tns-lives { color: var(--tns-peach); font-size: 25px; letter-spacing: .15em; white-space: nowrap; }
+.tns-pause { background: #11232c; border: 1px solid #52717b; border-radius: 10px; color: #fff9ed; min-width: 70px; min-height: 44px; padding: 8px 14px; }
+.tns-stage { position: relative; width: min(100%, calc(clamp(230px, 52svh, 490px) * 16/9)); aspect-ratio: 16/9; margin: auto; overflow: hidden; border-radius: 18px; background: #10202b; border: 1px solid #48616e; isolation: isolate; }
+.tns-stage[data-mode='demo'] { touch-action: none; }
+.tns-court, .tns-stage video, .tns-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tns-court { object-fit: cover; opacity: .75; }
+.tns-stage video { object-fit: cover; transform: scaleX(-1); opacity: .8; }
+.tns-stage canvas { pointer-events: none; }
+.tns-ready { position: absolute; inset: 28% 7% auto; text-align: center; pointer-events: none; text-shadow: 0 2px 12px #000; }
+.tns-ready strong { display: block; font-size: clamp(28px, 5vw, 54px); line-height: 1.2; }
+.tns-ready span { display: inline-block; max-width: 95%; font-size: 14px; margin-top: 12px; background: #0d1d29df; padding: 7px 12px; border-radius: 8px; }
+.tns-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: #0b172aee; text-align: center; padding: 16px; }
+.tns-overlay h2 { margin: 0; font-size: clamp(21px, 4vw, 38px); }
+.tns-overlay p { margin: 0 0 8px; font-size: 14px; line-height: 1.6; }
+.tns-overlay-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.tns-overlay-actions .button { min-height: 44px; font-size: 13px; }
+.tns-hint { min-height: 24px; margin: 10px 0; text-align: center; font-size: 13px; color: #cde9e9; line-height: 1.6; }
+.tns-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; border: 1px solid #3c5967; background: #10202b; border-radius: 14px; padding: 10px 16px; max-width: 840px; margin: auto; }
+.tns-controls label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; min-width: 0; }
+.tns-controls input { width: 100%; min-height: 38px; min-width: 0; accent-color: var(--tns-cyan); cursor: pointer; }
+.tns-control-hint { grid-column: 1/-1; font-size: 11px; color: #adc8d1; text-align: center; margin: 0; }
+.tns-status { text-align: center; line-height: 1.7; }
+.tns-status:empty { display: none; }
+.tns-recovery { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.tns-rotate { display: none; text-align: center; color: #b8c8d1; font-size: 12px; }
+.tns-how { font-size: 14px; line-height: 1.8; max-width: 850px; margin: auto; }
+.tns-credits { color: #b3c8d3; font-size: 11px; overflow-wrap: anywhere; }
+.tns-credits a { color: var(--tns-cyan); text-decoration: underline; }
+.tns-shell :is(button, summary) { cursor: pointer; }
+.tns-shell :is(button, input, summary):focus-visible { outline: 3px solid #fff9ed; outline-offset: 3px; }
+.tns-shell button:hover { filter: brightness(1.12); }
+.tns-shell:fullscreen { background: #09131c; padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); overflow-y: auto; }
+.tns-shell:fullscreen .tns-stage { width: min(100%, calc((100dvh - 140px) * 16/9)); }
+.tns-shell:fullscreen :is(.tns-how, .tns-rotate, .tns-side) { display: none; }
+@media (max-width: 600px) {
+  .tns-poster { height: 185px; }
+  .tns-hands { gap: 10px; }
+  .tns-hands button { padding: 16px; }
+  .tns-layouts { grid-template-columns: 1fr; gap: 8px; }
+  .tns-layouts button { display: grid; grid-template-columns: 108px 1fr; gap: 6px 12px; align-items: center; }
+  .tns-mini { grid-row: 1/3; }
+  .tns-layouts b { margin: 0; }
+  .tns-layouts small { grid-column: 2; }
+  .tns-stage { width: 100%; aspect-ratio: 4/3; border-radius: 12px; }
+  .tns-hud { gap: 8px; padding: 0; }
+  .tns-score, .tns-timer { font-size: 20px; }
+  .tns-lives { font-size: 20px; letter-spacing: .05em; }
+  .tns-hud > span:first-child { gap: 5px; }
+  .tns-pause { min-width: 60px; padding: 6px 8px; font-size: 12px; }
+  .tns-ready span { font-size: 12px; }
+  .tns-controls { padding: 8px 10px; gap: 8px; }
+  .tns-overlay { padding: 10px; }
+  .tns-overlay-actions { gap: 6px; }
+  .tns-overlay p { font-size: 12px; }
+  .tns-rotate { display: block; }
+}
+@media (orientation: landscape) and (max-height: 550px) {
+  .tns-poster { height: 140px; max-width: 600px; margin: auto; }
+  .tns-poster h1 { font-size: 40px; }
+  .tns-setup-title { margin: 10px 0; font-size: 20px; }
+  .tns-stage { width: min(100%, calc((100dvh - 132px)*16/9)); aspect-ratio: 16/9; }
+  .tns-hud { margin-bottom: 6px; }
+  .tns-score, .tns-timer { font-size: 20px; }
+  .tns-ready strong { font-size: 28px; }
+  .tns-ready span { font-size: 12px; margin-top: 6px; }
+  .tns-overlay h2 { font-size: 20px; }
+  .tns-overlay p { margin-bottom: 3px; font-size: 12px; }
+  .tns-hint, .tns-session { margin: 6px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .tns-shell * { transition: none !important; } }

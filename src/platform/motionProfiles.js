@@ -3,6 +3,7 @@
 import { DRUMS, BIG_DRUM } from '../games/toyDrum.js';
 const profile = (family, stage, label, every = 5) => Object.freeze({ family, stage, label, every });
 export const motionProfiles = Object.freeze({
+  'solo-tension-break': Object.freeze({ ...profile('orbit', '.tns-stage', 'BOING!', 0), native: true }),
   'duo-tension-duel': Object.freeze({ ...profile('orbit', '.tnd-stage', 'BOING!', 0), native: true }),
   'solo-maru-magic': Object.freeze({ ...profile('orbit', '.maru-stage', 'SUMMON!', 0), native: true }),
   'solo-finger-gun-showdown': Object.freeze({ ...profile('impact', '.sd-stage', 'BAN!', 0), native: true }),
