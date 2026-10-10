@@ -1,6 +1,6 @@
 // Every race is reproducible: no procedural randomness or remote assets.
-const freezeCourse = ({ id, en, ja, sky, ground, road, path, cones, traffic }) =>
-  Object.freeze({ id, en, ja, sky, ground, road,
+const freezeCourse = ({ id, en, ja, sky, ground, road, roadHalf, path, cones, traffic }) =>
+  Object.freeze({ id, en, ja, sky, ground, road, roadHalf,
     path: Object.freeze(path.map(pair => Object.freeze(pair))),
     cones: Object.freeze(cones.map(([at, offset]) => Object.freeze({ at, offset }))),
     traffic: Object.freeze(traffic.map(([at, offset, seed, color, speedRatio]) =>
@@ -8,7 +8,7 @@ const freezeCourse = ({ id, en, ja, sky, ground, road, path, cones, traffic }) =
 export const COURSES = Object.freeze([
   freezeCourse({
     id: 'toy-town', en: 'Toy Town', ja: 'おもちゃタウン',
-    sky: '#fff7df', ground: '#bad5b1', road: '#385652',
+    sky: '#fff7df', ground: '#bad5b1', road: '#385652', roadHalf: 1.13,
     path: [[0,0],[2200,0],[4100,-.70],[6100,.70],[8300,-.76],[10500,.76],[12800,-.84],
       [14700,.15],[15600,-.90],[16600,.90],[17600,-.90],[18500,0],[20000,0]],
     cones: [[4200,.31],[6500,-.35],[8800,.33],[11100,-.34],[13600,.30],[15900,.34],[17200,-.35]],
@@ -17,7 +17,7 @@ export const COURSES = Object.freeze([
   }),
   freezeCourse({
     id: 'seaside', en: 'Sunset Coast', ja: 'サンセット海岸',
-    sky: '#ffe6ad', ground: '#71bbbf', road: '#315e70',
+    sky: '#ffe6ad', ground: '#71bbbf', road: '#315e70', roadHalf: 1.05,
     path: [[0,0],[1900,0],[3200,.65],[5400,.64],[6900,-.65],[9300,-.58],
       [11100,.8],[13000,-.18],[14700,.72],[16200,-.70],[17900,.40],[20000,0]],
     cones: [[3400,-.3],[7600,.35],[11800,-.29],[14600,.32],[18000,-.36]],
@@ -26,7 +26,7 @@ export const COURSES = Object.freeze([
   }),
   freezeCourse({
     id: 'neon', en: 'Neon Express', ja: 'ネオン高速',
-    sky: '#251f4b', ground: '#38306c', road: '#252c51',
+    sky: '#251f4b', ground: '#38306c', road: '#252c51', roadHalf: .88,
     path: [[0,0],[1400,0],[2800,-.75],[4400,.82],[6000,-.82],[7700,.73],
       [9400,-.65],[11300,.70],[13100,-.7],[14800,.81],[16600,-.85],[18500,.55],[20000,0]],
     cones: [[3200,.30],[5000,-.32],[8300,.29],[10800,-.36],[14400,.29],[17300,-.34]],
