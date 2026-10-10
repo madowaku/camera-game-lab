@@ -112,6 +112,7 @@ test('engine: missing hand, grace, exactly one loss event, neutral rearm on retu
   g.update([hand(.4, .5, 'Closed_Fist')], 150);
   let out = g.update([], 160);
   assert.equal(out.tracks[0].status, 'GRACE');
+  assert.deepEqual(eventTypes(out), ['TRACK_GRACE']);
   assert.equal(out.tracks[0].gestures.GRIP.active, false);
   out = g.advance(450);
   assert.deepEqual(eventTypes(out), ['TRACK_LOST']);
@@ -231,4 +232,17 @@ test('time-based gesture thresholds work at 20/25/30/60/120 Hz', () => {
     }
     assert.deepEqual(types, ['GESTURE_START'], 'frame rate ' + hz);
   }
+});
+
+test('drainEvents returns each event once even when advance clears frame events', () => {
+  const g = engine();
+  g.update([hand()], 0); g.update([hand()], 80);
+  g.update([hand(.4, .5, 'Closed_Fist')], 100);
+  g.update([hand(.4, .5, 'Closed_Fist')], 160);
+  assert.deepEqual(eventTypes(g.advance(165)), []);
+  assert.deepEqual(g.drainEvents().map(e => e.type), ['GESTURE_START']);
+  assert.deepEqual(g.drainEvents(), []);
+  assert.equal(g.getSnapshot().tracks[0].gestures.GRIP.active, true);
+  assert.deepEqual(eventTypes(g.update([], 180)), ['TRACK_GRACE']);
+  assert.deepEqual(g.drainEvents().map(e => e.type), ['TRACK_GRACE']);
 });
