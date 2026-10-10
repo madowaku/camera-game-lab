@@ -27,7 +27,10 @@ class PinchView {
       <g class="pw-hand-cursor"><circle class="pw-palm-ring" r="52" fill="#fff3daaa" stroke="#183a31" stroke-width="5"/><text class="pw-palm-icon" text-anchor="middle" y="18">✋</text></g></svg><div class="pw-message" role="status" aria-live="polite"></div><div class="pw-receipt" hidden></div></div>
       <div class="pw-caption"><span class="pw-task-number">01</span><div><h2 class="pw-task"></h2><p class="pw-instruction"></p></div></div><p class="pw-hint"></p><div class="pw-recovery" hidden><button type="button" class="pw-retry"></button><button type="button" class="pw-demo"></button></div><details class="pw-debug"><summary></summary><pre></pre></details></div>`;
     this.$ = (s) => root.querySelector(s);
-    this.input = new GripInput(this.$("video"), { onFrame: (frame) => {
+    // Diagnostic only: ?debug=1&gesture=AB. Gameplay always uses legacy GripState.
+    this.gestureABEnabled = new URLSearchParams(window.location.search).get("debug") === "1"
+      && new URLSearchParams(window.location.search).get("gesture") === "AB";
+    this.input = new GripInput(this.$("video"), { compareGestures: this.gestureABEnabled, onFrame: (frame) => {
       if (!this.active || this.source !== "camera") return;
       this.frame = frame; this.pending.push(...frame.events.filter((event) => event !== "GRIP_MOVE")); this.lastInput = performance.now();
     }, onStatus: (status) => { if (status === "ERROR" && this.active) this.fail(); } });
@@ -162,6 +165,16 @@ class PinchView {
     const receipt = this.$(".pw-receipt"); receipt.hidden = !r;
     if (r) receipt.innerHTML = `<small>${t[this.source === "demo" ? "resultDemo" : "resultCamera"]}</small><h2>${t.clear}</h2><strong>${r.seconds.toFixed(1)}s</strong>${r.clean ? `<p class="pw-clean">✦ ${t.clean}</p>` : ""}<p>${r.successfulGrabs} ${t.grabs} · ${r.failedGrabs} ${t.misses}</p><p>${r.accidentalReleases} ${t.releases} · ${r.trackingDrops} ${t.tracking}</p>`;
     this.$(".pw-debug summary").textContent = t.debug;
-    if (debug) this.$(".pw-debug pre").textContent = JSON.stringify({ present: input?.present, grabbing: input?.grabbing, open: input?.open, palm: input?.gripPosition, held: g.heldObjectId, fps: this.frame?.fps }, null, 2);
+    if (debug) {
+      // Advance B freshness without creating or reusing old detection events.
+      if (this.gestureABEnabled && this.source === "camera" && this.input.comparison) {
+        this.input.lastComparison = this.input.comparison.advance(now);
+      }
+      this.$(".pw-debug pre").textContent = JSON.stringify({
+        present: input?.present, grabbing: input?.grabbing, open: input?.open,
+        palm: input?.gripPosition, held: g.heldObjectId, fps: this.frame?.fps,
+        ...(this.gestureABEnabled ? { gestureAB: this.input.lastComparison, note: "A controls game. B observation only." } : {}),
+      }, null, 2);
+    }
   }
 }
