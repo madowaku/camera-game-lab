@@ -27,7 +27,9 @@ export function resultMarkup(game, r, locale) {
   return `<section class="ne-result"><p class="ne-entry-meta"><span>NOTE EATER</span><span>YOUR LITTLE SESSION</span></p><p class="ne-result-line">${r.notesEaten ? t.result : t.empty}</p>
     <h2>${r.notesEaten}<span>${t.notes}</span></h2>${r.source === "demo" ? `<p class="ne-practice-label">${t.practice}</p>` : ""}
     <div class="ne-result-stats"><span>MAX GROOVE <strong>${r.maxGroove}</strong></span><span>${t.unique} <strong>${r.uniqueNotes}<small>/5</small></strong></span></div>
-    <div class="ne-melody"><h3>${t.melody}</h3><canvas class="ne-sequence" role="img" aria-label="${t.melody} · ${r.notesEaten}"></canvas><button type="button" class="ne-melody-play" ${r.melody.length ? "" : "disabled"}>${t.playMelody}</button>${r.melody.length ? "" : `<p>${t.melodyEmpty}</p>`}</div>
+    <div class="ne-melody"><h3>${t.melody}</h3><p class="ne-song-hint">${t.songHint}</p><canvas class="ne-sequence" role="img" aria-label="${t.melody} · ${r.notesEaten}"></canvas>
+    <div class="ne-song-styles" role="group" aria-label="${t.styleLabel}">${[["dream",t.dream],["pop",t.pop],["festival",t.festival]].map(([id,label]) => `<button type="button" data-song-style="${id}" aria-pressed="${id === "dream"}" ${r.melody.length ? "" : "disabled"}>${label}</button>`).join("")}</div>
+    <button type="button" class="ne-melody-play" ${r.melody.length ? "" : "disabled"}>${t.playMelody}</button>${r.melody.length ? "" : `<p>${t.melodyEmpty}</p>`}</div>
     ${r.creator ? `<div class="ne-replay"><p>${t.replay} · ${r.creator.faceMode}</p><canvas class="creator-replay-canvas" role="img" aria-label="${t.replay}"></canvas><button type="button" class="ne-replay-play">${t.replayButton}</button></div>` : ""}
     <div class="result-actions ne-result-actions"><button type="button" class="ne-primary" data-result-action="retry">${t.again} ↗</button><button type="button" class="ne-secondary" data-result-action="next">${t.next} →</button><button type="button" class="ne-text" data-result-action="share">${t.share} ↗</button></div></section>`;
 }
@@ -36,20 +38,35 @@ export function paint(root, result) {
   const w = Math.max(200, canvas.clientWidth), h = 88, dpr = Math.min(devicePixelRatio || 1, 2);
   canvas.width = w * dpr; canvas.height = h * dpr; const c = canvas.getContext("2d"); c.scale(dpr, dpr);
   const notes = result.melody, gap = Math.min(28, (w - 24) / Math.max(1, notes.length));
-  notes.forEach((n, i) => drawNote(c, n.type, 12 + gap * (i + .5), 44 + Math.sin(i * .8) * 15, Math.min(10, gap * .37)));
+  notes.forEach((n, i) => {
+    const x = Number.isFinite(n.at) ? 12 + Math.max(0, Math.min(1, n.at / 30000)) * (w - 24) : 12 + gap * (i + .5);
+    drawNote(c, n.type, x, 44 + Math.sin(i * .8) * 15, Math.min(10, Math.max(5, gap * .4)));
+  });
 }
 export function mountResult(root, result, locale) {
-  const t = copy(locale), audio = new NoteEaterAudio(), button = root.querySelector(".ne-melody-play"); let playing = false;
+  const t = copy(locale), audio = new NoteEaterAudio(), button = root.querySelector(".ne-melody-play");
+  const styles = [...root.querySelectorAll("[data-song-style]")];
+  let playing = false, style = "dream";
   const reset = () => { playing = false; button.textContent = t.playMelody; button.setAttribute("aria-pressed", "false"); };
-  const play = () => { if (playing) { audio.stop(); reset(); } else {
-    playing = true; button.textContent = t.stopMelody; button.setAttribute("aria-pressed", "true"); audio.playMelody(result.melody, reset);
-  } };
+  const start = () => {
+    playing = true; button.textContent = t.stopMelody; button.setAttribute("aria-pressed", "true");
+    audio.playSong(result.melody, reset, { style });
+  };
+  const play = () => { if (playing) { audio.stop(); reset(); } else start(); };
+  const changeStyle = event => {
+    const selected = event.currentTarget.dataset.songStyle;
+    if (selected === style) return;
+    style = selected;
+    styles.forEach(item => item.setAttribute("aria-pressed", String(item.dataset.songStyle === style)));
+    if (playing) { audio.stop(); start(); }
+  };
+  styles.forEach(item => item.addEventListener("click", changeStyle));
   button.addEventListener("click", play);
   const replayButton = root.querySelector(".ne-replay-play"), player = result.creator ? new Replay(root.querySelector(".creator-replay-canvas"), result.creator) : null;
   const replay = () => player?.play(); replayButton?.addEventListener("click", replay); player?.play();
   const background = () => { if (document.hidden) { audio.stop(); reset(); player?.stop(); } };
   document.addEventListener("visibilitychange", background);
-  return () => { button.removeEventListener("click", play); replayButton?.removeEventListener("click", replay); document.removeEventListener("visibilitychange", background); audio.dispose(); player?.dispose(); };
+  return () => { button.removeEventListener("click", play); styles.forEach(item => item.removeEventListener("click", changeStyle)); replayButton?.removeEventListener("click", replay); document.removeEventListener("visibilitychange", background); audio.dispose(); player?.dispose(); };
 }
 export function discardResult(result) { if (result?.creator) { result.creator.frames = []; result.creator.events = []; } }
 export function handleLaunchClick(root, event) {

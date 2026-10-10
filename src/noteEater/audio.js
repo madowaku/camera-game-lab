@@ -1,4 +1,5 @@
 import { grooveStage, NOTE_EATER_BPM } from "../games/noteEater.js";
+import { composeNoteEaterSong, SONG_CHORDS } from "./songDirector.js";
 
 const OUTPUT_LEVEL = .68;
 
@@ -99,25 +100,85 @@ export class NoteEaterAudio {
       const at = this.nextBeat, beat = this.beat++;
       if (beat % 2 === 0) this.kick(at);
       if (beat % 2) this.percussion("shaker", at, stage ? .045 : .024);
-      if (stage >= 1 && [0, 3, 4, 6].includes(beat % 8))
-        this.tone([48, 48, 43, 43][[0, 3, 4, 6].indexOf(beat % 8)], { at, volume: .13, duration: .3, type: "triangle" });
-      if (stage >= 2) {
-        this.percussion("hat", at, beat % 2 ? .055 : .024);
-        if (beat % 4 === 2) this.percussion("clap", at, .13);
+      // Four-bar progression replaces the previously static two-chord loop.
+      // Even low-groove sessions get a gentle harmonic foundation.
+      const chord = SONG_CHORDS[Math.floor(beat / 8) % SONG_CHORDS.length];
+      if (beat % 8 === 0) {
+        const voices = stage >= 3 ? chord.tones : [chord.tones[0], chord.tones[2]];
+        for (const midi of voices) this.tone(midi, {
+          at, volume: stage >= 3 ? .028 : .018, duration: 1.8,
+          type: "sine", attack: .045, pan: (midi - 64) * .045,
+        });
       }
-      if (stage >= 3 && beat % 8 === 0) {
-        const chord = beat % 16 === 0 ? [60, 64, 67] : [62, 67, 69];
-        for (const midi of chord) this.tone(midi, { at, volume: .038, duration: 1.6, type: "triangle", attack: .035, pan: (midi - 65) * .055 });
+      if (stage >= 1 && [0, 3, 4, 6].includes(beat % 8))
+        this.tone(chord.bass, { at, volume: .115, duration: .34, type: "triangle" });
+      if (stage >= 2) {
+        this.percussion("hat", at, beat % 2 ? .048 : .022);
+        if (beat % 8 === 2 || beat % 8 === 6) this.percussion("clap", at, .095);
       }
       if (stage >= 4) {
-        const midi = [76, 79, 81, 84, 81, 79, 76, 74][beat % 8];
-        this.tone(midi, { at, volume: beat % 2 ? .036 : .05, duration: .28, pan: beat % 2 ? -.35 : .35 });
-        if (beat % 16 === 15) for (const offset of [0, .065, .13]) this.percussion("clap", at + offset, .04);
+        const midi = chord.tones[(beat + Math.floor(beat / 8)) % 4] + 12;
+        this.tone(midi, { at, volume: beat % 2 ? .028 : .041, duration: .28, pan: beat % 2 ? -.35 : .35 });
+        if (beat % 32 === 31) for (const offset of [0, .065, .13]) this.percussion("clap", at + offset, .035);
       }
       this.nextBeat += step;
     }
   }
   stopBacking() { clearInterval(this.scheduler); this.scheduler = null; }
+  // Original note-only replay remains available for comparisons and old callers.
+  // Song mode adds live-recorded timing, harmony, responsive fills and a cadence.
+  playSong(melody, onDone = () => {}, { style = "dream" } = {}) {
+    this.stop();
+    this.enabled = true;
+    const ready = this.enable();
+    if (!Array.isArray(melody) || !melody.length || !this.context) { onDone(); return; }
+    const song = composeNoteEaterSong(melody, { style });
+    const token = ++this.playback;
+    void Promise.resolve(ready).then(() => {
+      const c = this.context;
+      if (token !== this.playback || !c) return;
+      if (c.state !== "running") { onDone(); return; }
+      this.wake();
+      const start = c.currentTime + .09;
+      // Keep all player pitches in their exact order for the existing replay QA.
+      // Input timestamps are only gently aligned to a musical grid.
+      song.lead.forEach(n => {
+        this.note(n.midi, false, { at: start + n.at, color: n.type, echo: true });
+        if (song.style === "festival")
+          this.tone(n.midi - 12, { at: start + n.at, duration: .42, volume: .025, type: "triangle" });
+        if (song.style === "pop")
+          this.tone(n.midi + 12, { at: start + n.at, duration: .18, volume: .023, type: "square" });
+      });
+      let next = 0;
+      const schedule = () => {
+        if (token !== this.playback || c.state !== "running") return;
+        while (next < song.accompaniment.length &&
+               start + song.accompaniment[next].at < c.currentTime + .24) {
+          const event = song.accompaniment[next++];
+          const at = Math.max(c.currentTime + .002, start + event.at);
+          if (event.kind === "drum") {
+            if (event.instrument === "kick") this.kick(at);
+            else this.percussion(event.instrument, at, event.volume);
+          } else {
+            const kind = event.instrument;
+            this.tone(event.midi, {
+              at, volume: event.volume, duration: event.duration,
+              type: kind === "brass" ? "sawtooth" : kind === "bass" || kind === "pluck" ? "triangle" : "sine",
+              attack: kind === "pad" ? .07 : .005, pan: event.pan,
+            });
+          }
+        }
+      };
+      this.songScheduler = setInterval(schedule, 25);
+      schedule();
+      this.playTimer = setTimeout(() => {
+        if (token === this.playback) {
+          clearInterval(this.songScheduler); this.songScheduler = null;
+          onDone();
+        }
+      }, song.duration * 1000);
+    });
+  }
   playMelody(melody, onDone = () => {}) {
     this.stop(); this.enabled = true; const ready = this.enable();
     if (!melody.length || !this.context) { onDone(); return; }
@@ -133,7 +194,7 @@ export class NoteEaterAudio {
     });
   }
   stop() {
-    ++this.playback; clearTimeout(this.playTimer); this.stopBacking();
+    ++this.playback; clearTimeout(this.playTimer); clearInterval(this.songScheduler); this.songScheduler = null; this.stopBacking();
     this.stopped = true;
     if (this.master && this.context?.state !== "closed") {
       this.master.gain.cancelScheduledValues(this.context.currentTime); this.master.gain.setValueAtTime(0, this.context.currentTime);

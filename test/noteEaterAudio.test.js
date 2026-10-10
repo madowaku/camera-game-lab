@@ -56,3 +56,31 @@ test("melody waits for audio resume, preserves lead order and cancellation canno
   assert.ok(played.every((n, i) => i === 0 || n[1] > played[i - 1][1])); audio.stop(); played.length = 0;
   audio.playMelody(melody); audio.stop(); resume(); await flush(); assert.equal(played.length, 0);
 });
+
+test("arranged song schedules eaten pitches in order using the actual bite timing", async () => {
+  const { audio } = audioFixture(), notes = [];
+  audio.enable = async () => {};
+  audio.note = (midi, quiet, opts) => notes.push({ midi, at: opts.at });
+  audio.playSong([{ midi: 60, type: 0, at: 300 }, { midi: 67, type: 3, at: 2400 },
+    { midi: 64, type: 2, at: 2830 }], () => {}, { style: "festival" });
+  await flush();
+  assert.deepEqual(notes.map(n => n.midi), [60, 67, 64]);
+  assert.ok(notes[1].at - notes[0].at > 1.9);
+  assert.ok(notes[2].at - notes[1].at < .6);
+  assert.ok(audio.songScheduler, "accompaniment has a rolling lookahead scheduler");
+  audio.stop();
+  assert.equal(audio.songScheduler, null, "stop clears the accompaniment scheduler");
+});
+
+test("arranged playback does not resurrect after leaving before AudioContext resumes", async () => {
+  const { audio } = audioFixture(), notes = [];
+  let resume;
+  audio.enable = () => new Promise(resolve => { resume = resolve; });
+  audio.note = midi => notes.push(midi);
+  audio.playSong([{ midi: 60, at: 100 }, { midi: 69, at: 200 }], () => {});
+  audio.stop();
+  resume();
+  await flush();
+  assert.deepEqual(notes, []);
+  assert.equal(audio.songScheduler, null);
+});
