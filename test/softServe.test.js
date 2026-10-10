@@ -173,7 +173,7 @@ test("a closed mouth, distant approach, and long tracking gap never create ghost
     advance(g, 500, { ...center, mouth: null, open: false });
     assert.equal(g.bites, 0); assert.equal(g.paused, true);
   }
-  const g = served("camera", 3, 0); g.completeServe();
+  const g = served("camera", 3); g.completeServe();
   advance(g, 60, () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true }));
   g.step(600, { ...center, mouth: null, open: false });
   assert.equal(g.bites, 0); assert.equal(g.paused, true);
@@ -193,6 +193,7 @@ test("occlusion assist can be disabled for A/B without changing normal contact",
   advance(g, 100, () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true }));
   advance(g, 200, { ...center, mouth: null, open: false });
   assert.equal(g.bites, 0); assert.equal(g.paused, true);
-  advance(g, 500, () => ({ ...center, mouth: g.tip, open: true }));
+  // Strict mode needs the existing 450ms recovery before contact can accrue.
+  advance(g, 750, () => ({ ...center, mouth: g.tip, open: true }));
   assert.equal(g.bites, 1);
 });
