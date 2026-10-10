@@ -145,3 +145,54 @@ test("challenge text uses actual outcome, practice provenance and canonical envi
     assert.equal(p.url,"https://local.example/test#/game/solo-soft-serve");
   }
 });
+
+test("camera eating accepts a deliberate near-mouth approach hidden by the hand", () => {
+  const g = served("camera", 3); g.completeServe();
+  const near = () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true });
+  advance(g, 100, near); assert.equal(g.bites, 0);
+  advance(g, 200, { ...center, mouth: null, open: false });
+  assert.equal(g.bites, 1); assert.equal(g.paused, false);
+  const amount = g.amount;
+  advance(g, 400, { ...center, mouth: null, open: false });
+  assert.equal(g.amount, amount); assert.equal(g.bites, 1);
+});
+test("camera eating accepts a hand occluded behind the cone after approaching", () => {
+  const g = served("camera", 3); g.completeServe();
+  advance(g, 100, () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true }));
+  assert.equal(g.bites, 0);
+  advance(g, 200, { hand: null, mouth: { ...g.tip }, open: true });
+  assert.equal(g.bites, 1);
+});
+test("a closed mouth, distant approach, and long tracking gap never create ghost bites", () => {
+  for (const mouth of [
+    { x: .04, y: .04, open: true },
+    { x: .5, y: .5, open: false },
+  ]) {
+    const g = served("camera", 3); g.completeServe();
+    advance(g, 100, { ...center, mouth: { x: mouth.x, y: mouth.y }, open: mouth.open });
+    advance(g, 500, { ...center, mouth: null, open: false });
+    assert.equal(g.bites, 0); assert.equal(g.paused, true);
+  }
+  const g = served("camera", 3, 0); g.completeServe();
+  advance(g, 60, () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true }));
+  g.step(600, { ...center, mouth: null, open: false });
+  assert.equal(g.bites, 0); assert.equal(g.paused, true);
+});
+test("camera last-bite assist eats only the remaining half-swirl and credits its actual size", () => {
+  const g = served("camera", 1.4); g.completeServe();
+  g.paused = false; assert.equal(g.bite(), true);
+  assert.equal(g.phase, "result"); assert.equal(g.result.outcome, "clean");
+  assert.ok(Math.abs(g.effect.size - g.maxAmount) < .02);
+  assert.equal(g.result.eatenPercent, 100);
+  const strict = served("camera", 1.4); strict.completeServe();
+  strict.rules.finalBiteGrace = 0; strict.bite();
+  assert.equal(strict.phase, "eat"); assert.ok(strict.amount > 0);
+});
+test("occlusion assist can be disabled for A/B without changing normal contact", () => {
+  const g = served("camera", 3); g.rules.occlusionGraceMs = 0; g.completeServe();
+  advance(g, 100, () => ({ ...center, mouth: { x: g.tip.x, y: g.tip.y + .14 }, open: true }));
+  advance(g, 200, { ...center, mouth: null, open: false });
+  assert.equal(g.bites, 0); assert.equal(g.paused, true);
+  advance(g, 500, () => ({ ...center, mouth: g.tip, open: true }));
+  assert.equal(g.bites, 1);
+});

@@ -2,6 +2,9 @@ export const SOFT_SERVE_RULES = Object.freeze({
   readyMs: 450, recoveryMs: 450, rate: .64, swirlHeight: .034,
   maxServeMs: 20000, maxRoundMs: 39000, meltPerSecond: 2.45,
   exitDistance: .235, exitMs: 550, biteSize: 1, contactMs: 130,
+  // Eating only: remember an intentional approach when one landmark is hidden.
+  approachDistance: .18, occlusionGraceMs: 170, occlusionWindowMs: 500,
+  finalBiteGrace: .5,
 });
 export const clamp = (v, min = 0, max = 1) => Math.max(min, Math.min(max, v));
 export const heightMultiplier = (n) => n >= 10 ? 5 : n >= 8 ? 3 : n >= 6 ? 2 : n >= 4 ? 1.5 : 1;
@@ -17,6 +20,7 @@ export class SoftServeGame {
       elapsedMs: 0, serveMs: 0, readyMs: 0, awayMs: 0, recoveryMs: 0,
       paused: false, manualPause: false, missing: false, wasMissing: false,
       contactMs: 0, separationMs: 0, biteArmed: true, bites: 0, losses: 0,
+      biteApproach: false, biteApproachAgeMs: 0, biteOcclusionMs: 0,
       qualitySum: 0, qualityWeight: 0, lastSegment: -1, result: null, effect: null, completedShape: null });
   }
   get multiplier() { return heightMultiplier(Math.floor(this.maxAmount + .001)); }
@@ -38,7 +42,12 @@ export class SoftServeGame {
     if (this.phase === "result") return;
     const dt = Math.min(100, Math.max(0, ms));
     const tracked = validPoint(input?.hand) && (this.phase !== "eat" || this.source === "demo" || validPoint(input?.mouth));
+    // During eating, a hand covering the mouth (or disappearing behind it) is
+    // expected. Only a freshly observed OPEN-mouth approach can rescue a gap.
+    if (!tracked && !this.manualPause && ms <= 500 && this.phase === "eat" &&
+        this.source === "camera" && this.tryOccludedBite(dt)) return;
     if (!tracked || this.manualPause || ms > 500) {
+      this.clearBiteApproach();
       if (!tracked && !this.wasMissing && this.phase !== "ready") this.losses++;
       this.wasMissing = !tracked; this.missing = !tracked; this.paused = true;
       this.recoveryMs = 0; this.readyMs = 0; this.awayMs = 0; this.contactMs = 0; this.separationMs = 0;
@@ -114,21 +123,59 @@ export class SoftServeGame {
     this.phase = "eat"; this.biteArmed = true; this.contactMs = 0; this.separationMs = 0;
     this.effect = { type: "serve", at: this.elapsedMs }; return true;
   }
+  // This never predicts positions, extends scoring time or fires without a
+  // prior camera frame showing BOTH landmarks and an open, nearby mouth.
+  clearBiteApproach() {
+    this.biteApproach = false; this.biteApproachAgeMs = 0; this.biteOcclusionMs = 0;
+  }
+  tryOccludedBite(dt) {
+    if (!this.biteArmed || !this.biteApproach || this.rules.occlusionGraceMs <= 0) return false;
+    this.biteApproachAgeMs += dt;
+    if (this.biteApproachAgeMs > this.rules.occlusionWindowMs) {
+      this.clearBiteApproach();
+      return false;
+    }
+    this.biteOcclusionMs += dt;
+    // Freeze movement, melt and the round clock during this tiny visual gap.
+    // A confirmed bite is deliberate game input, not a tracking-loss penalty.
+    this.paused = false; this.missing = false; this.wasMissing = false; this.recoveryMs = 0;
+    this.contactMs = 0;
+    if (this.biteOcclusionMs >= this.rules.occlusionGraceMs) {
+      this.biteArmed = false;
+      this.clearBiteApproach();
+      this.bite();
+    }
+    return true;
+  }
   eat(dt, input) {
     const tip = this.tip;
-    const contact = validPoint(input.mouth) && input.open && Math.hypot((tip.x - input.mouth.x) * .75, tip.y - input.mouth.y) < .1;
+    const mouthOpen = validPoint(input.mouth) && input.open;
+    const distance = validPoint(input.mouth) ?
+      Math.hypot((tip.x - input.mouth.x) * .75, tip.y - input.mouth.y) : Infinity;
+    const contact = mouthOpen && distance < .1;
     if (this.source === "demo" && input.bite) { this.bite(); return; }
+    if (this.source === "camera") {
+      if (this.biteArmed && mouthOpen && distance < this.rules.approachDistance) {
+        this.biteApproach = true; this.biteApproachAgeMs = 0; this.biteOcclusionMs = 0;
+      } else this.clearBiteApproach();
+    }
     if (!contact) {
       this.contactMs = 0; this.separationMs += dt;
       if (this.separationMs >= 130) this.biteArmed = true;
     } else {
       this.separationMs = 0; this.contactMs += dt;
-      if (this.biteArmed && this.contactMs >= this.rules.contactMs) { this.biteArmed = false; this.bite(); }
+      if (this.biteArmed && this.contactMs >= this.rules.contactMs) {
+        this.biteArmed = false; this.clearBiteApproach(); this.bite();
+      }
     }
   }
   bite() {
     if (this.phase !== "eat" || this.paused) return false;
-    const size = Math.min(this.amount, this.rules.biteSize), tip = { ...this.tip }, before = this.captureShape();
+    let size = Math.min(this.amount, this.rules.biteSize);
+    // Only real-camera play gets help with the tiny fragment after a valid bite.
+    if (this.source === "camera" && this.rules.finalBiteGrace > 0 &&
+        this.amount - size <= this.rules.finalBiteGrace) size = this.amount;
+    const tip = { ...this.tip }, before = this.captureShape();
     this.eaten += size; this.amount = Math.max(0, this.amount - size); this.bites++;
     this.effect = { type: "lick", at: this.elapsedMs, id: this.bites, size, tip, cone: { ...this.cone }, before, afterAmount: this.amount };
     if (this.amount <= .001) this.finish("clean");
