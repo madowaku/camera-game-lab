@@ -28,3 +28,6 @@ jobs:
 
       - name: Test all games and shared UI
         run: npm test
+
+      - name: Verify Tension Duel lifecycle and spring UI
+        run: npm run test:tension-ui

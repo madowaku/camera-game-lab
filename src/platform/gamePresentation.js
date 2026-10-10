@@ -4,6 +4,10 @@ import { artworkMarkup } from './gameArtwork.js';
 
 // Each entrance teaches the actual rules, including calibration and fresh edges.
 export const gameGuides = {
+  'duo-tension-duel': {
+    ja: ['指を広げてバイーーン。狭めて速攻。', ['左はC、右は反対向きのC','スマホを横向きに置き、二人でインカメラに片手ずつ。親指と人差し指の開いた側を中央へ'], ['広げてバイーン、狭めて速く','指の間のネットで球を返そう。広げるほど深く伸び、狭めるほど速く返る。傾きで方向を変えよう'], ['自分の陣地から、5点先取','中央線を越えたネットは球を返せない。上下とゴールの角は壁。相手のゴールネットに入れると1点。時間制限なし']],
+    en: ['Spread for a big boing. Pinch for speed.', ['C on the left, mirrored C on the right','Place your phone sideways. Each player shows one hand to the front camera, with the opening toward center'], ['Spread for boing, pinch for speed','Catch the puck with your finger net. Wider fingers stretch deeper; narrower fingers return faster. Tilt to aim'], ['Stay in your half. First to five wins','A net crossing center cannot return the puck. Top, bottom and goal corners bounce. Score in the opponent’s goal net. No time limit']],
+  },
   'solo-sonic-ink': {
     ja: ['その線が、メロディになる。', ['つまんで、空に描く','親指と人差し指をつまもう。最初のひと筆から15秒、3本まで'], ['離すと、音が走る','上は高い音、下は低い音。光の粒が線をたどって演奏する'], ['輪を閉じて、ループ！','ハートや丸をひと筆で。完成した音の彫刻とポーズもどうぞ']],
     en: ['Your doodle. Your melody.', ['Pinch and draw','Pinch thumb and index finger. 15 seconds from your first stroke, up to 3 strokes'], ['Release and listen','Height sets pitch. A little light follows your line and plays it'], ['Close a shape. Make a loop!','Draw a heart or circle in one stroke. Pose with your sound sculpture']],
@@ -91,6 +95,11 @@ export function resultModel(game,r,locale) {
   const metric=(a,b,v)=>({label:say(a,b),value:v}),pct=n=>Number.isFinite(n)?`${Math.round(n)}%`:'—';
   let title=say('ナイスプレイ！','NICE PLAY'),hero=number(r.score),unit=say('点','PTS'),hint=say('もう一回、記録を伸ばそう。','One more round. Can you beat it?'),metrics=[];
   switch(game.id) {
+    case 'duo-tension-duel':
+      title=say(`P${r.winner}の勝ち！`,`P${r.winner} WINS!`);
+      hero=r.scores?.join(' : ') ?? '—';unit=say('5点先取','FIRST TO FIVE');
+      hint=say('次は、どっちが勝つ？','Who takes the rematch?');
+      metrics=[metric('リターン','RETURNS',number(r.hits)),metric('最長ラリー','BEST RALLY',number(r.bestRally)),metric('対戦時間','ROUND TIME',seconds(r.durationMs))];break;
     case 'solo-hand-beat': case 'solo-eat-dont-eat':
       title=game.id==='solo-hand-beat'?say('ビートをつかんだ？','CATCH THE BEAT?'):say('見分けられた？','GOOD TASTE?');
       metrics=[metric('成功','HITS',`${number(r.hits)} / ${number(r.total)}`),metric('正解率','ACCURACY',pct(r.accuracy))];break;

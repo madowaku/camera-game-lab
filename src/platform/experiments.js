@@ -9,6 +9,14 @@ const define = (entry) => Object.freeze({
 });
 
 export const experiments = Object.freeze([
+  define({ id: "duo-tension-duel", exp: "EXP-021", collection: "DUO", category: "DUO", players: 2,
+    titleJa: "TENSION DUEL", titleEn: "TENSION DUEL", subtitleJa: "指を広げてバイーーン。狭めて速攻。5点先取のネット対戦。", subtitleEn: "Spread for a big boing. Pinch for speed. First to five wins.",
+    input: ["HAND", "PINCH"], duration: 30, untimed: true, orientation: "landscape", accent: "#7be4ec", tags: ["versus", "hockey", "elastic", "対戦", "ホッケー", "バイーン", "5点先取"],
+    aliases: ["#tension-duel"], module: "tensionDuel", demo: true, motif: "duo", audioStrategy: "self", previewType: "image", previewAsset: "/artwork/tension-duel-intro.webp",
+    privacyJa: "インカメラで二人の親指と人差し指を端末内で認識します。マイク・録画・映像の保存・外部送信は使いません。初回に手の認識モデルを読み込みます。練習はカメラとモデル不要です。",
+    privacyEn: "Front camera tracks two players’ thumbs and index fingers on your device. No microphone, recording, saved video or uploads. The hand model downloads on first use. Practice needs neither camera nor models.",
+    resultShare: (r, locale) => (r.source === "demo" ? locale === "ja" ? "【カメラなしの練習】" : "[Camera-free practice] " : "") + (locale === "ja" ? `TENSION DUEL · ${r.scores.join(" : ")} · P${r.winner}の勝ち！次はどっちが勝つ？` : `TENSION DUEL · ${r.scores.join(" : ")} · P${r.winner} wins! Who takes the rematch?`),
+    loadPresentation: () => import("../tension/presentation.js"), load: () => import("../tension/view.js").then(m => m.createView) }),
   define({ id: "solo-maru-magic", exp: "EXP-062", collection: "SOLO", category: "SOLO", renderer: "phaser",
     titleJa: "MARU MAGIC / まる召喚", titleEn: "MARU MAGIC", subtitleJa: "まるを描くと、何かが生まれる。", subtitleEn: "One circle. A little life.",
     input: ["HAND"], duration: 8, untimed: true, accent: "#e7c78c", tags: ["circle", "magic", "drawing", "円", "召喚", "指先"],

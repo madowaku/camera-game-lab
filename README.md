@@ -288,6 +288,20 @@ Imagegen artwork and OpenTracks music provenance are in
 [implementation and verification](docs/BODY_WINGS_PROGRESS.md) and
 [the pending five-round human playtest](docs/BODY_WINGS_PLAYTEST.md).
 
+## EXP-021 / DUO: TENSION DUEL
+
+Open `#/game/duo-tension-duel` from the DUO catalog, or use the existing
+`#tension-duel` link. Two finger nets return the puck from their own halves:
+spread for a deeper elastic boing, pinch for a faster return, tilt to aim.
+Top/bottom rails light on impact; side goals have visible mesh and solid corners.
+First to five wins, with no time limit. Includes mirrored C guidance, front-camera
+tracking, camera-free touch/keyboard practice, pause, fullscreen, JA/EN and the
+shared result, rematch and sharing flow. Browsing starts no camera or model.
+The game owns its OtoLogic BGM and Kenney SE; its sound control mutes both.
+See [assets and licenses](docs/TENSION_DUEL_ASSETS.md),
+[implementation and verification](docs/TENSION_DUEL_PROGRESS.md), and the
+[remaining physical-phone playtest](docs/TENSION_DUEL_PLAYTEST.md).
+
 ## LAB FEED — platform v0.1
 
 The home screen is a portrait, vertically snapping feed: one experiment per
