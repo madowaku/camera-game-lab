@@ -1,6 +1,6 @@
 // Pure camera rules: milliseconds in, state out. New rules never alter legacy floors.
 export const CameraRule = Object.freeze(Object.fromEntries([
-  'VISIBLE', 'FOCUS_HOLD', 'AFTERIMAGE', 'OVEREXPOSE', 'LINKED',
+  'VISIBLE', 'FOCUS_HOLD', 'AFTERIMAGE', 'OVEREXPOSE', 'LINKED', 'EXCLUDE',
   'CENTER_ONLY', 'SNAPSHOT', 'MOVE_WHEN_VISIBLE', 'MOVE_WHEN_HIDDEN', 'NO_PHOTOBOMB', 'PANORAMA',
 ].map((name) => [name, name])));
 
@@ -9,7 +9,7 @@ export function createRuleState() {
     overexposeMs: 0, recoveryMs: 0, broken: false, opacity: 0, pulseMs: 0, status: 'GONE' };
 }
 
-export function updateRule(object, state, visible, dt, linkedCount = 0) {
+export function updateRule(object, state, visible, dt, linkedCount = 0, conditionMet = false) {
   const wasSolid = state.solid;
   state.visible = visible; state.pulseMs = Math.max(0, state.pulseMs - dt);
   state.seen ||= visible;
@@ -54,6 +54,10 @@ export function updateRule(object, state, visible, dt, linkedCount = 0) {
     case CameraRule.LINKED:
       state.solid = linkedCount >= (object.requiredVisible ?? 2);
       state.opacity = state.solid ? 1 : visible ? .2 : 0; break;
+    case CameraRule.EXCLUDE:
+      // No deadline: a bridge exists if it is framed, and its red blocker is not.
+      state.solid = visible && conditionMet;
+      state.opacity = state.solid ? 1 : visible ? .24 : 0; break;
     default: // Reserved rules are deliberately inert until implemented.
       state.solid = false; state.opacity = visible ? .15 : 0;
   }
