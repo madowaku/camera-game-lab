@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { GuardianSpiritGame, GUARDIAN_RULES } from "../src/games/guardianSpirit.js";
 import { GuardianGestures, demoGuardianPose, extractGuardianPose } from "../src/input/guardianGestures.js";
 import { coverTransform } from "../src/guardian/renderer.js";
+import { playerTransform, guardianFraming, followGuardianArm } from "../src/guardian/composition.js";
 
 function advance(game, ms, present = true) {
   for (let left = ms; left > 0; left -= 100) game.step(Math.min(100, left), { present });
@@ -116,4 +117,53 @@ test("camera and person mask use the same centered cover crop", () => {
   const cover = coverTransform(1280, 720, 390, 520);
   assert.equal(cover.height, 520); assert.ok(cover.width > 390);
   assert.equal(cover.x + cover.width * 0.5, 195); assert.equal(cover.y, 0);
+});
+
+test("near-camera players stay compact with room above for their guardian", () => {
+  for (const [sw, sh, w, h] of [[1280, 720, 390, 520], [720, 1280, 375, 500], [1280, 720, 600, 450]]) {
+    for (const shoulderWidth of [0.15, 0.3, 0.6]) {
+      const pose = { ...demoGuardianPose(), shoulderWidth };
+      const fit = playerTransform(pose, sw, sh, w, h);
+      assert.ok(fit.width * shoulderWidth <= w * 0.24 + 0.001);
+      assert.ok(fit.width <= w && fit.height <= h * 0.55 + 0.001);
+      assert.ok(Math.abs(fit.x + pose.head.x * fit.width - w / 2) < 0.001);
+      assert.ok(Math.abs(fit.y + pose.head.y * fit.height - h * 0.53) < 0.001);
+      assert.ok(fit.y + fit.height <= h * 0.96 + 0.001);
+    }
+  }
+});
+
+test("display size changes composition without changing body input", () => {
+  const pose = demoGuardianPose(), before = structuredClone(pose);
+  const small = playerTransform(pose, 720, 1280, 390, 520, 0.35);
+  const large = playerTransform(pose, 720, 1280, 390, 520, 0.75);
+  assert.ok(small.width < large.width); assert.deepEqual(pose, before);
+});
+
+test("framing guidance permits comfortable proximity and helps with cropped arms", () => {
+  assert.equal(guardianFraming(null), "findBody");
+  const pose = demoGuardianPose(); assert.equal(guardianFraming(pose), "bodyReady");
+  pose.shoulderWidth = 0.5; assert.equal(guardianFraming(pose), "bodyReady");
+  pose.arms[0].wrist = null; assert.equal(guardianFraming(pose), "showHands");
+  pose.head.y = 0.02; assert.equal(guardianFraming(pose), "bodyCropped");
+});
+
+test("guardian limbs follow real arm direction with fixed, amplified lengths", () => {
+  const pose = demoGuardianPose(), arm = pose.arms[0];
+  let rig = followGuardianArm(arm, pose.aspect, -1);
+  assert.ok(Math.abs(Math.hypot(rig.elbow.x - rig.shoulder.x, rig.elbow.y - rig.shoulder.y) - 90) < 0.001);
+  arm.elbow = { x: arm.shoulder.x, y: arm.shoulder.y - 0.1 };
+  arm.wrist = { x: arm.shoulder.x, y: arm.shoulder.y - 0.2 };
+  rig = followGuardianArm(arm, pose.aspect, -1);
+  assert.ok(rig.wrist.y < rig.elbow.y && rig.elbow.y < rig.shoulder.y);
+  assert.ok(Number.isFinite(followGuardianArm(null, 0.75, 1).wrist.x));
+});
+
+test("smash feedback matches each kill's combo multiplier and total reward", () => {
+  const game = playing(), effects = []; game.onEffect = (event) => effects.push(event);
+  game.combo = 2; game.enemies = [imp(1), imp(2), imp(3)];
+  game.act({ type: "punch", side: "left" });
+  const event = effects.at(-1);
+  assert.equal(event.scoreGain, 500); assert.equal(event.combo, 5);
+  assert.deepEqual(event.targets.map((target) => target.score), [100, 200, 200]);
 });

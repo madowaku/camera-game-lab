@@ -1,5 +1,8 @@
-// Separate head, torso, arm and hand parts form an original 2D WARDEN rig.
-// Canvas composition keeps the live camera, person mask and exported photo aligned.
+import { playerTransform, followGuardianArm } from "./composition.js";
+import { GUARDIAN_SPIRITS, guardianSpirit } from "./spirits.js";
+
+// ImageGen torso, upper arm, forearm and fist textures form an articulated rig.
+// The person and their mask share one compact transform, including in photos.
 export function coverTransform(sourceWidth, sourceHeight, width, height) {
   const scale = Math.max(width / sourceWidth, height / sourceHeight);
   return { width: sourceWidth * scale, height: sourceHeight * scale,
@@ -22,6 +25,10 @@ export class GuardianRenderer {
     this.video = video; this.input = input; this.foreground = document.createElement("canvas");
     this.fg = this.foreground.getContext("2d");
     this.anchor = null; this.effects = []; this.time = 0;
+    this.playerSize = 0.55; this.spirit = guardianSpirit("warden"); this.limbs = new Map();
+    this.images = new Map(GUARDIAN_SPIRITS.map((spirit) => {
+      const image = new Image(); image.src = spirit.atlas; return [spirit.id, image];
+    }));
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(canvas);
     this.resize();
@@ -37,12 +44,12 @@ export class GuardianRenderer {
     this.anchor = null;
   }
   toStage(point, demo = false) {
-    if (demo || !this.video.videoWidth) return { x: point.x * this.width, y: point.y * this.height };
-    const cover = coverTransform(this.video.videoWidth, this.video.videoHeight, this.width, this.height);
-    return { x: cover.x + point.x * cover.width, y: cover.y + point.y * cover.height };
+    // Body size is presentation only. Aim retains the entire mirrored sensor range.
+    return { x: point.x * this.width, y: point.y * this.height };
   }
   effect(event) { this.effects.push({ ...event, age: 0 }); this.effects = this.effects.slice(-16); }
-  reset() { this.effects.length = 0; this.anchor = null; }
+  reset() { this.effects.length = 0; this.anchor = null; this.limbs.clear(); }
+  setSpirit(id) { this.spirit = guardianSpirit(id); this.limbs.clear(); }
   drawCamera(ctx, source, mirror = true) {
     const sourceWidth = source.videoWidth || source.width, sourceHeight = source.videoHeight || source.height;
     const cover = coverTransform(sourceWidth, sourceHeight, this.width, this.height);
@@ -54,6 +61,7 @@ export class GuardianRenderer {
     if (!this.width) return;
     const ctx = this.ctx, w = this.width, h = this.height;
     const frozen = game.paused;
+    this.frameDt = frozen ? 0 : dt;
     if (!frozen) {
       this.time += dt;
       this.effects.forEach((effect) => effect.age += dt);
@@ -62,38 +70,38 @@ export class GuardianRenderer {
     ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     ctx.fillStyle = "#0c171a"; ctx.fillRect(0, 0, w, h);
     const camera = !demo && this.video.readyState >= 2 && this.video.videoWidth > 0;
-    if (camera) {
-      this.drawCamera(ctx, this.video);
-      ctx.fillStyle = "#071a2020"; ctx.fillRect(0, 0, w, h);
-    } else this.drawSanctuary(ctx, w, h);
-    const guardianVisible = photo || !["align", "countdown"].includes(game.phase);
+    this.drawSanctuary(ctx, w, h);
     if (pose) {
-      const shoulder = this.toStage(pose.center, demo), head = this.toStage(pose.head, demo);
-      const left = this.toStage({ x: pose.center.x - pose.shoulderWidth / 2, y: pose.center.y }, demo);
-      const right = this.toStage({ x: pose.center.x + pose.shoulderWidth / 2, y: pose.center.y }, demo);
-      const scale = Math.max(0.28, Math.min(2.4, h / 540, Math.abs(right.x - left.x) * 2.8 / 340));
-      const target = { x: shoulder.x, y: head.y - 105 * scale, scale };
+      const scale = Math.min(w / 470, h / 510);
+      const target = { x: w * (0.5 + (pose.center.x - 0.5) * 0.36), y: h * 0.25, scale };
       this.anchor ??= { ...target };
       const amount = 1 - Math.exp(-dt / 150);
       if (!frozen) for (const key of ["x", "y", "scale"]) this.anchor[key] = mix(this.anchor[key], target[key], amount);
     }
-    this.anchor ??= { x: w * 0.5, y: h * 0.22, scale: w / 540 };
+    this.anchor ??= { x: w * 0.5, y: h * 0.25, scale: Math.min(w / 470, h / 510) };
     ctx.save();
     const impact = this.effects.find((event) => (event.type === "punch" && event.hit || event.type === "damage") && event.age < 160);
     if (impact && !this.reducedMotion.matches) ctx.translate(Math.sin(impact.age * 0.14) * 5, Math.cos(impact.age * 0.18) * 3);
-    if (guardianVisible) this.drawGuardian(ctx, game, photo ? photoPose : -1, pose);
-    // Repaint the player over WARDEN using the pose model's soft person mask.
-    if (camera && this.input.maskReady && pose) {
+    this.drawGuardian(ctx, game, photo ? photoPose : -1, pose);
+    if (camera) {
       const fg = this.fg;
-      fg.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-      fg.clearRect(0, 0, w, h); fg.globalCompositeOperation = "source-over";
-      this.drawCamera(fg, this.video);
-      fg.globalCompositeOperation = "destination-in"; this.drawCamera(fg, this.input.mask);
-      fg.globalCompositeOperation = "source-over"; ctx.drawImage(this.foreground, 0, 0, w, h);
+      const fw = this.foreground.width, fh = this.foreground.height;
+      fg.setTransform(1, 0, 0, 1, 0, 0);
+      fg.clearRect(0, 0, fw, fh); fg.globalCompositeOperation = "source-over";
+      // Keep the entire source; cropping before scaling would lose both hands.
+      fg.drawImage(this.video, 0, 0, fw, fh);
+      if (this.input.maskReady && pose) {
+        fg.globalCompositeOperation = "destination-in";
+        fg.drawImage(this.input.mask, 0, 0, fw, fh);
+      }
+      fg.globalCompositeOperation = "source-over";
+      const fit = playerTransform(pose, this.video.videoWidth, this.video.videoHeight, w, h, this.playerSize);
+      ctx.save(); ctx.translate(fit.x + fit.width, fit.y); ctx.scale(-1, 1);
+      ctx.drawImage(this.foreground, 0, 0, fit.width, fit.height); ctx.restore();
     } else if (demo) this.drawDemoPlayer(ctx, pose);
     if (!photo) {
       game.enemies.forEach((enemy) => this.drawDemon(ctx, enemy.x * w, enemy.y * h, w * 0.055, enemy.age));
-      if (game.boss) this.drawDemon(ctx, w * 0.5, h * 0.24, w * 0.18, this.time, true);
+      if (game.boss) this.drawDemon(ctx, w * 0.83, h * 0.35, w * 0.115, this.time, true);
       if (game.shieldMs > 0) this.drawShield(ctx, game.shieldMs);
       this.drawEffects(ctx, w, h);
     }
@@ -128,7 +136,84 @@ export class GuardianRenderer {
     }
     ctx.globalAlpha = 1;
   }
+  drawAtlasPart(ctx, image, index, x, y, width, height) {
+    const sw = image.naturalWidth / 2, sh = image.naturalHeight / 2;
+    ctx.drawImage(image, index % 2 * sw, Math.floor(index / 2) * sh, sw, sh, x, y, width, height);
+  }
+  drawSpiritRig(ctx, game, poseIndex, playerPose, image) {
+    const { x, y, scale } = this.anchor;
+    const ascend = game.phase === "ascension" ? Math.min(1, game.phaseMs / 1100) : 0;
+    const bob = this.reducedMotion.matches ? 0 : Math.sin(this.time / 1500) * 3;
+    const awakening = game.phase === "awakening" ? Math.min(1, game.phaseMs / 700) : 1;
+    const hit = [...this.effects].reverse().find((event) => event.hit && event.age < 350);
+    const recoil = hit && !this.reducedMotion.matches ? Math.sin(hit.age / 350 * Math.PI) * 0.035 : 0;
+    ctx.save(); ctx.translate(x, y + bob);
+    ctx.scale(scale * (1 + ascend * 0.6 + recoil), scale * (1 + ascend * 0.6 + recoil));
+    ctx.globalAlpha = ["align", "countdown"].includes(game.phase) ? 0.4 : 0.98 * awakening;
+    ctx.strokeStyle = this.spirit.color + "66"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 12, 95, 0, Math.PI * 2); ctx.stroke();
+    const positions = { warden: [76, 48], luna: [52, 48], moss: [73, 78], kitsu: [64, 48] };
+    const [sx, sy] = positions[this.spirit.id];
+    const rigs = [-1, 1].map((side) => {
+      const arm = playerPose?.arms.find((value) => (value.shoulder.x < playerPose.center.x ? -1 : 1) === side);
+      const target = followGuardianArm(arm, playerPose?.aspect ?? 0.75, side, { x: side * sx, y: sy });
+      const current = this.limbs.get(side) ?? structuredClone(target);
+      const amount = 1 - Math.exp(-this.frameDt / 65);
+      for (const part of ["shoulder", "elbow", "wrist"]) for (const key of ["x", "y"]) current[part][key] = mix(current[part][key], target[part][key], amount);
+      this.limbs.set(side, current);
+      let { shoulder, elbow, wrist } = structuredClone(current), handSize = 1;
+      if (poseIndex === 0 || game.phase === "idle") { elbow = { x: side * 120, y: 145 }; wrist = { x: -side * 30, y: 148 }; }
+      if (poseIndex === 1 && side > 0) { elbow = { x: 155, y: 42 }; wrist = { x: 230, y: 0 }; }
+      if (poseIndex === 2 && side < 0) { elbow = { x: -155, y: 135 }; wrist = { x: 0, y: 125 }; handSize = 1.5; }
+      if (poseIndex === 3) { elbow = { x: side * 160, y: 95 }; wrist = { x: side * 185, y: -30 }; }
+      if (poseIndex === -1 && (game.shieldMs > 0 || ascend > 0)) { elbow = { x: side * 155, y: 45 }; wrist = { x: side * 225, y: 25 - ascend * 130 }; }
+      const recent = [...this.effects].reverse().find((effect) => ["punch", "shot"].includes(effect.type) && effect.age < 430 &&
+        (arm ? effect.side === arm.side : (effect.side === "left" ? -1 : 1) === side));
+      if (poseIndex === -1 && recent) {
+        const targetPoint = recent.targets?.[0] ?? recent.direction ?? { x: side < 0 ? 0.16 : 0.84, y: 0.42 };
+        const aim = { x: (targetPoint.x * this.width - x) / scale, y: (targetPoint.y * this.height - y) / scale };
+        const strike = recent.age < 90 ? recent.age / 90 : Math.max(0, 1 - (recent.age - 90) / 340);
+        elbow = { x: mix(elbow.x, side * 150, strike), y: mix(elbow.y, 65, strike) };
+        wrist = { x: mix(wrist.x, aim.x, strike), y: mix(wrist.y, aim.y, strike) };
+        handSize = 1 + strike * (recent.type === "punch" ? 1.5 : 0.35);
+      }
+      return { side, shoulder, elbow, wrist, handSize, recent };
+    });
+    // Draw upper limbs behind the chest, then forearms and fists in front.
+    const segment = (index, from, to, side) => {
+      ctx.save(); ctx.translate(from.x, from.y);
+      ctx.rotate(Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2);
+      ctx.scale(side, 1);
+      const length = Math.hypot(to.x - from.x, to.y - from.y);
+      this.drawAtlasPart(ctx, image, index, -48, -length * 0.08, 96, length * 1.16);
+      ctx.restore();
+    };
+    rigs.forEach(({ shoulder, elbow, side }) => segment(1, shoulder, elbow, side));
+    this.drawAtlasPart(ctx, image, 0, -150, -100, 300, 390);
+    for (const { side, elbow, wrist, handSize, recent } of rigs) {
+      segment(2, elbow, wrist, side);
+      ctx.save(); ctx.translate(wrist.x, wrist.y);
+      ctx.rotate(Math.atan2(wrist.y - elbow.y, wrist.x - elbow.x) - Math.PI / 2);
+      ctx.scale(side * handSize, handSize);
+      this.drawAtlasPart(ctx, image, 3, -43, -35, 86, 86);
+      if ([1, 3].includes(poseIndex)) {
+        // Spectral fingers distinguish pointing / peace while retaining the painted fist.
+        line(ctx, [[-8, -15], [-8, -66]], this.spirit.color, 9);
+        if (poseIndex === 3) line(ctx, [[9, -15], [22, -60]], this.spirit.color, 9);
+      }
+      ctx.restore();
+      if (recent && recent.age < 200) {
+        ctx.save(); ctx.globalAlpha *= 1 - recent.age / 200; ctx.strokeStyle = this.spirit.color; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(wrist.x, wrist.y, 27 + recent.age * 0.25, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+      }
+    }
+    ctx.restore();
+  }
   drawGuardian(ctx, game, poseIndex, playerPose) {
+    const image = this.images.get(this.spirit.id);
+    if (image?.complete && image.naturalWidth) {
+      this.drawSpiritRig(ctx, game, poseIndex, playerPose, image); return;
+    }
     const { x, y, scale } = this.anchor;
     const ascend = game.phase === "ascension" ? Math.min(1, game.phaseMs / 1100) : 0;
     const bob = this.reducedMotion.matches ? 0 : Math.sin(this.time / 1500) * 4;
@@ -190,7 +275,7 @@ export class GuardianRenderer {
       }
       if (poseIndex === 2 && side < 0) { elbow = { x: -165, y: 164 }; wrist = { x: -25, y: 30 }; hand = "palm"; handRotation = Math.PI / 2; }
       if (poseIndex === 3) { elbow = { x: side * 185, y: 167 }; wrist = { x: side * 207, y: 82 }; hand = "peace"; }
-      if (game.shieldMs > 0 || ascend > 0) { elbow = { x: side * 205, y: 95 }; wrist = { x: side * 273, y: 55 - ascend * 110 }; hand = "palm"; }
+      if (poseIndex === -1 && (game.shieldMs > 0 || ascend > 0)) { elbow = { x: side * 205, y: 95 }; wrist = { x: side * 273, y: 55 - ascend * 110 }; hand = "palm"; }
       const recent = [...this.effects].reverse().find((effect) => ["punch", "shot"].includes(effect.type) && effect.age < 430 &&
         (effect.side === "left" ? -1 : 1) === side);
       if (poseIndex === -1 && recent) {
@@ -233,8 +318,9 @@ export class GuardianRenderer {
     ctx.restore();
   }
   drawDemoPlayer(ctx, pose) {
-    const head = this.toStage(pose?.head ?? { x: 0.5, y: 0.38 }, true), w = this.width;
-    ctx.save(); ctx.translate(head.x, head.y); ctx.scale(w / 500, w / 500);
+    const fit = playerTransform(pose, this.width, this.height, this.width, this.height, this.playerSize);
+    const head = { x: fit.x + (pose?.head.x ?? 0.5) * fit.width, y: fit.y + (pose?.head.y ?? 0.38) * fit.height };
+    ctx.save(); ctx.translate(head.x, head.y); ctx.scale(fit.width / 500, fit.width / 500);
     polygon(ctx, [[-55, 57], [-90, 91], [-115, 247], [-93, 330], [93, 330], [115, 247], [90, 91], [55, 57]], "#0b1f24", "#629e9d66", 1.5);
     ctx.fillStyle = "#1f3c42"; ctx.beginPath(); ctx.ellipse(0, -2, 46, 57, 0, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = "#8cc7bf80"; ctx.lineWidth = 1.5; ctx.stroke();
@@ -278,29 +364,46 @@ export class GuardianRenderer {
       ctx.save();
       if (event.type === "punch") {
         const side = event.screenSide ?? (event.side === "left" ? -1 : 1);
-        const x = w * (side < 0 ? 0.27 : 0.73), y = h * 0.49;
+        const target = event.targets?.[0];
+        const x = target ? target.x * w : w * (side < 0 ? 0.27 : 0.73), y = target ? target.y * h : h * 0.49;
         ctx.globalAlpha = fade;
         if (event.age < 240) {
           ctx.save(); ctx.translate(x, y); ctx.scale(w / 230 * (0.8 + p), w / 230 * (0.8 + p));
-          polygon(ctx, [[-25, -27], [21, -30], [38, -8], [27, 32], [-20, 33], [-36, 8]], "#cffff1dd", "#ffffff", 2);
-          for (let i = 0; i < 3; i++) line(ctx, [[-16 + i * 12, -16], [-15 + i * 12, 5]], "#4a857a", 2);
+          const image = this.images.get(this.spirit.id);
+          if (image?.complete && image.naturalWidth) this.drawAtlasPart(ctx, image, 3, -50, -50, 100, 100);
+          else polygon(ctx, [[-25, -27], [21, -30], [38, -8], [27, 32], [-20, 33], [-36, 8]], this.spirit.color, "#ffffff", 2);
           ctx.restore();
         }
-        ctx.strokeStyle = "#d1fff3"; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.ellipse(x, y, 10 + p * w * 0.45, 5 + p * w * 0.2, -0.4 * side, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = this.spirit.color; ctx.lineWidth = 3;
+        const motion = this.reducedMotion.matches ? 0.2 : p;
+        ctx.beginPath(); ctx.ellipse(x, y, 10 + motion * w * 0.45, 5 + motion * w * 0.2, -0.4 * side, 0, Math.PI * 2); ctx.stroke();
       }
       if (event.type === "shot") {
         const target = event.targets?.[0] ?? event.direction ?? { x: 0.75, y: 0.3 };
-        ctx.globalAlpha = fade; ctx.shadowColor = "#c0fff5"; ctx.shadowBlur = 15;
-        line(ctx, [[this.anchor.x, this.anchor.y + 150 * this.anchor.scale], [target.x * w, target.y * h]], "#e1ffff", 8 * fade);
+        const start = { x: this.anchor.x, y: this.anchor.y + 100 * this.anchor.scale };
+        const travel = this.reducedMotion.matches ? 1 : Math.min(1, event.age / 100);
+        const end = { x: mix(start.x, target.x * w, travel), y: mix(start.y, target.y * h, travel) };
+        ctx.globalAlpha = fade; ctx.shadowColor = this.spirit.color; ctx.shadowBlur = 15;
+        line(ctx, [[start.x, start.y], [end.x, end.y]], this.spirit.color, 13 * fade);
+        line(ctx, [[start.x, start.y], [end.x, end.y]], "#ffffff", 4 * fade);
+        ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(end.x, end.y, 10 * fade, 0, Math.PI * 2); ctx.fill();
       }
       for (const target of event.targets ?? []) {
         ctx.globalAlpha = fade;
+        const radius = this.reducedMotion.matches ? 24 : p * w * 0.23;
+        ctx.strokeStyle = this.spirit.color; ctx.lineWidth = 4 * fade;
+        ctx.beginPath(); ctx.arc(target.x * w, target.y * h, 8 + radius, 0, Math.PI * 2); ctx.stroke();
+        if (event.age < 120) {
+          ctx.fillStyle = this.spirit.color; ctx.beginPath(); ctx.arc(target.x * w, target.y * h, w * 0.075, 0, Math.PI * 2); ctx.fill();
+        }
         for (let i = 0; i < 8; i++) {
           const angle = i * Math.PI / 4;
-          line(ctx, [[target.x * w + Math.cos(angle) * p * 80, target.y * h + Math.sin(angle) * p * 80],
-            [target.x * w + Math.cos(angle) * (p * 80 + 13), target.y * h + Math.sin(angle) * (p * 80 + 13)]], "#cffff4", 2);
+          const dx = target.x * w + Math.cos(angle) * radius, dy = target.y * h + Math.sin(angle) * radius;
+          line(ctx, [[dx, dy], [dx + Math.cos(angle) * 15, dy + Math.sin(angle) * 15]], this.spirit.color, 2);
+          if (!this.reducedMotion.matches) polygon(ctx, [[dx - 5, dy - 5], [dx + 7, dy], [dx, dy + 9]], "#e1667f", null);
         }
+        ctx.fillStyle = "#ffffff"; ctx.font = `bold ${Math.max(12, w * 0.038)}px Consolas, monospace`; ctx.textAlign = "center";
+        ctx.fillText(`+${target.score ?? 100}`, target.x * w, target.y * h - 26 - (this.reducedMotion.matches ? 0 : p * 28));
       }
       if (event.type === "damage") { ctx.fillStyle = `rgba(230,76,72,${fade * 0.22})`; ctx.fillRect(0, 0, w, h); }
       if (event.type === "awaken" && event.age < 250 && !this.reducedMotion.matches) {
@@ -325,7 +428,7 @@ export class GuardianRenderer {
       const w = output.width, h = output.height;
       ctx.fillStyle = "#05171dd9"; ctx.fillRect(0, h - w * 0.14, w, w * 0.14);
       ctx.fillStyle = "#dbfff5"; ctx.textAlign = "left"; ctx.font = `bold ${w * 0.028}px Consolas, monospace`;
-      ctx.fillText("GUARDIAN SPIRIT", w * 0.04, h - w * 0.082);
+      ctx.fillText(`GUARDIAN SPIRIT / ${this.spirit.name}`, w * 0.04, h - w * 0.082);
       ctx.fillStyle = "#add5cb"; ctx.font = `${w * 0.022}px Consolas, monospace`;
       ctx.fillText(`DEMONS DEFEATED: ${game.defeated}   COMBO: ${game.maxCombo}${demo ? "   / DEMO" : ""}`, w * 0.04, h - w * 0.04);
     }

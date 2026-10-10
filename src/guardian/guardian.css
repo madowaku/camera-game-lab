@@ -36,6 +36,22 @@
 .guardian-duration { display: flex; align-items: center; gap: 12px; font: 10px/1.5 Consolas, monospace; color: var(--gs-muted); }
 .guardian-duration i { width: 3px; height: 3px; background: var(--gs-spirit); }
 .guardian-camera-area { min-width: 0; }
+.gs-spirit-picker { margin: 0 auto 14px; }
+.gs-spirit-picker > p { margin: 0 0 8px; color: var(--gs-muted); font-size: 13px; }
+.gs-spirit-picker > div { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+.gs-spirit-choice { display: grid; justify-items: center; gap: 3px; min-width: 0; min-height: 48px; padding: 6px 3px 8px; border: 1px solid var(--gs-line); background: #10282b; color: var(--gs-ink); cursor: pointer; touch-action: manipulation; }
+.gs-spirit-choice[aria-pressed="true"] { border-color: var(--gs-spirit); background: #23454b; box-shadow: inset 0 -2px var(--gs-spirit); }
+.gs-spirit-portrait { width: 64px; height: 64px; max-width: 100%; background-size: 200% 200%; background-position: left top; background-repeat: no-repeat; }
+.gs-spirit-choice strong { font: 13px Consolas, monospace; }
+.gs-spirit-choice small { font-size: 10px; line-height: 1.4; text-align: center; }
+.gs-framing { margin: 10px 0 0; color: var(--gs-muted); font-size: 13px; line-height: 1.6; }
+.gs-framing[data-state="bodyReady"] { color: var(--gs-spirit); }
+.gs-framing[data-state="bodyCropped"] { color: var(--gs-danger); }
+.gs-composition-settings { margin-top: 12px; font-size: 13px; color: var(--gs-muted); }
+.gs-composition-settings summary { cursor: pointer; min-height: 44px; align-content: center; }
+.gs-composition-settings label { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.gs-composition-settings input { flex: 1; min-width: 100px; min-height: 44px; accent-color: var(--gs-spirit); }
+.gs-composition-settings p { line-height: 1.7; }
 .guardian-stage { aspect-ratio: 3/4; position: relative; background: var(--gs-bg); border: 1px solid #63877f; overflow: hidden; }
 .guardian-canvas { width: 100%; height: 100%; position: absolute; inset: 0; display: block; }
 .gs-stage-top, .gs-stage-bottom, .gs-combat-hud { position: absolute; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; z-index: 1; }
@@ -68,7 +84,7 @@
 .gs-overlay-detail { max-width: 28ch; margin: 0; font-size: 14px; line-height: 1.7; text-shadow: 0 2px 3px #000; }
 .gs-overlay--photo { justify-content: flex-start; inset: auto 0 68px; padding: 12px 24px; background: none; }
 .gs-photo-tag { font: 12px/1.5 Consolas, monospace; letter-spacing: 0.06em; }
-.gs-alignment { position: absolute; inset: 20% 26% 27%; border: 1px dashed #c7fdec66; border-radius: 45% 45% 15% 15%; }
+.gs-alignment { position: absolute; inset: 48% 36% 6%; border: 1px dashed #c7fdec66; border-radius: 45% 45% 15% 15%; pointer-events: none; }
 .gs-feedback { position: absolute; left: 12px; right: 12px; bottom: 110px; z-index: 3; font: bold 18px/1.5 Consolas, monospace; color: #e9fff8; text-align: center; text-shadow: 0 1px 8px #031512; pointer-events: none; }
 .gs-feedback[data-kind="damage"], .gs-feedback[data-kind="boss"] { color: var(--gs-danger); }
 .gs-actions, .gs-photo-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
@@ -103,6 +119,7 @@
 .lab--guardian-playing .guardian-brief { padding-top: 0; }
 .lab--guardian-playing .guardian-statement, .lab--guardian-playing .guardian-intro { display: none; }
 @media (min-width: 850px) { .guardian-stage { width: min(100%, 46.5vh); margin: 0 auto; } }
+@media (min-width: 850px) { .gs-spirit-picker { width: min(100%, 46.5vh); } }
 @media (max-width: 849px) {
   .lab--guardian { padding: max(20px, env(safe-area-inset-top)) 20px max(32px, env(safe-area-inset-bottom)); }
   .guardian-layout { grid-template-columns: 1fr; gap: 28px; max-width: 580px; margin: auto; }

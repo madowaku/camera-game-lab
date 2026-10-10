@@ -5,6 +5,8 @@ import { GuardianSpiritGame } from "../games/guardianSpirit.js";
 import { GuardianRenderer } from "./renderer.js";
 import { GuardianAudio } from "./audio.js";
 import { guardianCopy } from "./messages.js";
+import { GUARDIAN_SPIRITS, guardianSpirit } from "./spirits.js";
+import { guardianFraming } from "./composition.js";
 
 const RECORD_KEY = "camera-game-lab-guardian-rounds";
 const icon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">${{
@@ -22,19 +24,21 @@ export class GuardianExperience {
     this.status = "OFF"; this.photoMode = false; this.photoPose = 0; this.includeUi = true;
     this.manualPause = false; this.demoPresent = true; this.photoCount = 0; this.photoMs = 0;
     this.lastTimestamp = null; this.frameId = null; this.lastRenderAt = 0; this.photoUrl = null;
+    this.spiritId = "warden";
     root.innerHTML = `
       <div class="guardian-layout">
         <aside class="guardian-brief">
           <p class="gs-kicker" data-copy="eyebrow"></p>
           <h2 class="guardian-statement" data-copy="title"></h2>
           <p class="guardian-intro" data-copy="intro"></p>
-          <div class="guardian-identity"><span class="guardian-sigil">${icon("spark")}</span><div><small>YOUR GUARDIAN</small><strong>WARDEN</strong><span>01 / THE SILENT PROTECTOR</span></div></div>
+          <div class="guardian-identity"><span class="guardian-sigil">${icon("spark")}</span><div><small>YOUR GUARDIAN</small><strong class="gs-spirit-name">WARDEN</strong><span class="gs-spirit-description"></span></div></div>
           <div class="guardian-guide">
             ${[["punch", "GUARDIAN PUNCH", "punch"], ["shot", "SPIRIT SHOT", "shotHelp"], ["shield", "GUARDIAN SHIELD", "shield"], ["ascend", "ASCENSION", "ascendHelp"]].map(([name, title, copy], i) => `<div class="gs-guide-row"><span class="gs-guide-icon">${icon(name)}</span><div><strong>${title}</strong><p data-copy="${copy}"></p></div><small>0${i + 1}</small></div>`).join("")}
           </div>
           <p class="guardian-duration"><span>30 SEC</span><i></i><span>ONE GUARDIAN</span><i></i><span>YOU</span></p>
         </aside>
         <div class="guardian-camera-area">
+          <div class="gs-spirit-picker" role="group"><p data-copy="chooseSpirit"></p><div>${GUARDIAN_SPIRITS.map((spirit) => `<button type="button" class="gs-spirit-choice" data-spirit="${spirit.id}" aria-pressed="${spirit.id === this.spiritId}"><span class="gs-spirit-portrait" style="background-image:url('${spirit.atlas}')" aria-hidden="true"></span><strong>${spirit.name}</strong><small></small></button>`).join("")}</div></div>
           <div class="guardian-stage">
             <video class="guardian-video" autoplay muted playsinline hidden></video>
             <canvas class="guardian-canvas" role="img" aria-label="WARDEN behind the player, battling demons"></canvas>
@@ -45,7 +49,9 @@ export class GuardianExperience {
             <div class="gs-feedback" role="status" aria-live="polite"></div>
             <div class="gs-stage-bottom"><div class="gs-warden-tag"><span>WARDEN</span><small>BOUND TO YOU</small></div><div class="gs-gauge" hidden><div><span>SPIRIT GAUGE</span><strong>0%</strong></div><progress max="1" value="0" aria-label="Spirit gauge"></progress></div><div class="gs-photo-tag" hidden></div></div>
           </div>
+          <p class="gs-framing" role="status" aria-live="polite"></p>
           <div class="gs-actions"><button type="button" class="gs-button gs-button--primary gs-camera">${icon("spark")}<span data-copy="summon"></span></button><button type="button" class="gs-button gs-demo" data-copy="demo"></button><button type="button" class="gs-button gs-retry" data-copy="retry" hidden></button><button type="button" class="gs-button gs-enter-photo" data-copy="selfie" hidden></button><button type="button" class="gs-button gs-cancel" data-copy="cancel" hidden></button></div>
+          <details class="gs-composition-settings"><summary data-copy="compositionSettings"></summary><label><span data-copy="playerSize"></span><input class="gs-player-size" type="range" min="35" max="75" value="55" step="5"><output>55%</output></label><p data-copy="compactHelp"></p></details>
           <div class="gs-photo-controls" hidden><button type="button" class="gs-button gs-change-pose" data-copy="poseButton"></button><button type="button" class="gs-button gs-button--primary gs-shot">${icon("camera")}<span data-copy="shot"></span></button><button type="button" class="gs-button gs-ui-toggle"></button></div>
           <div class="gs-demo-controls" hidden>${[["punch-left", "A / PUNCH L"], ["punch-right", "D / PUNCH R"], ["shot", "S / SHOT"], ["shield", "F / SHIELD"], ["ascend", "W / POSE"]].map(([action, label]) => `<button type="button" class="gs-button" data-guardian-action="${action}">${label}</button>`).join("")}<button type="button" class="gs-button gs-test-loss"></button><p data-copy="demoHelp"></p></div>
           <p class="gs-message" role="status" aria-live="polite"></p>
@@ -64,6 +70,13 @@ export class GuardianExperience {
     this.audio = new GuardianAudio();
     this.game = new GuardianSpiritGame({ onEffect: (event) => this.onEffect(event) });
     this.renderer = new GuardianRenderer(this.$("canvas"), this.video, this.input);
+    for (const button of root.querySelectorAll("[data-spirit]")) button.addEventListener("click", () => {
+      this.spiritId = button.dataset.spirit; this.renderer.setSpirit(this.spiritId); this.render();
+    });
+    this.$(".gs-player-size").addEventListener("input", (event) => {
+      this.renderer.playerSize = Number(event.target.value) / 100;
+      this.$(".gs-composition-settings output").textContent = `${event.target.value}%`;
+    });
     this.$(".gs-camera").addEventListener("click", () => this.startCamera());
     this.$(".gs-demo").addEventListener("click", () => this.startDemo());
     this.$(".gs-retry").addEventListener("click", () => this.beginRound());
@@ -137,7 +150,7 @@ export class GuardianExperience {
     this.photoMode = false; this.photoPose = 0; this.manualPause = false; this.lastCount = null;
     this.clearPhoto(); this.input.clearActions(); this.renderer.reset(); this.audio.unlock();
     this.game.start(); this.lastTimestamp = null; this.render();
-    if (window.innerWidth < 850) this.$(".guardian-stage").scrollIntoView({ block: "start", behavior: "instant" });
+    if (window.innerWidth < 850) this.$(".gs-spirit-picker").scrollIntoView({ block: "start", behavior: "instant" });
   }
   cancelRound() {
     this.flushPhotoMetrics(); this.input.stop(); this.audio.suspend(); this.game.reset(); this.renderer.reset();
@@ -152,9 +165,11 @@ export class GuardianExperience {
   }
   onEffect(event) {
     this.renderer?.effect(event); this.audio.play(event.type);
+    if (event.hit) this.audio.play("impact");
     const labels = { punch: "GUARDIAN PUNCH", shot: "SPIRIT SHOT", shield: "GUARDIAN SHIELD", block: "BLOCK! +200", damage: "HIT −100", boss: "DEMON LORD" };
     if (labels[event.type]) {
-      this.$(".gs-feedback").textContent = `${labels[event.type]}${event.targets?.length ? ` ×${event.targets.length}` : ""}`;
+      this.$(".gs-feedback").textContent = event.hit ?
+        `${event.targets.length > 1 ? this.t("multiHit") + " ×" + event.targets.length : this.t("smash")}  +${event.scoreGain}  / ${event.combo} COMBO` : labels[event.type];
       this.feedbackUntil = this.renderer.time + 850;
       this.$(".gs-feedback").dataset.kind = event.type;
     }
@@ -179,7 +194,7 @@ export class GuardianExperience {
     }
     this.renderer.draw({ game: this.game, pose: sample.pose, demo, photo: this.photoMode || this.game.phase === "result", photoPose: this.photoPose, dt: this.manualPause ? 0 : dt });
     if (this.game.phase === "result" && !this.roundReceipt) {
-      this.roundReceipt = { ...this.game.result, source: this.source, recordedAt: new Date().toISOString(), photos: 0, photoModeMs: 0 };
+      this.roundReceipt = { ...this.game.result, spirit: this.spiritId, source: this.source, recordedAt: new Date().toISOString(), photos: 0, photoModeMs: 0 };
       this.saveReceipt();
       if (this.game.captureRequested) this.takePhoto();
       this.render();
@@ -193,6 +208,24 @@ export class GuardianExperience {
       if (element.textContent !== copy) element.textContent = copy;
     }
     const game = this.game, phase = game?.phase ?? "idle", running = game?.running ?? false;
+    const spirit = guardianSpirit(this.spiritId);
+    this.root.style.setProperty("--gs-spirit", spirit.color);
+    this.$(".gs-spirit-name").textContent = spirit.name;
+    this.$(".gs-spirit-description").textContent = spirit[this.locale] ?? spirit.en;
+    this.$(".gs-warden-tag span").textContent = spirit.name;
+    this.$(".guardian-canvas").setAttribute("aria-label", `${spirit.name} / ${this.t("canvasLabel")}`);
+    this.$(".gs-spirit-picker").setAttribute("aria-label", this.t("chooseSpirit"));
+    this.$(".gs-player-size").setAttribute("aria-label", this.t("playerSize"));
+    for (const button of this.root.querySelectorAll("[data-spirit]")) {
+      const choice = guardianSpirit(button.dataset.spirit);
+      button.setAttribute("aria-pressed", String(choice.id === spirit.id));
+      button.querySelector("small").textContent = choice[this.locale] ?? choice.en;
+    }
+    const framing = this.source === "camera" ? guardianFraming(this.latestPose) : "bodyReady";
+    this.$(".gs-framing").hidden = this.photoMode;
+    this.$(".gs-framing").dataset.state = framing;
+    const framingText = this.t(framing);
+    if (this.$(".gs-framing").textContent !== framingText) this.$(".gs-framing").textContent = framingText;
     const loading = ["LOADING_MODEL", "REQUESTING_CAMERA"].includes(this.status);
     const result = phase === "result", combat = phase === "playing" && !this.photoMode;
     this.root.closest(".lab")?.classList.toggle("lab--guardian-playing", running || this.photoMode);
@@ -279,6 +312,7 @@ export class GuardianExperience {
       if (this.photoUrl) URL.revokeObjectURL(this.photoUrl);
       this.photoUrl = URL.createObjectURL(blob); this.photoCount++;
       this.$(".gs-photo-preview img").src = this.photoUrl;
+      this.$(".gs-photo-preview img").alt = `GUARDIAN SPIRIT / ${guardianSpirit(this.spiritId).name}`;
       this.$(".gs-download").href = this.photoUrl; this.$(".gs-photo-preview").hidden = false;
       this.audio.play("shutter"); this.photoMessage = "captured"; this.saveReceipt(); this.render();
     }, "image/png");

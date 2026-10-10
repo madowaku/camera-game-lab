@@ -102,16 +102,18 @@ export class GuardianSpiritGame {
       targets = [this.enemies.reduce((best, enemy) =>
         Math.hypot(enemy.x - aim.x, enemy.y - aim.y) < Math.hypot(best.x - aim.x, best.y - aim.y) ? enemy : best)];
     }
-    const points = [];
+    const points = [], scoreBefore = this.score;
     for (const enemy of targets) {
       enemy.dead = true; this.defeated++; this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo);
-      this.score += 100 * Math.min(4, 1 + Math.floor((this.combo - 1) / 3));
-      points.push({ x: enemy.x, y: enemy.y });
+      const score = 100 * Math.min(4, 1 + Math.floor((this.combo - 1) / 3));
+      this.score += score;
+      points.push({ x: enemy.x, y: enemy.y, score });
     }
     this.gauge = Math.min(1, this.defeated / GUARDIAN_RULES.gaugeKills);
     this.enemies = this.enemies.filter((enemy) => !enemy.dead);
     if (targets.length) this.hitStopMs = 85;
-    this.onEffect({ ...action, targets: points, hit: targets.length > 0 }); return true;
+    this.onEffect({ ...action, targets: points, hit: targets.length > 0,
+      scoreGain: this.score - scoreBefore, combo: this.combo }); return true;
   }
   receiveAttack() {
     if (this.shieldMs > 0) { this.blocks++; this.score += 200; this.onEffect({ type: "block" }); }

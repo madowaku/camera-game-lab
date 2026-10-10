@@ -1,5 +1,12 @@
 # GUARDIAN SPIRIT: implementation and human playtest
 
+2026-10-10 update: [v0.2 art and compact-player polish](GUARDIAN_SPIRIT_POLISH_V02.md)
+replaces the primary vector art with four ImageGen companions. The player is
+automatically displayed smaller beneath the guardian's face, with a size slider.
+Stay close enough to read the screen; adjust the phone angle if hands are cropped.
+For each real round, also record whether the guardian's face stays visible,
+whether arm following feels immediate, and which companion the player chooses.
+
 Open `/#guardian`. Use a front camera on a phone over HTTPS, or a PC webcam on
 localhost. Keep your head and both shoulders visible, with room for your arms.
 The demo offers touch/keyboard controls and a tracking-loss button.
@@ -8,7 +15,8 @@ Implemented: pose input through the shared BodyInput lifecycle, four normalized
 action events, a segmented camera composition, delayed WARDEN tracking, combat,
 boss/ascension, loss recovery, synthesized feedback audio, victory capture,
 four photo poses, PNG download, hidden photo UI, retry, Japanese/English UI and
-local round receipts. The art is an original articulated Canvas vector rig.
+local round receipts. The primary art is four articulated transparent ImageGen
+rigs; the original Canvas vector rig is retained as an asset-load fallback.
 
 Design uses the user-authorized
 [UI UX Pro Max skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/.claude/skills/ui-ux-pro-max/SKILL.md).

@@ -1,5 +1,10 @@
 # EXP-020 GUARDIAN SPIRIT — v0.1
 
+Implementation update, 2026-10-10: [v0.2 polish](../GUARDIAN_SPIRIT_POLISH_V02.md)
+adds WARDEN / LUNA / MOSS / KITSU with generated modular textures, continuous arm
+following and a compact segmented player. It supersedes the single-guardian and
+full-stage camera presentation below. The original round and scoring rules remain.
+
 ## Purpose
 
 Small body gestures are amplified by a giant guardian behind the player. Test:

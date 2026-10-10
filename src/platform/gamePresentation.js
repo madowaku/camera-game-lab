@@ -119,7 +119,7 @@ export function resultModel(game,r,locale) {
       metrics=[metric('P1 命中','P1 HITS',number(r.hits?.[0])),metric('P2 命中','P2 HITS',number(r.hits?.[1])),metric('対戦時間','ROUND TIME',seconds(r.durationMs))];break;
     case 'guardian-spirit':
       title=r.victory?say('守護霊と、勝利のポーズ。','VICTORY. STRIKE A POSE.'):say('守護霊は、まだそばに。','YOUR GUARDIAN IS STILL HERE.');
-      hint=say('WARDENと一緒に、記念の一枚も。','Take a portrait with WARDEN, too.');
+      hint=say('選んだ精霊と一緒に、記念の一枚も。','Take a portrait with your chosen spirit, too.');
       metrics=[metric('倒した敵','DEFEATED',number(r.defeated)),metric('最大コンボ','BEST COMBO',number(r.combo)),metric('防いだ攻撃','BLOCKS',number(r.blocks))];break;
     case 'outcam-watermelon-guide':
       title=r.hits===3?say('声がつないだ、3つのヒット。','THREE MELONS. GREAT TEAMWORK.'):say('ふたりの息、合った？','IN SYNC WITH YOUR PARTNER?');hero=`${number(r.hits)} / 3`;unit=say('スイカを割った','MELONS SMASHED');
