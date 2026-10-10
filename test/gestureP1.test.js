@@ -185,3 +185,37 @@ test('P1 A/B mismatch counts are labeled disagreement, never false positives', (
   probe.reset();
   assert.deepEqual(probe.getSnapshot().disagreements, { GRIP: 0, PINCH: 0 });
 });
+
+test('P1 optional probe failures cannot suppress legacy input callback', () => {
+  const frames = [];
+  const video = { videoWidth: 640, videoHeight: 640 };
+  const input = new GripInput(video, { compareGestures: true, onFrame: value => frames.push(value) });
+  const originalWarn = console.warn;
+  try {
+    console.warn = () => {};
+    input.comparison.update = () => { throw new Error('simulated B-only detector error'); };
+    assert.doesNotThrow(() => input.processResult(result(), 0));
+    assert.equal(frames.length, 1);
+    assert.equal(frames[0].present, true);
+    assert.equal(input.comparison, null);
+    input.processResult(result(), 80);
+    assert.equal(frames.length, 2);
+  } finally {
+    console.warn = originalWarn;
+    input.stop();
+  }
+});
+
+test('P1 camera absence does not resurrect stale A coordinates or invent B events', () => {
+  const probe = createGestureABProbe();
+  probe.update(result(), 0, 1);
+  probe.update(result(), 80, 1);
+  const before = probe.getSnapshot();
+  assert.ok(before.A.GRIP.position);
+  const after = probe.advance(400);
+  assert.equal(after.A.GRIP.position, null);
+  assert.equal(after.A.GRIP.active, false);
+  assert.equal(after.B.status, 'LOST');
+  assert.equal(after.B.events.some(e => e.type === 'GESTURE_START'), false);
+  assert.equal(after.B.recentEvents.at(-1).type, 'TRACK_LOST');
+});
