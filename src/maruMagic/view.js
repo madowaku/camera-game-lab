@@ -1,6 +1,7 @@
 import { MaruGame, SIZE, RULES, DwellRetry, updateRecords } from './core.js';
 import { smoothVec2 } from '../inputFeel/index.js';
 import { MaruInput, projectTip } from './input.js';
+import { HandPointStabilizer } from '../input/handPointStabilizer.js';
 import { PhaserRuntime } from '../game-runtime/phaser/PhaserRuntime.js';
 import { CameraInputBridge } from '../game-runtime/phaser/input/CameraInputBridge.js';
 import { GameEventBus } from '../game-runtime/phaser/events/GameEventBus.js';
@@ -15,7 +16,7 @@ export class MaruView {
   constructor(root, locale = 'ja') {
     this.root = root; this.locale = locale; this.listeners = new Set(); this.game = new MaruGame(); this.audio = new MaruAudio(); this.generation = 0;
     this.phase = 'idle'; this.source = 'demo'; this.visualPoints = []; this.inputBridge = new CameraInputBridge(); this.gameEvents = new GameEventBus(); this.history = [];
-    this.retryDwell = new DwellRetry();
+    this.retryDwell = new DwellRetry(); this.handPoint = new HandPointStabilizer(); this.handFeel = 'A'; this.handDiagnostics = null;
     try { this.records = JSON.parse(localStorage.getItem(KEY)) ?? {}; } catch { this.records = {}; }
     root.innerHTML = `<section class="maru-play"><header class="maru-heading"><div><span class="maru-eyebrow">EXP–062 / LITTLE SUMMONING RITUAL</span><h1>MARU <em>MAGIC</em><i>✦</i></h1><p class="maru-subtitle"></p></div><div class="maru-tools"><button data-action="sound" type="button"></button><button data-action="pause" type="button"></button></div></header>
       <div class="maru-records"><div><span class="maru-best-label"></span><b class="maru-best">—</b><small>/ 100</small></div><div><span class="maru-fast-label"></span><b class="maru-fast">—</b><small>s</small></div><span class="maru-source"></span></div>
@@ -44,10 +45,11 @@ export class MaruView {
     window.addEventListener('blur', () => { if (this.phase === 'playing') this.pause(true); }, { signal });
     document.addEventListener('visibilitychange', () => { if (document.hidden && this.phase === 'playing') this.pause(true); }, { signal });
     const media = matchMedia('(prefers-reduced-motion: reduce)'); this.reducedMotion = media.matches; media.addEventListener('change', e => { this.reducedMotion = e.matches; }, { signal });
-    this.debug = new URLSearchParams(location.search).get('debug') === '1';
+    const options = new URLSearchParams(location.search);
+    this.debug = options.get('debug') === '1'; this.handFeel = options.get('handFeel') === 'B' ? 'B' : 'A';
   }
   setup(source) {
-    this.input.stop(); ++this.generation; this.source = source; this.phase = 'playing'; this.game.reset(); this.retryDwell.reset(); this.dwellRetries = 0; this.visualPoints = []; this.tip = null; this.menuTip = null; this.pointer = null; this.handAt = null; this.handSeen = false; this.lastResult = null; this.error = null;
+    this.input.stop(); this.handPoint.reset(); this.handDiagnostics = null; ++this.generation; this.source = source; this.phase = 'playing'; this.game.reset(); this.retryDwell.reset(); this.dwellRetries = 0; this.visualPoints = []; this.tip = null; this.menuTip = null; this.pointer = null; this.handAt = null; this.handSeen = false; this.lastResult = null; this.error = null;
     this.audio.arm(); this.video.hidden = source !== 'camera'; this.input.trackingEnabled = source === 'camera';
     if (!this.runtime) { this.scene = new MaruScene(this, { inputBridge: this.inputBridge, gameEvents: this.gameEvents, reducedMotion: this.reducedMotion }); this.runtime = new PhaserRuntime(this.$('.maru-phaser'), this.scene, { width: SIZE, height: SIZE }); }
     this.runtime.game.loop.wake(); this.render(); this.notify();
@@ -61,7 +63,10 @@ export class MaruView {
   fail(error) { this.error = error; this.input.stop(); this.phase = 'error'; this.clearStroke('tracking'); this.audio.pause(true); this.render(); }
   onHand(result, at) {
     if (!this.active || this.phase !== 'playing' || this.source !== 'camera' || this.game.paused) return;
-    const p = projectTip(result, this.video.videoWidth, this.video.videoHeight);
+    const raw = projectTip(result, this.video.videoWidth, this.video.videoHeight);
+    // A is the shipped game. B changes camera samples only, never touch practice.
+    const p = this.game.phase === 'summoned' || this.handFeel !== 'B' ? raw : this.handPoint.update(raw, at);
+    this.handDiagnostics = { variant: this.handFeel, raw, stable: p, correctionPx: raw && p ? Math.round(Math.hypot(raw.x - p.x, raw.y - p.y) * 10) / 10 : null };
     if (this.game.phase === 'summoned') {
       this.menuTip = p;
       if (this.menuUiEnabled) { this.tip = null; this.retryDwell.reset(); return; }
@@ -108,7 +113,7 @@ export class MaruView {
     // Guard the actual game-space fingertip before the fixed menu disappears.
     const p = fromMenu ? this.menuTip : null, margin = SIZE * .1;
     const retryZone = this.source !== 'camera' ? null : p ? { left: p.x - margin, right: p.x + margin, top: p.y - margin, bottom: p.y + margin } : this.retryTarget();
-    this.menuTip = null;
+    this.menuTip = null; this.handPoint.reset(); this.handDiagnostics = null;
     this.game.reset(); this.game.waitOutside(retryZone); this.retryDwell.reset(); this.clearVisual(); this.lastResult = null; this.pointer = null; this.handAt = null; this.handSeen = false;
     this.audio.silence(); this.audio.arm(); this.input.trackingEnabled = this.source === 'camera'; this.render();
   }
@@ -116,7 +121,7 @@ export class MaruView {
     if (!this.active || this.phase !== 'playing') return;
     if (paused) { if (this.game.phase === 'summoned') this.game.paused = true; else { this.game.pause(); this.clearVisual(); } this.pointer = null; }
     else { this.game.resume(); this.handAt = null; this.handSeen = false; }
-    this.retryDwell.reset(); this.tip = null; this.input.trackingEnabled = !paused && this.source === 'camera'; this.audio.pause(paused); this.render();
+    this.retryDwell.reset(); this.tip = null; this.handPoint.reset(); this.handDiagnostics = null; this.input.trackingEnabled = !paused && this.source === 'camera'; this.audio.pause(paused); this.render();
   }
   loop(at) {
     if (!this.active) return;
@@ -182,9 +187,9 @@ export class MaruView {
     }
     this.$('.maru-note').textContent = say('ひとつの円を、一周だけ。速さより、まるさ。', 'One circle. One loop. Shape comes before speed.');
     this.root.querySelectorAll('.maru-roster>div').forEach((el,i) => { el.querySelector('b').textContent = SPIRITS[i][ja ? 'ja' : 'en']; });
-    this.$('.maru-debug').hidden = !this.debug; this.$('.maru-debug pre').textContent = JSON.stringify(r ? { ...r, circle: r.circle, source: this.source, fingerRetries: this.dwellRetries } : { phase: g.phase, armed: g.armed, points: g.points.length, fingerRetries: this.dwellRetries }, null, 2);
+    this.$('.maru-debug').hidden = !this.debug; this.$('.maru-debug pre').textContent = JSON.stringify({ ...(r ? { ...r, circle: r.circle, source: this.source, fingerRetries: this.dwellRetries } : { phase: g.phase, armed: g.armed, points: g.points.length, fingerRetries: this.dwellRetries }), handFeel: this.handFeel, handInput: this.handDiagnostics }, null, 2);
     this.notify();
   }
-  releaseInputs() { ++this.generation; this.input.stop(); this.audio.stop(); this.pointer = null; this.tip = null; this.runtime?.destroy(); this.runtime = null; this.scene = null; this.sceneReady = false; }
+  releaseInputs() { ++this.generation; this.input.stop(); this.handPoint.reset(); this.handDiagnostics = null; this.audio.stop(); this.pointer = null; this.tip = null; this.runtime?.destroy(); this.runtime = null; this.scene = null; this.sceneReady = false; }
   deactivate() { this.active = false; this.abort?.abort(); this.releaseInputs(); this.phase = 'idle'; this.game.reset(); this.visualPoints = []; this.history = []; this.inputBridge.reset(); }
 }

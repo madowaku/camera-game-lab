@@ -145,3 +145,25 @@ test("challenge text uses actual outcome, practice provenance and canonical envi
     assert.equal(p.url,"https://local.example/test#/game/solo-soft-serve");
   }
 });
+
+test("SOFT SERVE keeps attachment progress across one short hand dropout, without awarding invisible time", () => {
+  const game = new SoftServeGame(); game.reset("camera");
+  advance(game, 350, center);
+  assert.equal(game.readyMs, 350);
+  advance(game, 100, null);
+  assert.equal(game.readyMs, 350); assert.equal(game.phase, "ready"); assert.equal(game.paused, true);
+  advance(game, 80, center);
+  assert.equal(game.phase, "ready"); assert.equal(game.readyMs, 430);
+  advance(game, 20, center);
+  assert.equal(game.phase, "serve");
+});
+test("SOFT SERVE expires readiness on sustained loss or hand leaving the nozzle", () => {
+  const loss = new SoftServeGame(); loss.reset("camera");
+  advance(loss, 350, center); advance(loss, 180, null);
+  assert.equal(loss.readyMs, 0);
+  advance(loss, 100, center); assert.equal(loss.phase, "ready"); assert.equal(loss.readyMs, 100);
+  const away = new SoftServeGame(); away.reset("camera");
+  advance(away, 350, center); advance(away, 100, null);
+  advance(away, 20, { hand: { x: .82, y: .72 } });
+  assert.equal(away.phase, "ready"); assert.equal(away.readyMs, 0);
+});

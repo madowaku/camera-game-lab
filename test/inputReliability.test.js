@@ -118,12 +118,13 @@ test("SOFT SERVE follows immediately, shows partial attachment and confirms once
   assert.equal(g.phase, "serve"); assert.equal(g.effect.type, "attached");
   animation.consume(g.effect); animation.advance(100); animation.consume(g.effect); assert.equal(animation.attachmentAge, 100);
 });
-test("SOFT SERVE attachment cannot accumulate on clamped off-zone input or tracking loss", () => {
+test("SOFT SERVE attachment cannot accumulate on off-zone input or invisible frames and expires on extended loss", () => {
   const g = new SoftServeGame();
   for (const hand of [{ x: .8, y: .7 }, { x: .5, y: .1 }, { x: .5, y: 1.1 }]) {
     for (let i = 0; i < 60; i++) g.step(20, { hand });
     assert.equal(g.phase, "ready"); assert.equal(g.attachmentProgress, 0);
   }
   g.step(100, { hand: { x: .5, y: .7 } }); assert.ok(g.attachmentProgress > 0);
-  g.step(20, null); assert.equal(g.attachmentProgress, 0);
+  g.step(20, null); assert.equal(g.attachmentProgress, 100 / g.rules.readyMs);
+  g.step(140, null); assert.equal(g.attachmentProgress, 0);
 });
