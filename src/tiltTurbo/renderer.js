@@ -63,14 +63,14 @@ export class TiltTurboRenderer {
     // Draw far-to-near trapezoids; course position is shared with collisions.
     for(let i=35;i>0;i--) {
       const a=i/35*2600,b=(i-1)/35*2600, pa=this.project(roadCenter(sceneTime+a,g.course.path),a,horizon),pb=this.project(roadCenter(sceneTime+b,g.course.path),b,horizon);
-      const aw=ROAD_HALF*W*.44*pa.scale,bw=ROAD_HALF*W*.44*pb.scale;
+      const aw=g.course.roadHalf*W*.44*pa.scale,bw=g.course.roadHalf*W*.44*pb.scale;
       poly(c,[[pa.x-aw-11*pa.scale,pa.y],[pa.x+aw+11*pa.scale,pa.y],[pb.x+bw+11*pb.scale,pb.y],[pb.x-bw-11*pb.scale,pb.y]],Math.floor((sceneTime/100+a/100))%2?'#f16b39':colors.cream);
       poly(c,[[pa.x-aw,pa.y],[pa.x+aw,pa.y],[pb.x+bw,pb.y],[pb.x-bw,pb.y]],i%2?g.course.road:'#385652');
       if (Math.floor((sceneTime/100+a/100))%4<2) poly(c,[[pa.x-2*pa.scale,pa.y],[pa.x+2*pa.scale,pa.y],[pb.x+2*pb.scale,pb.y],[pb.x-2*pb.scale,pb.y]],'#e9e4cf');
     }
     for(let i=8;i>0;i--) {
       const ahead=((i*410-time*.4)%3300+3300)%3300;if(ahead>2600)continue;
-      const side=i%2?1:-1,p=this.project(roadCenter(time+ahead,g.course.path)+side*1.3,ahead,horizon);
+      const side=i%2?1:-1,p=this.project(roadCenter(time+ahead,g.course.path)+side*(g.course.roadHalf+.47),ahead,horizon);
       round(c,p.x-3*p.scale,p.y-40*p.scale,6*p.scale,40*p.scale,1,'#a5825b');
       c.fillStyle=i%3?'#438c72':'#6c9a6c'; c.beginPath(); c.ellipse(p.x,p.y-50*p.scale,22*p.scale,35*p.scale,0,0,Math.PI*2); c.fill();
     }
