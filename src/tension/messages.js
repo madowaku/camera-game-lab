@@ -1,18 +1,18 @@
 export const copy = {
   ja: {
     start: 'カメラで遊ぶ', retry: 'もう一度・15秒', back: '実験一覧へ', demo: 'カメラなしで試す', camera: 'カメラで遊ぶ',
-    intro: '親指と人差し指で、Cを作ろう。', detail: '左右に1人ずつ。指の間のネットで球を返す、15秒の対戦。',
-    steps: ['Cを作ろう', '指の間にネット！', '球を返そう！'], waiting: '左右に1つずつ、Cを映してね',
-    ready: '準備OK', missing: 'Cを映してね', loading: '手を見つける準備中…', permission: 'カメラの使用を許可してね',
+    intro: '左はC、右は反対向きのCを作ろう。', detail: '開いた側を中央へ向けてね。指の間のネットで球を返す、15秒の対戦。',
+    steps: ['左はC、右は反対向き！', '指の間にネット！', '球を返そう！'], waiting: '左はC、右は反対向きのCを映してね',
+    ready: '準備OK', missing: ['左はCを映してね', '右は反対向きのCを映してね'], loading: '手を見つける準備中…', permission: 'カメラの使用を許可してね',
     error: 'カメラを起動できません。SafariまたはChromeで開き、カメラ許可と通信を確認してね。',
     permissionDenied: 'カメラが許可されていません。ブラウザの設定でカメラを許可して、もう一度試してね。',
     cameraUnavailable: '前面カメラが見つかりません。他のカメラアプリを閉じて、もう一度試してね。',
     cameraBusy: 'カメラを他のアプリが使っています。そのアプリを閉じて、もう一度試してね。',
     secureRequired: 'カメラにはHTTPS接続が必要です。このページをSafariまたはChromeで開いてね。',
-    lost: '左右にCを映すと再開します', hidden: '画面に戻ると再開します', result: '引き分け！', wins: 'の勝ち！',
-    guide: 'ネットを傾けると方向が変わる。指を開くと強く返せる。自分側の端を抜けると相手に1点。',
+    lost: '左はC、右は反対向きのCを映すと再開します', hidden: '画面に戻ると再開します', result: '引き分け！', wins: 'の勝ち！',
+    guide: '左はC、右は反対向きのC。開いた側を中央へ向けてね。ネットを傾けると方向が変わり、指を開くと強く返せる。自分側の端を抜けると相手に1点。',
     privacy: '映像と手の判定は端末内で処理。映像の保存・送信はしません。', how: '遊び方・操作',
-    rotate: 'スマホを横向きにして、二人の手を左右に映そう。', sound: '音', fullscreen: '大きく表示', exitFullscreen: '通常表示に戻す',
+    rotate: 'スマホを横向きにして、左はC、右は反対向きのCを中央向きに。', sound: '音', fullscreen: '大きく表示', exitFullscreen: '通常表示に戻す',
     demoGuide: '画面の左右をそれぞれドラッグ。下の操作でもネットを動かせます。',
     keys: 'キーボード：P1 W/Sで上下、Q/Aで傾き、E/Dで開く。P2 ↑/↓、O/L、I/K。',
     position: '高さ', angle: '傾き', opening: '指の開き', states: ['ゆるい', 'ふつう', '強い', '開きすぎ'],
@@ -24,22 +24,22 @@ export const copy = {
     rallyLive: 'ラリー', matchLength: '15秒', playerCount: '2人・1台',
     resultDemo: '練習の結果', resultCamera: 'カメラ対戦の結果',
     returnTip: '傾けて狙う · 開いて強く返す', serveTo: 'サーブ → P',
-    countdown: '開始まで', readyDetail: '左右に1つずつCを映すと、対戦が始まります。'
+    countdown: '開始まで', readyDetail: '左はC、右は反対向きのC。開いた側を中央へ向けると対戦が始まります。'
   },
   en: {
     start: 'Play with camera', retry: 'Play again · 15s', back: 'Back to experiments', demo: 'Try without camera', camera: 'Play with camera',
-    intro: 'Make a C with your thumb and index finger.', detail: 'One player on each side. Bounce the ball with your finger net in a 15-second duel.',
-    steps: ['Make a C', 'Your net appears!', 'Return the ball!'], waiting: 'Show one C on each side',
-    ready: 'Ready', missing: 'Show a C', loading: 'Preparing hand tracking…', permission: 'Allow camera access to play',
+    intro: 'Make a C on the left and a mirrored C on the right.', detail: 'Point each opening toward the center. Bounce the ball with your finger net in a 15-second duel.',
+    steps: ['Left C, mirrored C on right!', 'Your net appears!', 'Return the ball!'], waiting: 'Show C on the left and its mirror on the right',
+    ready: 'Ready', missing: ['Show C on the left', 'Show mirrored C on the right'], loading: 'Preparing hand tracking…', permission: 'Allow camera access to play',
     error: 'Camera could not start. Open in Safari or Chrome, then check camera permission and your connection.',
     permissionDenied: 'Camera access is blocked. Allow camera access in your browser settings, then retry.',
     cameraUnavailable: 'The front camera was not found. Close other camera apps and try again.',
     cameraBusy: 'Another app is using the camera. Close it, then try again.',
     secureRequired: 'Camera access requires HTTPS. Open this page in Safari or Chrome.',
-    lost: 'Show both C shapes to resume', hidden: 'Return to the screen to resume', result: 'Draw!', wins: ' wins!',
-    guide: 'Tilt to aim. Open your fingers for a stronger return. If the ball passes your edge, your opponent scores.',
+    lost: 'Show C on the left and its mirror on the right to resume', hidden: 'Return to the screen to resume', result: 'Draw!', wins: ' wins!',
+    guide: 'Make a C on the left and a mirrored C on the right, with both openings toward the center. Tilt to aim. Open your fingers for a stronger return. If the ball passes your edge, your opponent scores.',
     privacy: 'Video and hand tracking stay on your device. Video is never saved or uploaded.', how: 'How to play & controls',
-    rotate: 'Turn your phone sideways and show one hand on each side.', sound: 'Sound', fullscreen: 'Play fullscreen', exitFullscreen: 'Exit fullscreen',
+    rotate: 'Turn your phone sideways. Make a C on the left and its mirror on the right, facing center.', sound: 'Sound', fullscreen: 'Play fullscreen', exitFullscreen: 'Exit fullscreen',
     demoGuide: 'Drag each side of the field to move a net, or use the controls below.',
     keys: 'Keyboard: P1 W/S to move, Q/A to tilt, E/D to stretch. P2 ↑/↓, O/L, I/K.',
     position: 'Height', angle: 'Tilt', opening: 'Finger spacing', states: ['Slack', 'Normal', 'Tension', 'Over tension'],
@@ -50,6 +50,6 @@ export const copy = {
     rallyLive: 'Rally', matchLength: '15 seconds', playerCount: '2 players · 1 camera',
     resultDemo: 'Practice result', resultCamera: 'Camera duel result',
     returnTip: 'Tilt to aim · Stretch for power', serveTo: 'Serve → P',
-    countdown: 'Starting in', readyDetail: 'Show one C on each side to start the duel.'
+    countdown: 'Starting in', readyDetail: 'Show C on the left and its mirror on the right, with both openings toward center, to start.'
   }
 };

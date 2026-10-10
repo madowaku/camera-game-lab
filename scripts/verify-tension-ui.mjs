@@ -19,8 +19,10 @@ const root=document.querySelector('#root');
 const duel=new TensionDuel(root,'ja',{onExit:()=>duel.deactivate()});
 const $=s=>root.querySelector(s);
 let checks=0;const check=(name,fn)=>{fn();checks++;console.log('PASS',name);};
+let now=0;
 duel.activate();
-check('intro is Japanese, primary action and tryout are visible',()=>{assert.match($('.td-card h2').textContent,/Cを/);assert.equal($('.td-start').textContent,'カメラで遊ぶ');assert.ok(!$('.td-demo').hidden);});
+check('intro teaches mirrored hand shapes, primary action and tryout are visible',()=>{assert.match($('.td-card h2').textContent,/左はC、右は反対向きのC/);assert.match($('.td-card p').textContent,/開いた側を中央/);assert.equal($('.td-start').textContent,'カメラで遊ぶ');assert.ok(!$('.td-demo').hidden);});
+check('readiness prompt and player labels distinguish left C from right mirrored C',()=>{duel.phase='ready';now+=20;duel.tick(now);assert.match($('.td-ready-copy').textContent,/左はC、右は反対向きのC/);assert.equal($('.td-p1 small').textContent,'左はCを映してね');assert.equal($('.td-p2 small').textContent,'右は反対向きのCを映してね');duel.phase='intro';duel.render();});
 check('fullscreen is a visible primary action on browsers that support it',()=>assert.ok($('.td-actions').contains($('.td-full'))));
 let lockedOrientation='', unlockedOrientation=false;
 const shell=$('.td-shell');
@@ -39,7 +41,7 @@ duel.phase='playing';await duel.keepAwake();await duel.releaseWakeLock();duel.ph
 check('screen wake lock is acquired for active play and released afterward',()=>{assert.equal(wakeRequests,1);assert.equal(wakeReleases,1);});
 $('.td-demo').click();
 check('camera-free action enters ready and reveals accessible range controls',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.mode,'demo');assert.equal(root.querySelectorAll('input[aria-label]').length,6);assert.ok(!$('.td-controls').hidden);});
-let now=0;duel.tick(now);
+duel.tick(now);
 $('.td-skip').click();now+=20;duel.tick(now);
 check('skip enters playing after nets are ready',()=>assert.equal(duel.phase,'playing'));
 check('keyboard controls work even with a button focused',()=>{const before=duel.fake[0].y;$('.td-demo').focus();window.dispatchEvent(new window.KeyboardEvent('keydown',{key:'w',bubbles:true}));assert.ok(duel.fake[0].y<before);});
@@ -64,7 +66,7 @@ duel.fake.forEach(f=>f.y=.04);duel.tick(now+=2000);
 for(let frame=0;frame<120;frame++) duel.tick(now+=1000/60);
 check('a missed ball updates the visible opponent score',()=>{assert.equal(duel.match.score[1],1);assert.equal($('.td-score strong').textContent,'0 : 1');});
 for(let frame=0;frame<1000;frame++) duel.tick(now+=1000/60);
-check('EN changes all experiment actions and range names',()=>{duel.setLocale('en');assert.equal($('.td-start').textContent,'Play again · 15s');assert.equal($('.td-demo').textContent,'Play with camera');assert.equal(root.querySelector('input').getAttribute('aria-label'),'P1 Height');});
+check('EN changes actions and preserves mirrored hand instructions',()=>{duel.phase='intro';duel.setLocale('en');assert.equal($('.td-start').textContent,'Play with camera');assert.equal($('.td-demo').textContent,'Try without camera');assert.match($('.td-card h2').textContent,/mirrored C on the right/);assert.equal(root.querySelector('input').getAttribute('aria-label'),'P1 Height');});
 // Camera failure with the actual UI state handlers, no device/model claims.
 let starts=0;duel.input.start=async()=>{starts++;throw Object.assign(new Error('camera denied'),{name:'NotAllowedError'});};duel.input.stop=()=>{};
 await duel.start(); // mode demo/result is a retry, switch to camera explicitly next.
@@ -76,11 +78,11 @@ check('camera failure recovers directly to camera-free ready',()=>{assert.equal(
 duel.mode='camera';duel.input.running=true;duel.ready();
 const n=x=>rules.geometry({x,y:.23},{x,y:.34});
 const realNow=performance.now();duel.nets=rules.updateNets([null,null],[n(.2)],realNow);duel.tick(realNow);
-check('one hand waits and countdown cannot advance',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.countdown,3);assert.match($('.td-hint').textContent,/Show one C/);});
+check('one hand waits and countdown cannot advance with mirrored player guidance',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.countdown,3);assert.match($('.td-hint').textContent,/Show C on the left and its mirror on the right/);});
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+10);duel.countdown=.01;duel.tick(realNow+30);
 check('two injected hands begin the camera round',()=>assert.equal(duel.phase,'playing'));
 const remaining=duel.match.remaining;duel.tick(realNow+600);
-check('tracking loss pauses the camera round and fades nets',()=>{assert.equal(duel.match.remaining,remaining);assert.match($('.td-hint').textContent,/both C shapes/);assert.ok(duel.nets.every(n=>!n.active));});
+check('tracking loss pauses the camera round and fades nets',()=>{assert.equal(duel.match.remaining,remaining);assert.match($('.td-hint').textContent,/Show C on the left and its mirror on the right/);assert.ok(duel.nets.every(n=>!n.active));});
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+650);duel.tick(realNow+650);
 check('first reacquisition frame never charges paused time',()=>assert.equal(duel.match.remaining,remaining));
 duel.nets=rules.updateNets(duel.nets,[n(.2),n(.8)],realNow+670);duel.tick(realNow+670);

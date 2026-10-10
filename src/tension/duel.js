@@ -234,7 +234,7 @@ export class TensionDuel {
     this.$('.td-point').hidden = this.phase !== 'playing' || now - this.pointAt > 650;
     this.$('.td-point').textContent = `P${(this.pointPlayer ?? 0) + 1} +1`;
     this.$('.td-point').dataset.player = String(this.pointPlayer ?? 0);
-    for (let p = 0; p < 2; p++) this.$(`.td-p${p+1} small`).textContent = usableNet(this.nets[p], this.height) ? this.t.ready : this.t.missing;
+    for (let p = 0; p < 2; p++) this.$(`.td-p${p+1} small`).textContent = usableNet(this.nets[p], this.height) ? this.t.ready : this.t.missing[p];
     this.draw(now); this.raf = requestAnimationFrame(this.tick);
   };
   setHint(text) { const el = this.$('.td-hint'); if (el.textContent !== text) el.textContent = text; el.hidden = !text; }

@@ -1,11 +1,12 @@
 # TENSION DUEL Human Playtest v0.1
 
 ## Setup
-Two people, one front camera, landscape phone, one hand per person. Open the HTTPS Tension Duel link in Safari on iPhone or Chrome on Android, allow camera access, and tap **カメラで遊ぶ / Play with camera**. If offered, use **大きく表示 / Play fullscreen**; supported browsers also lock landscape. Give only the instruction shown on screen. Play five 15-second rounds. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
+Two people, one front camera, landscape phone, one hand per person. Open the HTTPS Tension Duel link in Safari on iPhone or Chrome on Android, allow camera access, and tap **カメラで遊ぶ / Play with camera**. If offered, use **大きく表示 / Play fullscreen**; supported browsers also lock landscape. Give only the instruction shown on screen: left player makes a C, right player makes its mirror, with both openings toward the center. Play five 15-second rounds. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
 
 ## Camera smoke test (not yet performed)
 - Start grants camera access and opens the front camera; two hands produce exactly two nets.
 - Endpoints stay attached to thumb and index tips on a mirrored preview.
+- The left player's C and right player's mirrored C are easy to understand from the on-screen cue.
 - Moving and tilting a hand moves the net immediately without heavy lag.
 - Distance changes slack/normal/tension/over-tension appearance and return speed.
 - A short tracking gap under 250ms does not flicker; a longer gap fades the affected net and pauses the match.
@@ -19,7 +20,7 @@ Two people, one front camera, landscape phone, one hand per person. Open the HTT
 - Landscape view keeps the playfield and pause/exit controls reachable without sideways page scrolling.
 
 ## Observation sheet
-| Round | Understand within 30s | Make C naturally | First hit | Tilt discovered | Tension noticed | Best rally | Visible positive reaction | Voluntary retry | Tracking problems |
+| Round | Understand within 30s | Make mirrored Cs naturally | First hit | Tilt discovered | Tension noticed | Best rally | Visible positive reaction | Voluntary retry | Tracking problems |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | | | | | | | | | |
 | 2 | | | | | | | | | |
