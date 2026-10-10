@@ -39,10 +39,11 @@ test('002 is short and 008/010 have no exposure countdown', () => {
 test('008 solves with a small shift that keeps the runner framed', () => {
   const g = new CameraIsItGame(); g.loadStage(7); g.phase = 'playing';
   assert.equal(g.platforms[1].active, false);
-  g.setCamera({ x: 585, y: 870 }, true); g.updateExistence(16);
+  g.setCamera({ x: 400, y: 1000 }, true); g.updateExistence(16);
   assert.equal(g.platforms[1].active, true);
-  assert.ok(Math.abs(g.runner.x - g.camera.x) < VIEW.width * .6);
-  assert.ok((g.camera.x - g.stage.camera.x) / 80 < 4, 'framing change stays small');
+  assert.ok(Math.abs(g.runner.x - g.camera.x) < VIEW.width / 2);
+  assert.ok(Math.abs(g.runner.y - g.camera.y) < VIEW.height / 2);
+  assert.ok((g.camera.y - g.stage.camera.y) / 32 < 5, 'a small seated pitch reveals the bridge');
 });
 test('010 bridge and red exclusion are simultaneously satisfiable', () => {
   const g = new CameraIsItGame(); g.loadStage(9); g.phase = 'playing';
@@ -61,7 +62,7 @@ test('all five new stages have a camera-only solution', () => {
       const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
       let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
       if (index === 5 && r.support <= 1) x = 555;
-      if (index === 7) x = Math.max(585, r.x + 160);
+      if (index === 7) y = 1000;
       if (index === 6 && r.support === 1 && r.x > 615) x = 1300;
       if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {
         const group = next.rule === 'LINKED' ? next.linkedGroup : g.platforms[r.support].linkedGroup;
@@ -109,7 +110,7 @@ test('001–010 play continuously and produce ten receipts', () => {
     const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
     let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
     if (g.index === 5 && r.support <= 1) x = 555;
-    if (g.index === 7) x = Math.max(585, r.x + 160);
+    if (g.index === 7) y = 1000;
     if (g.index === 6 && r.support === 1 && r.x > 615) x = 1300;
     if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {
       const group = next.rule === 'LINKED' ? next.linkedGroup : g.platforms[r.support].linkedGroup;
