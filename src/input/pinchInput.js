@@ -15,11 +15,19 @@ export class PinchInput extends BodyInput {
   processResult(result, timestamp) {
     const aspect = (this.video.videoWidth || 1) / (this.video.videoHeight || 1);
     const frame = this.pinch.update(result, timestamp, aspect);
-    if (this.comparison) {
-      this.lastComparison = this.comparison.update(result, timestamp, aspect);
-      this.onComparison(this.lastComparison);
-    }
+    // A gameplay callback has priority even if the optional diagnostics fail.
     this.onFrame(frame);
+    if (this.comparison) {
+      try {
+        // Use the same aspect ratio as the legacy pinch detector.
+        this.lastComparison = this.comparison.update(result, timestamp, aspect);
+        this.onComparison(this.lastComparison);
+      } catch (error) {
+        console.warn("Gesture A/B diagnostics disabled after an error:", error);
+        this.comparison = null;
+        this.lastComparison = null;
+      }
+    }
   }
   stop() {
     super.stop();
