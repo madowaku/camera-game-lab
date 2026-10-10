@@ -84,3 +84,22 @@ test('a successful clean pass scores exactly once and a deliberate contact can b
   assert.equal(hit.overtakes,0);
   assert.ok(hit.hits>0);
 });
+
+test('starter courses give more steering room while Neon Express retains narrow challenge',()=>{
+  const [toy,coast,neon]=COURSES;
+  assert.ok(toy.roadHalf>=1.1);
+  assert.ok(coast.roadHalf>1.0);
+  assert.ok(toy.roadHalf>coast.roadHalf && coast.roadHalf>neon.roadHalf);
+  assert.ok(neon.roadHalf<.9);
+  // Road renderer uses the very same half-width as the collision edge.
+  const sample=(courseId,at)=> {
+    const g=new TiltTurboGame({courseId});
+    g.start();g.elapsed=at;
+    g.step(16,{tracked:true,steering:0,roll:0});
+    return g;
+  };
+  assert.equal(sample('toy-town',6099).hits,0,
+    'Toy Town lets neutral steering stay on the wider road at a bend');
+  assert.ok(sample('neon',4399).hits>=1,
+    'Neon retains its optional tight-turn challenge');
+});
