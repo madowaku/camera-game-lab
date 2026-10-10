@@ -11,7 +11,7 @@ async(page)=>{
   }
   check(await page.evaluate(()=>!document.querySelector('.tt-stage video').srcObject&&!performance.getEntriesByType('resource').some(e=>/\.task|\.wasm/.test(e.name))),'entry starts no sensors or models');
   await page.locator('.launch-howto').click();check((await page.locator('.sheet-content').textContent()).includes('8-bit Stage1'),'BGM credit reachable');await page.keyboard.press('Escape');
-  await page.locator('.platform-locale').click();check((await page.locator('.tt-tagline').textContent()).includes('Tilt your head'),'English copy');await page.locator('.platform-locale').click();
+  await page.locator('.platform-locale').click();check((await page.locator('.tt-tagline').textContent()).includes('Turn an invisible wheel'),'English copy');await page.locator('.platform-locale').click();
   await page.evaluate(async()=>{const registry=await(await fetch('/src/platform/experiments.js')).text(),path=registry.match(/import\("([^"]*tiltTurbo\/view\.js[^"]*)"\)/)[1];const {TiltTurboView}=await import(path);const render=TiltTurboView.prototype.render;TiltTurboView.prototype.render=function(...args){window.__tt=this;return render.apply(this,args);};});
   await page.locator('[data-creator-mode="creator"]').click();await page.locator('[data-face-mode="HIDE"]').click();
   await page.clock.install();await page.clock.pauseAt(new Date(await page.evaluate(()=>Date.now()+1000)));await page.locator('.launch-demo').click();await page.clock.runFor(350);
