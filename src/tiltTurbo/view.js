@@ -35,7 +35,7 @@ export class TiltTurboView {
   configure(options={}){this.options={creator:!!options.creator,faceMode:options.faceMode??'ORIGINAL',drive:options.drive==='head'?'head':'hands',courseId:options.courseId??'toy-town',carId:options.carId??'roadster'};}
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   notify(){this.listeners.forEach(fn=>fn(this.snapshot()));}
-  snapshot(){return {phase:this.phase==='ending'?'playing':this.phase==='calibration'?'countdown':this.phase,source:this.source,paused:this.game.paused,elapsed:this.game.elapsed,result:this.phase==='result'?{...this.game.result,source:this.source,creator:this.creatorResult}:null};}
+  snapshot(){return {phase:this.phase==='ending'?'playing':this.phase==='calibration'?'countdown':this.phase,source:this.source,paused:this.game.paused,elapsed:this.game.elapsed,result:this.phase==='result'?{...this.game.result,source:this.source,drive:this.drive,creator:this.creatorResult}:null};}
   setLocale(locale){this.locale=locale;this.render();}
   activate(){this.active=true;this.phase='idle';this.render();}
   setup(source){
