@@ -1,0 +1,80 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { register } from 'node:module';
+import { JSDOM } from 'jsdom';
+import { experiments } from '../src/platform/experiments.js';
+import { resolveRoute } from '../src/platform/navigation.js';
+import { createLauncher } from '../src/platform/launcher.js';
+import { guideFor, resultModel } from '../src/platform/gamePresentation.js';
+import { resultPayload } from '../src/platform/share.js';
+import { trackForGame } from '../src/platform/music.js';
+import { motionProfiles } from '../src/platform/motionProfiles.js';
+
+const game = experiments.find(entry => entry.id === 'duo-tension-duel');
+test('Tension Duel is discoverable as an untimed DUO with legacy links and one audio owner', () => {
+  assert.equal(game.category, 'DUO'); assert.equal(game.players, 2);
+  assert.equal(game.untimed, true); assert.equal(game.orientation, 'landscape');
+  assert.equal(resolveRoute('#tension-duel').experiment, game);
+  assert.equal(resolveRoute(game.route).experiment, game);
+  assert.equal(trackForGame(game, 'demo'), null);
+  assert.equal(motionProfiles[game.id].native, true);
+  assert.match(guideFor(game, 'ja').flat().join(' '), /反対向きのC/);
+  const result = { outcome: 'won', scores: [4, 5], winner: 2, hits: 0, bestRally: 0, durationMs: 60000, source: 'demo' };
+  const model = resultModel(game, result, 'en');
+  assert.equal(model.hero, '4 : 5'); assert.equal(model.title, 'P2 WINS!');
+  assert.equal(model.unit, 'FIRST TO FIVE'); assert.equal(model.metrics[0].value, '0');
+  assert.equal(model.metrics[2].value, '60.0s'); assert.match(model.source, /PRACTICE/);
+  const share = resultPayload(game, result, 'ja', 'https://example.test');
+  assert.match(share.text, /練習.*4 : 5.*P2の勝ち/); assert.doesNotMatch(share.text, /pts/);
+});
+
+test('real Tension controller follows launcher prepare, play, result, retry, denial recovery and exit', async t => {
+  const dom = new JSDOM('<section id="cache"></section>', { url: 'http://localhost/' });
+  const keys = ['window', 'document', 'navigator', 'HTMLMediaElement', 'requestAnimationFrame', 'cancelAnimationFrame'];
+  const previous = keys.map(key => Object.getOwnPropertyDescriptor(globalThis, key));
+  for (const key of keys.slice(0, 4)) Object.defineProperty(globalThis, key, { value: dom.window[key], configurable: true });
+  let raf = 0, cancels = 0;
+  Object.defineProperty(globalThis, 'requestAnimationFrame', { value: () => ++raf, configurable: true });
+  Object.defineProperty(globalThis, 'cancelAnimationFrame', { value: () => cancels++, configurable: true });
+  Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+  dom.window.HTMLCanvasElement.prototype.getContext = () => new Proxy({}, { get: () => () => {} });
+  dom.window.Element.prototype.getBoundingClientRect = () => ({ width: 800, height: 450, left: 0, top: 0 });
+  register('../scripts/tension-css-loader.mjs', import.meta.url);
+  t.after(() => {
+    dom.window.close();
+    keys.forEach((key, i) => previous[i] ? Object.defineProperty(globalThis, key, previous[i]) : delete globalThis[key]);
+  });
+  const states = [], cache = document.querySelector('#cache');
+  const launcher = createLauncher(cache, { onState: state => states.push(state) });
+  const entry = await launcher.prepare(game, 'ja'), view = entry.instance;
+  assert.equal(view.active, false); assert.equal(view.input.running, false);
+  assert.equal(view.audio.context, undefined); assert.equal(entry.host.hidden, true);
+  launcher.begin('demo');
+  assert.equal(launcher.snapshot().phase, 'countdown'); assert.equal(view.mode, 'demo');
+  let now = 0; view.tick(now); view.$('.tnd-skip').click(); view.tick(now += 20);
+  assert.equal(launcher.snapshot().phase, 'playing');
+  view.$('.tnd-pause').click(); assert.equal(launcher.snapshot().paused, true);
+  view.$('.tnd-start').click(); assert.equal(launcher.snapshot().paused, false);
+  for (const input of view.root.querySelectorAll('input[data-kind="position"]')) {
+    input.value = '5'; input.dispatchEvent(new window.Event('input'));
+  }
+  for (let frame = 0; frame < 6000 && view.phase === 'playing'; frame++) view.tick(now += 1000 / 60);
+  const completed = launcher.snapshot();
+  assert.equal(completed.phase, 'result'); assert.equal(Math.max(...completed.result.scores), 5);
+  assert.equal(completed.source, 'demo'); assert.equal(states.filter(state => state.phase === 'result').length, 1);
+  const saved = structuredClone(completed.result);
+  launcher.releaseResult();
+  assert.equal(view.active, false); assert.equal(view.input.running, false); assert.ok(cancels > 0);
+  assert.deepEqual(launcher.snapshot().result, saved);
+  launcher.retry('demo'); assert.equal(launcher.snapshot().phase, 'countdown');
+  assert.deepEqual(view.match.score, [0, 0]); assert.equal(view.active, true);
+  view.input.start = async () => { throw Object.assign(new Error('denied'), { name: 'NotAllowedError' }); };
+  launcher.retry('camera'); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(view.phase, 'intro'); assert.equal(view.status, 'permissionDenied');
+  view.$('.tnd-demo').click(); assert.equal(launcher.snapshot().source, 'demo');
+  launcher.stop(); assert.equal(launcher.snapshot(), null); assert.equal(view.active, false);
+  assert.equal(entry.host.hidden, true); assert.equal(view.input.running, false);
+  const reused = await launcher.prepare(game, 'en');
+  assert.equal(reused.instance, view); assert.equal(cache.children.length, 1);
+  assert.equal(view.active, false); assert.equal(view.locale, 'en'); launcher.stop();
+});

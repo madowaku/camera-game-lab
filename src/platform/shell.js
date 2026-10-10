@@ -62,7 +62,7 @@ export function mountPlatform(app) {
   function updateMusicChrome() {
     const available = route?.view === "game" && !!trackForGame(route.experiment, session?.source ?? "camera");
     const button = $(".game-music"); button.disabled = !available;
-    button.hidden = ["stems", "instrument"].includes(route?.experiment?.audioStrategy);
+    button.hidden = ["stems", "instrument", "self"].includes(route?.experiment?.audioStrategy);
     button.textContent = available ? `BGM ${music.enabled ? "ON" : "OFF"}` : route?.experiment?.id === "solo-hand-beat" ? "BEAT" : "BGM —";
     button.setAttribute("aria-pressed", String(available && music.enabled));
     button.setAttribute("aria-label", available ? (locale === "ja" ? `BGMを${music.enabled ? "消す" : "つける"}` : `Turn BGM ${music.enabled ? "off" : "on"}`) : (locale === "ja" ? "このモードのBGMは停止しています" : "BGM is silent in this mode"));

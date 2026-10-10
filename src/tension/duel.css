@@ -1,0 +1,106 @@
+/* Player colors and shared lab controls remain the visual anchors. */
+.lab:has(> .platform-game-module .tnd-shell) { width: min(100%, 1200px); }
+.tnd-shell { --tnd-p1: #7be4ec; --tnd-p2: #ffbe86; --tnd-ink: #fff9ed; --tnd-surface: #101c25; }
+.tnd-stage { position: relative; width: min(100%, calc(clamp(280px, 48svh, 500px) * 16 / 9)); margin: auto; aspect-ratio: 16 / 9; background: radial-gradient(ellipse at 15% 50%, #15333c, transparent 55%), radial-gradient(ellipse at 85% 50%, #382f29, transparent 55%), var(--tnd-surface); border: 1px solid #455760; border-radius: 24px; overflow: hidden; isolation: isolate; box-shadow: 0 16px 48px #0005; }
+.tnd-stage[data-mode="demo"] { touch-action: none; }
+.tnd-artwork, .tnd-court, .tnd-video, .tnd-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tnd-court { object-fit: cover; opacity: .9; }
+.tnd-stage[data-mode="camera"] .tnd-court { opacity: .45; }
+.tnd-artwork { object-fit: cover; }
+.tnd-video { object-fit: cover; transform: scaleX(-1); opacity: .72; }
+.tnd-canvas { pointer-events: none; }
+.tnd-hud { position: absolute; inset: 16px 22px auto; display: flex; align-items: start; justify-content: space-between; pointer-events: none; gap: 12px; }
+.tnd-stage:is([data-phase="intro"], [data-phase="loading"], [data-phase="result"]) .tnd-hud { visibility: hidden; }
+.tnd-player { display: flex; flex-direction: column; font-size: 20px; font-weight: 850; text-shadow: 0 1px 4px #000; }
+.tnd-p1 { color: var(--tnd-p1); }
+.tnd-p2 { color: var(--tnd-p2); text-align: right; }
+.tnd-player small { color: var(--tnd-ink); font-size: 12px; font-weight: 500; }
+.tnd-player[data-crossed="true"] small { color: #ffaaaa; font-weight: 750; }
+.tnd-score { display: flex; flex-direction: column; align-items: center; background: #101c25e8; border: 1px solid #52616a; border-radius: 14px; padding: 6px 22px; color: var(--tnd-ink); font-variant-numeric: tabular-nums; }
+.tnd-score strong { font-size: 28px; line-height: 1.1; letter-spacing: .08em; }
+.tnd-target { font-size: 13px; }
+.tnd-rally { margin-top: 3px; color: #bccbd3; font-size: 11px; }
+.tnd-card { position: absolute; bottom: 6%; left: 50%; transform: translateX(-50%); width: min(88%, 620px); text-align: center; color: var(--tnd-ink); padding: 16px 20px; border-radius: 18px; background: #101c25ed; border: 1px solid #fff2; }
+.tnd-card-label { display: inline-block; font-size: 11px; font-weight: 750; letter-spacing: .08em; color: var(--tnd-p1); margin-bottom: 6px; }
+.tnd-card h2 { margin: 0 0 8px; font-size: clamp(18px, 2.2vw, 26px); line-height: 1.4; }
+.tnd-card p { margin: 0; font-size: clamp(13px, 1.4vw, 16px); line-height: 1.7; }
+.tnd-stage:is([data-phase="result"], [data-phase="paused"]) .tnd-card { top: 50%; bottom: auto; transform: translate(-50%, -50%); width: min(85%, 480px); }
+.tnd-stage[data-phase="result"] .tnd-artwork { opacity: .3; }
+.tnd-stage[data-phase="result"] .tnd-card p { font-size: 48px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.tnd-summary { font-size: 14px; margin-top: 8px; }
+.tnd-summary:empty { display: none; }
+.tnd-ready-panel { position: absolute; inset: 36% 10% auto; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--tnd-ink); pointer-events: none; text-align: center; text-shadow: 0 2px 12px #000; }
+.tnd-countdown { font-size: clamp(36px, 6vw, 76px); line-height: 1; font-variant-numeric: tabular-nums; }
+.tnd-ready-copy { font-size: clamp(13px, 1.8vw, 20px); font-weight: 700; }
+.tnd-hint { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); max-width: 92%; width: max-content; text-align: center; padding: 8px 16px; background: #101c25ed; border-radius: 10px; font-size: 15px; color: var(--tnd-ink); pointer-events: none; }
+.tnd-skip { position: absolute; bottom: 12px; right: 14px; border: 1px solid #64747e; border-radius: 10px; color: var(--tnd-ink); background: var(--tnd-surface); padding: 10px 14px; min-height: 44px; font-size: 13px; }
+.tnd-stage[data-phase="ready"] .tnd-hint { bottom: 68px; }
+.tnd-point { position: absolute; top: 43%; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 14px; background: #101c25ea; color: var(--tnd-p1); font-size: clamp(24px, 4vw, 42px); font-weight: 900; pointer-events: none; }
+.tnd-point[data-player="1"] { color: var(--tnd-p2); }
+.tnd-session { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 12px 0; color: #9eadb8; font-size: 12px; }
+.tnd-mode { border: 1px solid #5d7b80; color: var(--tnd-p1); border-radius: 999px; padding: 4px 10px; font-weight: 700; }
+.tnd-mode[data-mode="demo"] { border-color: #836d57; color: var(--tnd-p2); }
+.tnd-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 8px; justify-content: center; }
+.tnd-actions .button { min-height: 48px; }
+.tnd-start { min-width: 220px; }
+.tnd-start:disabled { cursor: wait; }
+.tnd-status { margin: 8px 0; color: var(--tnd-ink); text-align: center; line-height: 1.7; }
+.tnd-status:empty { display: none; }
+.tnd-rotate { display: none; color: #c0ccd4; font-size: 13px; text-align: center; }
+.tnd-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px auto; max-width: 850px; }
+.tnd-controls fieldset { min-width: 0; border: 1px solid #586873; border-radius: 14px; padding: 12px 16px; background: #101c2580; }
+.tnd-controls legend { color: var(--tnd-p1); font-weight: 800; }
+.tnd-controls fieldset + fieldset legend { color: var(--tnd-p2); }
+.tnd-controls label { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; font-size: 14px; min-height: 44px; }
+.tnd-controls input { width: 100%; min-width: 0; min-height: 32px; accent-color: var(--tnd-p1); cursor: pointer; }
+.tnd-controls fieldset + fieldset input { accent-color: var(--tnd-p2); }
+.tnd-how { line-height: 1.8; font-size: 16px; max-width: 850px; margin-inline: auto; }
+.tnd-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.tnd-credits { color: #b2c3cc; font-size: 12px; overflow-wrap: anywhere; }
+.tnd-credits a { color: var(--tnd-p1); text-decoration: underline; text-underline-offset: 3px; }
+.tnd-shell button:not(:disabled), .tnd-shell summary { cursor: pointer; }
+.tnd-shell button:not(:disabled):hover { filter: brightness(1.15); }
+.tnd-shell button:not(:disabled):active { transform: translateY(1px); }
+.tnd-shell :is(button, input, summary):focus-visible { outline: 3px solid var(--tnd-ink); outline-offset: 4px; }
+.tnd-shell:fullscreen { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); overflow: auto; background: #0b0d10; }
+.tnd-shell:fullscreen .tnd-stage { width: min(100%, calc((100dvh - 96px) * 16 / 9)); margin: auto; }
+.tnd-shell:fullscreen :is(.tnd-how, .tnd-rotate, .tnd-status, .tnd-tip) { display: none; }
+@media (max-width: 600px) {
+  .tnd-stage { width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; }
+  .tnd-artwork { object-fit: contain; object-position: center 12%; background: var(--tnd-surface); }
+  .tnd-hud { inset: 10px 12px auto; }
+  .tnd-player { font-size: 16px; }
+  .tnd-player small { font-size: 11px; }
+  .tnd-score { padding: 5px 12px; }
+  .tnd-score strong { font-size: 21px; }
+  .tnd-card { width: 94%; padding: 10px 12px; bottom: 4%; }
+  .tnd-card h2 { margin: 0 0 5px; font-size: 17px; }
+  .tnd-card p { font-size: 12px; line-height: 1.6; }
+  .tnd-summary { font-size: 12px; }
+  .tnd-stage[data-phase="result"] .tnd-card p { font-size: 36px; }
+  .tnd-hint { font-size: 12px; padding: 6px 8px; bottom: 8px; }
+  .tnd-session { gap: 10px; font-size: 11px; }
+  .tnd-tip { display: none; }
+  .tnd-controls { gap: 8px; }
+  .tnd-controls fieldset { padding: 8px; }
+  .tnd-controls label { grid-template-columns: 1fr; gap: 0; }
+  .tnd-rotate { display: block; }
+  .tnd-start { min-width: 0; flex: 1 0 80%; }
+}
+@media (orientation: landscape) and (max-height: 550px) {
+  /* Keep the playfield large on short landscape phones without pushing the
+     match controls off-screen. */
+  .tnd-stage { width: min(100%, calc((100dvh - 112px) * 16 / 9)); aspect-ratio: 16 / 9; }
+  .tnd-card { padding: 10px 16px; }
+  .tnd-card h2 { font-size: 18px; margin-bottom: 4px; }
+  .tnd-card p { font-size: 12px; }
+  .tnd-hud { inset: 8px 12px auto; }
+  .tnd-player { font-size: 16px; }
+  .tnd-score strong { font-size: 21px; }
+  .tnd-countdown { font-size: 32px; }
+  .tnd-session { margin: 6px 0; }
+  .tnd-actions { margin-top: 6px; }
+  .tnd-status { margin: 0; }
+.tnd-shell:fullscreen .tnd-stage { width: min(100%, calc((100dvh - 96px) * 16 / 9)); }
+}
+@media (prefers-reduced-motion: reduce) { .tnd-shell * { transition: none !important; } }
