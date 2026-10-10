@@ -13,6 +13,11 @@ export default defineConfig({
           urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/assets/") && url.pathname.endsWith(".js"),
           handler: "CacheFirst",
           options: { cacheName: "camera-lab-game-modules-v1", expiration: { maxEntries: 64, maxAgeSeconds: 2592000 } },
+        }, {
+          // Keep discovery quiet; cache the licensed audio after a player starts.
+          urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/audio/tension-duel/") && url.pathname.endsWith(".mp3"),
+          handler: "CacheFirst",
+          options: { cacheName: "camera-lab-tension-audio-v1", expiration: { maxEntries: 5, maxAgeSeconds: 2592000 } },
         }],
       },
       manifest: {

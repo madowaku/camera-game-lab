@@ -15,6 +15,8 @@ without a time limit**.
 - Camera/model/audio stay dormant in discovery. Result and navigation release
   input, render loop, audio context, fullscreen and wake lock; retry reopens a
   fresh match. A denied camera can recover into practice.
+- The PWA precaches the two artwork images and caches the five licensed MP3s
+  after first play, preserving quiet discovery and repeat-play audio.
 - Prefixed game styles with `tnd-` to avoid the existing TOY DRUM's `td-` styles.
   Native net/wall effects remain owned by the game, and its soundtrack has one
   audio owner rather than a competing shared music bed.
@@ -28,6 +30,8 @@ without a time limit**.
   pausing, rotating and resuming retain the match. Both JA and EN are checked.
   No console errors or warnings in these flows. Hardware hand tracking and
   audible phone feel remain covered by the pending physical-device playtest.
+- TOY DRUM also starts and responds normally after TENSION DUEL has loaded in
+  the same browser document, confirming that the two style namespaces coexist.
 
 Updated 2026-10-03. Continues `feat/tension-duel` at `d870e2d` in the isolated
 local branch `codex/tension-duel-polish`. The main checkout's in-progress work is
