@@ -209,3 +209,26 @@ test('reset and dispose clear states and preclude phantom input', () => {
   assert.deepEqual(g.update([hand()], 100).tracks, []);
   assert.deepEqual(g.advance(110).events, []);
 });
+
+test('duplicate update after a START never replays the original edge', () => {
+  const g = engine();
+  g.update([hand()], 0); g.update([hand()], 80);
+  g.update([hand(.4, .5, 'Closed_Fist')], 90);
+  assert.deepEqual(eventTypes(g.update([hand(.4, .5, 'Closed_Fist')], 150)), ['GESTURE_START']);
+  assert.deepEqual(eventTypes(g.update([hand(.4, .5, 'Closed_Fist')], 150)), []);
+  assert.deepEqual(eventTypes(g.advance(149)), []);
+});
+
+test('time-based gesture thresholds work at 20/25/30/60/120 Hz', () => {
+  for (const hz of [20, 25, 30, 60, 120]) {
+    const g = engine();
+    const step = 1000 / hz;
+    const types = [];
+    for (let i = 0; i <= Math.ceil(400 / step); i++) {
+      const atMs = Math.round(i * step * 10000) / 10000;
+      const pose = atMs >= 180 ? 'Closed_Fist' : 'Open_Palm';
+      types.push(...eventTypes(g.update([hand(.4, .5, pose)], atMs)));
+    }
+    assert.deepEqual(types, ['GESTURE_START'], 'frame rate ' + hz);
+  }
+});
