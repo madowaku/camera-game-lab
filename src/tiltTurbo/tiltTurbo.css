@@ -7,3 +7,29 @@
 @media(max-height:600px){.tt-stage{max-width:230px}.tt-hint{max-width:360px}}@media(prefers-reduced-motion:reduce){.tt-primary:active{transform:none}}
 @media(max-width:640px){.tt-entry-copy .tt-kicker,.tt-entry-copy .tt-tagline,.tt-entry-copy .tt-gesture,.tt-entry-copy .tt-description{display:none}.tt-entry-copy .tt-simple{margin:0 0 9px}.tt-entry-copy .creator-mode-tabs{margin:8px auto 12px}.tt-entry-grid{gap:12px}.tt-entry-copy .launch-status{font-size:11px}}
 .tt-feel-debug{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;padding:10px;background:#183c3c;color:#fff7df;font:11px/1.5 Consolas,monospace;border-radius:8px}.tt-feel-debug[hidden]{display:none}
+
+/* AIR WHEEL garage, opt-in head fallback and small-screen first-play access. */
+.tt-drive{display:flex;gap:6px;margin:8px 0}.tt-drive button{flex:1;min-height:44px;border:1px solid #9aa995;border-radius:10px;background:#fff7df;color:#183c3c;font:800 12px 'Trebuchet MS',sans-serif;cursor:pointer}.tt-drive button[aria-pressed="true"]{background:#183c3c;color:#fff7df}.tt-garage{margin:7px 0 10px;border:1px solid #b9c3ac;border-radius:10px;padding:7px 10px;background:#f5f3e5}.tt-garage summary{cursor:pointer;font:800 12px 'Trebuchet MS',sans-serif;min-height:22px;list-style-position:inside}.tt-garage p{font:700 10px Consolas,monospace;margin:10px 0 4px;color:#61736a}.tt-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.tt-choices button{min-width:0;min-height:48px;border:1px solid #a7b5a5;border-radius:8px;background:white;color:#183c3c;font:700 11px/1.3 'Trebuchet MS',sans-serif;cursor:pointer}.tt-choices button[aria-pressed="true"]{background:#183c3c;color:#fff7df;border-color:#183c3c}.tt-car-chip{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;color:#183c3c}.tt-garage button:focus-visible,.tt-drive button:focus-visible{outline:3px solid #f16b39;outline-offset:2px}
+@media(max-width:640px){.tt-cover{aspect-ratio:9/8;max-height:300px}.tt-cover h1{font-size:clamp(48px,12vw,62px)}.tt-entry-grid{gap:8px}.tt-entry-copy .creator-mode-tabs{margin:6px auto 8px}.tt-drive{margin:4px 0}.tt-garage{margin:5px 0;padding:5px 8px}.tt-simple{font-size:20px!important}.tt-cover-bottom{bottom:8px}}
+
+/* Preserve native details layout and readable labels inside the shared menu. */
+.platform .launch-options .tt-garage{display:block;color:#183c3c}
+.platform .launch-options .tt-garage>summary{min-height:44px;align-content:center;color:#183c3c;font-size:16px}
+
+/* Framing helper shows what the real front camera can see before the race.
+   No virtual crop or zoom can detect hands outside that physical field of view. */
+.tt-stage>video:not([hidden]){position:absolute;inset:0;z-index:2;width:100%;height:100%;object-fit:contain;background:#102d32;transform:scaleX(-1);pointer-events:none}
+.tt-framing-hud:not([hidden]){position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:clamp(10px,4%,18px);pointer-events:none;color:#fff7df;text-shadow:0 2px 3px #091b1bbf}
+.tt-framing-hud strong{display:block;max-width:100%;border-radius:14px;padding:10px 12px;background:#183c3ccc;font:900 clamp(13px,3.3vw,18px)/1.3 'Trebuchet MS',sans-serif}
+.tt-framing-hud p{margin:0;max-width:98%;border-radius:12px;padding:10px 12px;background:#183c3ce8;font:700 clamp(12px,3vw,16px)/1.4 'Trebuchet MS','Yu Gothic',sans-serif}
+.tt-framing-hud .tt-framing-state{margin-top:auto;margin-bottom:10px;background:#f16b39ef;color:#182f2e;text-shadow:none}
+.tt-framing-hud .tt-framing-tip{font-size:clamp(11px,2.5vw,13px);line-height:1.5}
+.tt-framing-hud[hidden]{display:none}
+
+.tt-garage .tt-choices button small{display:block;font:800 9px/1.25 Consolas,monospace;letter-spacing:.2px;opacity:.75;margin-top:3px}
+
+/* Race position and optional local finishing order. */
+.tt-finish-position{display:flex;flex-direction:column;gap:7px;margin:18px auto;padding:16px;border-radius:14px;background:#183c3c;color:#fff7df;max-width:360px}.tt-finish-position>span{font:700 12px 'Trebuchet MS','Yu Gothic',sans-serif}.tt-finish-position strong{font:900 46px/1.15 'Trebuchet MS','Yu Gothic',sans-serif;color:#ffc44e}.tt-finish-position small{font-size:19px;color:#fff7df}.tt-result:has(.tt-finish-position) .tt-score{margin:16px 0}.tt-result:has(.tt-finish-position) .tt-score strong{font-size:40px}.tt-standings{max-width:420px;margin:16px auto;border:1px solid #b9c3ac;border-radius:12px;text-align:left}.tt-standings summary{cursor:pointer;min-height:44px;padding:12px;font:800 14px 'Trebuchet MS','Yu Gothic',sans-serif}.tt-standings ol{list-style:none;margin:0;padding:0 10px 10px}.tt-standings li{display:grid;grid-template-columns:22px 18px 1fr auto;gap:6px;align-items:center;min-height:38px;padding:6px;border-radius:7px;font-size:12px}.tt-standings li.tt-you{background:#183c3c;color:#fff7df}.tt-standings small{font-size:11px}.tt-standings summary:focus-visible{outline:3px solid #2d7770;outline-offset:3px}
+
+/* Shared result menus stay dark; the toy race report owns its readable paper. */
+.tt-result{background:#f6f0dd;padding:18px;border-radius:16px}.tt-result:has(.tt-finish-position) .tt-result-heading h2{font-size:clamp(54px,12vw,76px);margin:8px 0}

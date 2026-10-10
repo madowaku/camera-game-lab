@@ -1,5 +1,7 @@
 import { TiltTurboGame } from './core.js';
 import { TiltSignal, steeringForRoll } from './input.js';
+import { WheelSignal } from './wheel.js';
+import { TiltTurboHandsInput } from '../input/tiltTurboHandsInput.js';
 import { TiltTurboInput } from '../input/tiltTurboInput.js';
 import { TiltTurboRenderer, W, H } from './renderer.js';
 import { TiltTurboAudio } from './audio.js';
@@ -9,16 +11,20 @@ import './tiltTurbo.css';
 export const createView = (root, locale) => new TiltTurboView(root, locale);
 export class TiltTurboView {
   constructor(root, locale) {
-    this.root=root;this.locale=locale;this.listeners=new Set();this.options={};this.keys=new Set();this.pointers=new Map();this.generation=0;this.phase='idle';
+    this.root=root;this.locale=locale;this.listeners=new Set();this.options={drive:'hands',courseId:'toy-town',carId:'roadster'};this.keys=new Set();this.pointers=new Map();this.generation=0;this.phase='idle';
     this.game=new TiltTurboGame();this.signal=new TiltSignal();this.audio=new TiltTurboAudio();
     root.innerHTML=`<section class="tt-play"><div class="tt-toolbar"><span class="tt-source"></span><div><button class="tt-sfx" type="button" aria-pressed="true">SE ON</button><button class="tt-pause" type="button">Ⅱ</button></div></div>
-      <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
+      <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><div class="tt-framing-hud" hidden aria-live="polite"><strong class="tt-framing-title"></strong><p class="tt-framing-state"></p><p class="tt-framing-tip"></p></div><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
       <div class="tt-overlay" hidden role="status"><h2></h2><p></p><button class="tt-resume" type="button" hidden></button><button class="tt-retry-camera" type="button" hidden></button><button class="tt-demo" type="button" hidden></button></div></div>
-      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><div class="tt-live" aria-live="polite" role="status"></div></section>`;
+      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><p class="tt-race-status tt-live"></p><div class="tt-live" aria-live="polite" role="status"></div></section>`;
     this.debugEnabled=new URLSearchParams(location.search).get('debug')==='1';
     this.$=s=>root.querySelector(s);this.video=this.$('video');this.canvas=this.$('.tt-canvas');this.capture=this.$('.tt-capture');this.renderer=new TiltTurboRenderer(this.canvas);
-    this.input=new TiltTurboInput(this.video,{onResult:packet=>{
-      if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at};
+    this.input=this.createCameraInput('head');
+  }
+  createCameraInput(drive) {
+    const Input = drive==='hands'?TiltTurboHandsInput:TiltTurboInput;
+    return new Input(this.video,{onResult:packet=>{
+      if(!this.active||this.source!=='camera')return;this.packet=packet;this.motion={...this.signal.sample(packet.raw,packet.at),at:packet.at,handsDetected:packet.hands ?? 0};
     },onStatus:(status,error)=>{
       if(!this.active||this.source!=='camera')return;this.status=status;
       if(status==='ERROR'&&this.phase==='playing'){this.packet=null;this.motion={tracked:false,ready:true,roll:0,steering:0};this.render();}
@@ -26,14 +32,14 @@ export class TiltTurboView {
     }});
   }
   get t(){return copy(this.locale);}
-  configure(options={}){this.options={creator:!!options.creator,faceMode:options.faceMode??'ORIGINAL'};}
+  configure(options={}){this.options={creator:!!options.creator,faceMode:options.faceMode??'ORIGINAL',drive:options.drive==='head'?'head':'hands',courseId:options.courseId??'toy-town',carId:options.carId??'roadster'};}
   subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}
   notify(){this.listeners.forEach(fn=>fn(this.snapshot()));}
-  snapshot(){return {phase:this.phase==='ending'?'playing':this.phase==='calibration'?'countdown':this.phase,source:this.source,paused:this.game.paused,elapsed:this.game.elapsed,result:this.phase==='result'?{...this.game.result,source:this.source,creator:this.creatorResult}:null};}
+  snapshot(){return {phase:this.phase==='ending'?'playing':this.phase==='calibration'?'countdown':this.phase,source:this.source,paused:this.game.paused,elapsed:this.game.elapsed,result:this.phase==='result'?{...this.game.result,source:this.source,drive:this.drive,creator:this.creatorResult}:null};}
   setLocale(locale){this.locale=locale;this.render();}
   activate(){this.active=true;this.phase='idle';this.render();}
   setup(source){
-    this.releaseInputs();this.active=true;this.source=source;this.phase='loading';this.game.reset();this.signal.reset();this.creatorResult=null;this.packet=null;this.motion={tracked:false,ready:false};this.manualPause=false;this.prep=0;this.countdown=0;this.ending=0;
+    this.releaseInputs();this.active=true;this.source=source;this.phase='loading';this.drive=this.options.drive;this.game=new TiltTurboGame(this.options);this.signal=this.drive==='hands'?new WheelSignal():new TiltSignal();this.input=this.createCameraInput(this.drive);this.creatorResult=null;this.packet=null;this.motion={tracked:false,ready:false};this.manualPause=false;this.prep=0;this.countdown=0;this.ending=0;
     this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
     if(this.options.creator)this.creator=new CreatorMode(this.capture,{profile:{brand:'TILT TURBO'},faceMode:this.options.faceMode,reducedMotion:true});
     this.bind();this.audio.arm();this.render();this.notify();return this.generation;
@@ -88,29 +94,58 @@ export class TiltTurboView {
         this.game.step(realDt,motion);if(this.game.result){this.phase='ending';this.ending=0;}
       }else if(this.phase==='ending'){
         this.ending+=realDt;if(this.ending>=1100){
-          if(this.creator){const capture=this.creator.snapshot(),last=capture.frames.at(-1)?.at??0;this.creatorResult={...capture,frames:capture.frames.filter(f=>f.at>=Math.max(0,last-6000)),events:[],candidates:this.game.history.filter(e=>['MAX TILT','BONK!','NICE!','LEFT!','RIGHT!','JUMP!','FINISH!'].includes(e.type)),duration:7000,stats:{...this.game.result}};}
+          if(this.creator){const capture=this.creator.snapshot(),last=capture.frames.at(-1)?.at??0;this.creatorResult={...capture,frames:capture.frames.filter(f=>f.at>=Math.max(0,last-6000)),events:[],candidates:this.game.history.filter(e=>['MAX TILT','BONK!','NICE!','PASS!','CLOSE PASS!','REPASS!','LEFT!','RIGHT!','JUMP!','FINISH!'].includes(e.type)),duration:7000,stats:{...this.game.result}};}
           this.phase='result';this.input.stop();this.audio.stop();this.frameId=null;this.render();this.notify();return;
         }
       }
     }
-    for(const event of this.game.takeEvents()){this.audio.play(event);if(!['SKRRRT!','FACE LOST','MAX TILT'].includes(event.type))this.$('.tt-live').textContent=event.type;}
+    for(const event of this.game.takeEvents()){
+      this.audio.play(event);
+      if(!['SKRRRT!','FACE LOST','MAX TILT'].includes(event.type))this.$('[role="status"].tt-live').textContent=
+        ['PASS!','CLOSE PASS!','REPASS!','RIVAL AHEAD!'].includes(event.type)
+          ? `${this.locale==='ja'?'順位':'Position'} ${this.game.position} / ${this.game.racerCount}` : event.type;
+    }
     this.render();this.draw();
     if(this.creator&&['playing','ending'].includes(this.phase)&&!this.game.paused)this.creator.compose(this.video,this.canvas,{time:this.game.elapsed+this.ending,source:'demo'});
     if(this.active)this.frameId=requestAnimationFrame(this.loop);
   };
   faceBox(){const p=this.packet?.points;if(!p||performance.now()-this.packet.at>250)return null;return {left:Math.min(...p.map(q=>q.x)),right:Math.max(...p.map(q=>q.x)),top:Math.min(...p.map(q=>q.y)),bottom:Math.max(...p.map(q=>q.y)),eyeLeft:p[33],eyeRight:p[263],mouth:p[13]};}
-  draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
+  draw(){this.renderer.draw(this.game,{video:this.video,face:this.faceBox(),motion:this.currentMotion,drive:this.drive,source:this.source,faceMode:this.options.creator?this.options.faceMode:'ORIGINAL',creator:this.options.creator,phase:this.phase,prep:this.prep,countdown:this.countdown,ending:this.ending,reducedMotion:this.reducedMotion,locale:this.locale});}
   render(){
     const t=this.t;if(!this.$('.tt-hint'))return;
+    // Camera framing is physical: image processing cannot recover palms
+    // outside the lens. Show the actual mirrored FOV during hand calibration
+    // rather than asking the player to raise both arms to face height.
+    const framing = this.source==='camera' && this.drive==='hands' && this.phase==='calibration' && !this.game.paused;
+    const hidesCamera = this.options.creator && this.options.faceMode==='HIDE';
+    this.video.hidden=!(framing && !hidesCamera);
+    const frameHud=this.$('.tt-framing-hud');frameHud.hidden=!framing;
+    if(framing){
+      const seen = this.packet && performance.now()-this.packet.at<=250 ? this.packet.hands ?? 0 : 0;
+      const ready = this.currentMotion?.ready && this.currentMotion?.tracked;
+      this.$('.tt-framing-title').textContent=this.locale==='ja'?'胸の高さでハンドルを持とう':'HOLD THE WHEEL AT CHEST HEIGHT';
+      this.$('.tt-framing-state').textContent=ready
+        ? (this.locale==='ja'?'両手OK！そのまま小さく回そう':'BOTH HANDS READY! TURN GENTLY')
+        : seen>=2 ? (this.locale==='ja'?'両手を左右に少し離して':'SPREAD YOUR HANDS APART')
+          : seen===1 ? (this.locale==='ja'?'もう片方の手も映そう':'SHOW YOUR OTHER HAND')
+            : (this.locale==='ja'?'両手が映る位置にスマホを調整':'AIM THE PHONE TO SEE BOTH HANDS');
+      this.$('.tt-framing-tip').textContent=this.locale==='ja'
+        ? 'みぞおちでOK。映らなければスマホを少し下向きに、または少し遠くへ。'
+        : 'Lower hands are OK. Tilt the phone down or move it back if needed.';
+    }
     const hud=this.$('.tt-feel-debug');hud.hidden=!this.debugEnabled;
     if(this.debugEnabled){const m=this.currentMotion,d=m?.debug??(this.source==='demo'?{raw:m?.roll,stable:m?.roll,feel:m?.steering}:null),number=(n,unit)=>Number.isFinite(n)?`${n.toFixed(3)}${unit}`:'LOST';
       hud.textContent=`RAW    ${m?.tracked?number(d?.raw,'°'):'LOST'}\nSTABLE ${m?.tracked?number(d?.stable,'°'):'LOST'}\nFEEL   ${m?.tracked?number(d?.feel,' steering'):'LOST'}\nINPUT ${this.source?.toUpperCase()??'—'} · 70ms / ±5° / exponent .85`;}
-    this.$('.tt-source').textContent=`${this.source==='demo'?t.demo:t.camera}${this.options.creator?' · CREATOR':''}`;
+    this.$('.tt-source').textContent=`${this.source==='demo'?t.demo:this.drive==='hands'?t.wheelCamera:t.camera} · ${this.game.course[this.locale==='ja'?'ja':'en']}${this.options.creator?' · CREATOR':''}`;
     this.$('.tt-sfx').textContent=`SE ${this.audio.enabled?'ON':'OFF'}`;this.$('.tt-sfx').setAttribute('aria-pressed',String(this.audio.enabled));
     const playable=['calibration','countdown','playing'].includes(this.phase);
     this.$('.tt-pause').disabled=!playable;this.$('.tt-pause').textContent=this.manualPause?'▶':'Ⅱ';this.$('.tt-pause').setAttribute('aria-label',this.manualPause?t.resume:t.pause);
     this.$('.tt-practice').hidden=this.source!=='demo';this.root.querySelectorAll('[data-steer]').forEach(b=>{b.disabled=!playable||this.game.paused;b.setAttribute('aria-label',Number(b.dataset.steer)<0?t.left:t.right);});
-    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · HIT ${this.game.hits} · NEAR ${this.game.near}`);
+    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:this.drive==='hands'?t.wheelHint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · POSITION ${this.game.position}/${this.game.racerCount} · HIT ${this.game.hits} · NEAR ${this.game.near}`);
+    const next=this.game.nextRival;
+    this.$('.tt-race-status').textContent=this.locale==='ja'
+      ? `${this.game.racerCount}台中${this.game.position}位。${next?`${next.ja}まで${Math.ceil(next.distance-this.game.distance)}m`:'トップ！'}${this.game.turboMs>0?' 追い抜きターボ！':''}`
+      : `Position ${this.game.position} of ${this.game.racerCount}. ${next?`${Math.ceil(next.distance-this.game.distance)}m to ${next.en}`:'Leading!'}${this.game.turboMs>0?' Pass turbo!':''}`;
     const label=this.phase==='error'?t.error:this.phase==='loading'?t.loading:this.manualPause?t.paused:'';this.$('.tt-overlay').hidden=!label;this.$('.tt-overlay h2').textContent=label;
     this.$('.tt-overlay p').textContent=this.phase==='error'?t.errorHint:this.phase==='loading'?this.status==='REQUESTING_CAMERA'?t.permission:t.model:'';
     this.$('.tt-resume').hidden=!this.manualPause;this.$('.tt-resume').textContent=t.resume;this.$('.tt-retry-camera').hidden=this.phase!=='error';this.$('.tt-retry-camera').textContent=t.retryCamera;
