@@ -16,6 +16,6 @@ export class TiltTurboHandsInput extends BodyInput {
   processResult(result,at) {
     const hands = result?.landmarks ?? [];
     const raw = wheelRoll(hands,this.video.videoWidth||1,this.video.videoHeight||1);
-    this.onResult({ raw, points:null, at, hands:raw===null?0:2 });
+    this.onResult({ raw, points:null, at, hands:hands.length });
   }
 }
