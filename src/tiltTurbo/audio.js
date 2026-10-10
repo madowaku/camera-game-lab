@@ -20,6 +20,9 @@ export class TiltTurboAudio {
     if(event.type==='BONK!') { const b=this.buffers.bonk;if(b){const s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=.25;s.connect(g);g.connect(c.destination);s.start();s.onended=()=>{s.disconnect();g.disconnect();};}this.tone(120,45,.18,.06,'triangle'); }
     if(event.type==='SKRRRT!')this.tone(440,95,.20,.025,'sawtooth');
     if(event.type==='NICE!'){this.tone(880,1320,.12,.055);this.tone(1320,1760,.15,.04,'sine',.08);}
+    if(['PASS!','CLOSE PASS!','REPASS!'].includes(event.type)){
+      this.tone(660,990,.13,.045,'triangle');this.tone(990,1485,.20,.035,'triangle',.10);
+    }
     if(event.type==='JUMP!')this.tone(240,1200,.6,.045,'triangle');
     if(['GO!','FINISH!'].includes(event.type))[523,659,784,1047].forEach((f,i)=>this.tone(f,f,.2,.04,'triangle',i*.08));
     if(['LEFT!','RIGHT!'].includes(event.type))this.tone(600,600,.09,.035,'triangle');

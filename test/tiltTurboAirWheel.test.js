@@ -58,7 +58,7 @@ test('three distinct courses and three cars have stable identifiers and route da
 });
 test('garage presets and traffic collisions are deterministic across duplicate playbacks',()=>{
   const run=()=>{const g=new TiltTurboGame({courseId:'seaside',carId:'kart'});g.start();
-    while(!g.result)g.step(25,{steering:Math.sin(g.elapsed/450)*.5,tracked:true,roll:15});
+    while(!g.result)g.step(25,{steering:roadCenter(g.elapsed+100,g.course.path)/(1.12*g.car.steeringGain),tracked:true,roll:15});
     return g;};
   const a=run(),b=run();
   assert.deepEqual(a.result,b.result);
@@ -68,17 +68,17 @@ test('garage presets and traffic collisions are deterministic across duplicate p
   assert.ok(a.history.some(e=>['PASS!','CLOSE PASS!','TRAFFIC!'].includes(e.type)));
 });
 test('a successful clean pass scores exactly once and a deliberate contact can bonk',()=>{
-  const rival=COURSES[0].traffic[0],course=COURSES[0];
   const passed=new TiltTurboGame();
-  passed.start();passed.elapsed=rival.at-8;
-  passed.x=roadCenter(rival.at,course.path)-.43+1.0;
-  passed.step(16,{steering:.5,tracked:true});
+  passed.start();passed.elapsed=2000;passed.speed=90;passed.x=.3;
+  passed.rivals[0].distance=passed.distance+.2;
+  passed.step(16,{steering:.3/1.12,tracked:true});
   assert.equal(passed.overtakes,1);
   assert.equal(passed.trafficHits,0);
   passed.step(100,{tracked:true});
   assert.equal(passed.overtakes,1);
-  const hit=new TiltTurboGame();hit.start();hit.elapsed=rival.at-8;
-  hit.x=roadCenter(rival.at,course.path)+rival.offset+Math.sin(rival.seed)*.06;
+  const hit=new TiltTurboGame();hit.start();hit.elapsed=2000;hit.speed=90;
+  hit.rivals[0].distance=hit.distance+5;
+  hit.x=hit.rivals[0].offset;
   hit.step(16,{tracked:true,steering:hit.x/1.12});
   assert.equal(hit.trafficHits,1);
   assert.equal(hit.overtakes,0);

@@ -1,6 +1,9 @@
 # EXP-053 TILT TURBO v0.2: AIR WHEEL
 
-Status: implementation branch, **Android A401OP real-hand acceptance pending**.
+Status: the user reported improved AIR WHEEL comfort on A401OP after v0.2.1 (2026-10-10).
+The v0.2 scope below is retained as design history. Persistent racers and
+ranking supersede the timed traffic encounters in [v0.2.2 RIVAL SPRINT](TILT_TURBO_V022_RIVAL_SPRINT.md);
+that new passing loop still needs real-device feedback.
 Route: `#/game/solo-tilt-turbo`. v0.1 HEAD control remains available as a selectable fallback.
 
 ## Play promise

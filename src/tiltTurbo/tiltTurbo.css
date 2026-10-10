@@ -27,3 +27,9 @@
 .tt-framing-hud[hidden]{display:none}
 
 .tt-garage .tt-choices button small{display:block;font:800 9px/1.25 Consolas,monospace;letter-spacing:.2px;opacity:.75;margin-top:3px}
+
+/* Race position and optional local finishing order. */
+.tt-finish-position{display:flex;flex-direction:column;gap:7px;margin:18px auto;padding:16px;border-radius:14px;background:#183c3c;color:#fff7df;max-width:360px}.tt-finish-position>span{font:700 12px 'Trebuchet MS','Yu Gothic',sans-serif}.tt-finish-position strong{font:900 46px/1.15 'Trebuchet MS','Yu Gothic',sans-serif;color:#ffc44e}.tt-finish-position small{font-size:19px;color:#fff7df}.tt-result:has(.tt-finish-position) .tt-score{margin:16px 0}.tt-result:has(.tt-finish-position) .tt-score strong{font-size:40px}.tt-standings{max-width:420px;margin:16px auto;border:1px solid #b9c3ac;border-radius:12px;text-align:left}.tt-standings summary{cursor:pointer;min-height:44px;padding:12px;font:800 14px 'Trebuchet MS','Yu Gothic',sans-serif}.tt-standings ol{list-style:none;margin:0;padding:0 10px 10px}.tt-standings li{display:grid;grid-template-columns:22px 18px 1fr auto;gap:6px;align-items:center;min-height:38px;padding:6px;border-radius:7px;font-size:12px}.tt-standings li.tt-you{background:#183c3c;color:#fff7df}.tt-standings small{font-size:11px}.tt-standings summary:focus-visible{outline:3px solid #2d7770;outline-offset:3px}
+
+/* Shared result menus stay dark; the toy race report owns its readable paper. */
+.tt-result{background:#f6f0dd;padding:18px;border-radius:16px}.tt-result:has(.tt-finish-position) .tt-result-heading h2{font-size:clamp(54px,12vw,76px);margin:8px 0}

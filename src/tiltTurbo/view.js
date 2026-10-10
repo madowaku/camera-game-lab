@@ -16,7 +16,7 @@ export class TiltTurboView {
     root.innerHTML=`<section class="tt-play"><div class="tt-toolbar"><span class="tt-source"></span><div><button class="tt-sfx" type="button" aria-pressed="true">SE ON</button><button class="tt-pause" type="button">Ⅱ</button></div></div>
       <div class="tt-stage" role="group" tabindex="0"><video muted playsinline hidden></video><div class="tt-framing-hud" hidden aria-live="polite"><strong class="tt-framing-title"></strong><p class="tt-framing-state"></p><p class="tt-framing-tip"></p></div><canvas class="tt-canvas" width="${W}" height="${H}" role="img"></canvas><canvas class="tt-capture" hidden></canvas>
       <div class="tt-overlay" hidden role="status"><h2></h2><p></p><button class="tt-resume" type="button" hidden></button><button class="tt-retry-camera" type="button" hidden></button><button class="tt-demo" type="button" hidden></button></div></div>
-      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><div class="tt-live" aria-live="polite" role="status"></div></section>`;
+      <div class="tt-practice" hidden><button type="button" data-steer="-1">↙ LEFT</button><button type="button" data-steer="1">RIGHT ↘</button></div><p class="tt-hint"></p><button type="button" class="tt-reconnect" hidden></button><pre class="tt-feel-debug" hidden></pre><p class="tt-race-status tt-live"></p><div class="tt-live" aria-live="polite" role="status"></div></section>`;
     this.debugEnabled=new URLSearchParams(location.search).get('debug')==='1';
     this.$=s=>root.querySelector(s);this.video=this.$('video');this.canvas=this.$('.tt-canvas');this.capture=this.$('.tt-capture');this.renderer=new TiltTurboRenderer(this.canvas);
     this.input=this.createCameraInput('head');
@@ -94,12 +94,17 @@ export class TiltTurboView {
         this.game.step(realDt,motion);if(this.game.result){this.phase='ending';this.ending=0;}
       }else if(this.phase==='ending'){
         this.ending+=realDt;if(this.ending>=1100){
-          if(this.creator){const capture=this.creator.snapshot(),last=capture.frames.at(-1)?.at??0;this.creatorResult={...capture,frames:capture.frames.filter(f=>f.at>=Math.max(0,last-6000)),events:[],candidates:this.game.history.filter(e=>['MAX TILT','BONK!','NICE!','LEFT!','RIGHT!','JUMP!','FINISH!'].includes(e.type)),duration:7000,stats:{...this.game.result}};}
+          if(this.creator){const capture=this.creator.snapshot(),last=capture.frames.at(-1)?.at??0;this.creatorResult={...capture,frames:capture.frames.filter(f=>f.at>=Math.max(0,last-6000)),events:[],candidates:this.game.history.filter(e=>['MAX TILT','BONK!','NICE!','PASS!','CLOSE PASS!','REPASS!','LEFT!','RIGHT!','JUMP!','FINISH!'].includes(e.type)),duration:7000,stats:{...this.game.result}};}
           this.phase='result';this.input.stop();this.audio.stop();this.frameId=null;this.render();this.notify();return;
         }
       }
     }
-    for(const event of this.game.takeEvents()){this.audio.play(event);if(!['SKRRRT!','FACE LOST','MAX TILT'].includes(event.type))this.$('.tt-live').textContent=event.type;}
+    for(const event of this.game.takeEvents()){
+      this.audio.play(event);
+      if(!['SKRRRT!','FACE LOST','MAX TILT'].includes(event.type))this.$('[role="status"].tt-live').textContent=
+        ['PASS!','CLOSE PASS!','REPASS!','RIVAL AHEAD!'].includes(event.type)
+          ? `${this.locale==='ja'?'順位':'Position'} ${this.game.position} / ${this.game.racerCount}` : event.type;
+    }
     this.render();this.draw();
     if(this.creator&&['playing','ending'].includes(this.phase)&&!this.game.paused)this.creator.compose(this.video,this.canvas,{time:this.game.elapsed+this.ending,source:'demo'});
     if(this.active)this.frameId=requestAnimationFrame(this.loop);
@@ -136,7 +141,11 @@ export class TiltTurboView {
     const playable=['calibration','countdown','playing'].includes(this.phase);
     this.$('.tt-pause').disabled=!playable;this.$('.tt-pause').textContent=this.manualPause?'▶':'Ⅱ';this.$('.tt-pause').setAttribute('aria-label',this.manualPause?t.resume:t.pause);
     this.$('.tt-practice').hidden=this.source!=='demo';this.root.querySelectorAll('[data-steer]').forEach(b=>{b.disabled=!playable||this.game.paused;b.setAttribute('aria-label',Number(b.dataset.steer)<0?t.left:t.right);});
-    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:this.drive==='hands'?t.wheelHint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · HIT ${this.game.hits} · NEAR ${this.game.near}`);
+    this.$('.tt-hint').textContent=this.source==='demo'?t.hint:this.drive==='hands'?t.wheelHint:t.cameraHint;this.$('.tt-stage').setAttribute('aria-label','TILT TURBO');this.canvas.setAttribute('aria-label',`TILT TURBO · ${Math.ceil((20000-this.game.elapsed)/1000)} SEC · POSITION ${this.game.position}/${this.game.racerCount} · HIT ${this.game.hits} · NEAR ${this.game.near}`);
+    const next=this.game.nextRival;
+    this.$('.tt-race-status').textContent=this.locale==='ja'
+      ? `${this.game.racerCount}台中${this.game.position}位。${next?`${next.ja}まで${Math.ceil(next.distance-this.game.distance)}m`:'トップ！'}${this.game.turboMs>0?' 追い抜きターボ！':''}`
+      : `Position ${this.game.position} of ${this.game.racerCount}. ${next?`${Math.ceil(next.distance-this.game.distance)}m to ${next.en}`:'Leading!'}${this.game.turboMs>0?' Pass turbo!':''}`;
     const label=this.phase==='error'?t.error:this.phase==='loading'?t.loading:this.manualPause?t.paused:'';this.$('.tt-overlay').hidden=!label;this.$('.tt-overlay h2').textContent=label;
     this.$('.tt-overlay p').textContent=this.phase==='error'?t.errorHint:this.phase==='loading'?this.status==='REQUESTING_CAMERA'?t.permission:t.model:'';
     this.$('.tt-resume').hidden=!this.manualPause;this.$('.tt-resume').textContent=t.resume;this.$('.tt-retry-camera').hidden=this.phase!=='error';this.$('.tt-retry-camera').textContent=t.retryCamera;

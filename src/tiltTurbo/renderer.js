@@ -1,5 +1,6 @@
 import carUrl from './assets/car-v1.webp';
-import { roadCenter, OBSTACLES, ROAD_HALF } from './core.js';
+import { roadCenter } from './core.js';
+import { rivalLane, rivalAhead } from './rivals.js';
 import { drawFaceMode } from '../creator/FaceMode.js';
 export const W = 360, H = 640;
 const colors = { ink: '#183c3c', cream: '#fff7df', mint: '#bad5b1', orange: '#f16b39', teal: '#2d7770' };
@@ -25,7 +26,11 @@ export class TiltTurboRenderer {
     const sceneTime=time>=18500&&time<19800&&!reducedMotion?time-200*Math.sin((time-18500)/1300*Math.PI):time;
     c.clearRect(0,0,W,H); c.fillStyle=g.course.sky; c.fillRect(0,0,W,H);
     round(c,12,12,336,52,13,colors.ink);
-    this.text('TILT TURBO',25,36,20,colors.cream,'left'); this.text(String(Math.floor(g.distance*4)+Math.floor(g.cleanMs/20)+g.near*100+Math.floor(g.driftMs/15)+g.overtakes*150).padStart(4,'0'),25,54,12,'#bcdcc5','left');
+    this.text(`${g.position} / ${g.racerCount}`,25,43,30,colors.cream,'left');
+    this.text(locale==='ja'?'順位':'POSITION',25,56,10,'#bcdcc5','left');
+    const next=g.nextRival;
+    this.text(g.turboMs>0?'PASS TURBO!':next?`${next[locale==='ja'?'ja':'en']} +${Math.ceil(next.distance-g.distance)}m`:(locale==='ja'?'トップ！':'LEADING!'),187,35,14,g.turboMs>0?'#ffc44e':colors.cream);
+    this.text(`${locale==='ja'?'追い抜き':'PASS'} ${g.overtakes}`,187,54,11,'#bcdcc5');
     this.text(`${Math.max(0,(20000-time)/1000).toFixed(1)}`,332,43,31,colors.cream,'right');
     const panel=creator ? { x:12,y:72,w:336,h:153 } : { x:126,y:76,w:108,h:100 };
     c.save(); c.beginPath(); c.roundRect(panel.x,panel.y,panel.w,panel.h,12); c.clip(); c.fillStyle='#d4e2cf'; c.fillRect(panel.x,panel.y,panel.w,panel.h);
@@ -81,14 +86,17 @@ export class TiltTurboRenderer {
       poly(c,[[p.x,p.y-34*s],[p.x-15*s,p.y],[p.x+15*s,p.y]],colors.orange);
       poly(c,[[p.x-6*s,p.y-20*s],[p.x+6*s,p.y-20*s],[p.x+10*s,p.y-12*s],[p.x-10*s,p.y-12*s]],colors.cream);
     }
-    // Traffic has an independent forward speed. Relative separation shrinks
-    // as it approaches the player: avoid or overtake it near rival.at.
-    for(const rival of [...g.course.traffic].reverse()) {
-      const ahead=(rival.at-time)*(1-rival.speedRatio);
+    // Draw the same persistent distance/lane state used by race contacts.
+    for(const rival of [...g.rivals].sort((a,b)=>b.distance-a.distance)) {
+      const ahead=rivalAhead(rival,g.distance);
       if(ahead< -100||ahead>2600)continue;
-      const x=roadCenter(time+ahead,g.course.path)+rival.offset+Math.sin((time-rival.at)*.0011+rival.seed)*.06;
+      const x=roadCenter(time+ahead,g.course.path)+rivalLane(rival,time);
       const p=this.project(x,ahead,horizon);
       toyCar(c,p.x,p.y-54*p.scale,104*p.scale,rival.color);
+      if(rival===next&&p.scale>.30){
+        round(c,p.x-32,p.y-116*p.scale-17,64,18,6,colors.cream);
+        this.text(rival[locale==='ja'?'ja':'en'],p.x,p.y-116*p.scale-4,11,colors.ink);
+      }
     }
     if(time>16300&&time<18800) {
       const p=this.project(0,18500-time,horizon),s=p.scale;
@@ -100,6 +108,16 @@ export class TiltTurboRenderer {
       for(let x=-5;x<5;x++) for(let y=0;y<2;y++) round(c,p.x+x*26*s,p.y-y*18*s,26*s,18*s,0,(x+y)%2?colors.cream:colors.ink);
     }
     let carX=W/2+(g.x-this.pan)*W*.44, carY=533;
+    if(g.turboMs>0){
+      if(!reducedMotion){
+        c.strokeStyle='#ffc44ecc';c.lineWidth=3;
+        for(let i=0;i<6;i++){
+          const y=420+((time*.25+i*47)%180),side=i%2?1:-1;
+          c.beginPath();c.moveTo(carX+side*(55+i*7),y);c.lineTo(carX+side*(60+i*7),y+26);c.stroke();
+        }
+      }
+      round(c,carX-38,588,76,19,6,colors.orange);this.text('TURBO',carX,602,12,colors.ink);
+    }
     const jump= time>=18500 && time<19800 ? Math.sin((time-18500)/1300*Math.PI) : 0;
     const scale=1+jump*.38;
     c.fillStyle='#142b2855'; c.beginPath(); c.ellipse(carX,582,43*(1-jump*.25),10,0,0,Math.PI*2);c.fill();
@@ -113,8 +131,10 @@ export class TiltTurboRenderer {
     c.restore();
     const event=g.flash,age=event?time-event.at:Infinity;
     if(event&&age<700&&!['MAX TILT','FACE LOST','FINISH!'].includes(event.type)) {
-      round(c,94,horizon+38,172,48,9,event.type==='BONK!'?colors.orange:colors.cream);
-      this.text(event.type,180,horizon+73,31,colors.ink);
+      const pass=['PASS!','CLOSE PASS!','REPASS!'].includes(event.type);
+      const label=locale==='ja'?({'PASS!':'追い抜き！','CLOSE PASS!':'ナイス追い抜き！','REPASS!':'抜き返した！','RIVAL AHEAD!':'まだ追いつける！'})[event.type]??event.type:event.type;
+      round(c,80,horizon+38,200,48,9,event.type==='BONK!'?colors.orange:colors.cream);
+      this.text(label,180,horizon+71,pass||label.length>9?22:31,colors.ink);
       if(event.data.score)this.text(`+${event.data.score}`,180,horizon+108,20,colors.cream);
     }
     if (phase==='calibration') {
