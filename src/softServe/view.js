@@ -18,7 +18,9 @@ class SoftServeView {
   constructor(root, locale) {
     this.root = root; this.locale = locale; this.listeners = new Set(); this.keys = new Set();
     this.generation = 0; this.phase = "idle"; this.source = "camera"; this.active = false;
-    this.game = new SoftServeGame(); this.audio = new SoftServeAudio(); this.soundPreference = true; this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // biteAssist=A restores the previous strict camera-eating logic for A/B QA.
+    this.biteAssist = new URLSearchParams(window.location.search).get("biteAssist") !== "A";
+    this.game = this.createGame(); this.audio = new SoftServeAudio(); this.soundPreference = true; this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
     root.innerHTML = `<div class="ss-view"><div class="ss-toolbar"><img class="ss-mini-logo" src="${logo}" alt="SOFT SERVE"><strong class="ss-height"></strong><div class="ss-tools"><button type="button" class="ss-sound" aria-pressed="false"></button><button type="button" class="ss-pause"></button></div></div>
       <span class="ss-source"></span><div class="ss-creator-face" hidden><label><span>FACE</span><select aria-label="Face mode"><option>ORIGINAL</option><option>EFFECT</option><option>HIDE</option></select></label></div><div class="ss-hud"><span class="ss-risk"></span><strong class="ss-multiplier"></strong></div>
       <div class="ss-stage" tabindex="0" role="group"><video muted playsinline></video><canvas aria-hidden="true"></canvas><canvas class="creator-scene" aria-hidden="true" hidden></canvas><div class="ss-overlay" role="status" aria-live="polite" hidden></div></div>
@@ -42,6 +44,9 @@ class SoftServeView {
       }
     } });
     this.render();
+  }
+  createGame() {
+    return new SoftServeGame(this.biteAssist ? {} : { occlusionGraceMs: 0, finalBiteGrace: 0 });
   }
   get t() { return messages[this.locale === "ja" ? "ja" : "en"]; }
   subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -106,7 +111,7 @@ class SoftServeView {
   }
   setup(source) {
     this.releaseInputs(); this.active = true; this.source = source; this.phase = "loading"; this.status = "LOADING_MODEL";
-    this.game = new SoftServeGame(); this.game.reset(source); this.raw = null; this.lastInput = -Infinity;
+    this.game = this.createGame(); this.game.reset(source); this.raw = null; this.lastInput = -Infinity;
     this.nozzleGuide.reset();
     this.cursor = { x: .5, y: .72 }; this.pendingBite = false; this.pointer = null; this.userPaused = false; this.backgroundPaused = document.hidden; this.lastEffect = null; this.lastPour = 0;
     this.animation = new SoftServeAnimation({ finishMs: this.creatorConfig.creator ? 3100 : 750 }); this.receiptSaved = false;
