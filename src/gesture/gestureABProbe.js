@@ -14,6 +14,7 @@ export class GestureABProbe {
     this.reset();
   }
   reset() {
+    this.engine?.dispose();
     this.gripA = new GripState();
     this.pinchA = new PinchState();
     this.engine = createGestureEngine({
