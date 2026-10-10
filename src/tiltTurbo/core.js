@@ -61,8 +61,8 @@ export class TiltTurboGame {
     }
     this.move(dt, input.steering, input.tracked);
     const edge = this.x - roadCenter(this.elapsed, this.course.path);
-    if (Math.abs(edge) > ROAD_HALF-.20 && this.cooldown === 0) {
-      this.bonk(); this.x = clamp(roadCenter(this.elapsed, this.course.path) + Math.sign(edge)*(ROAD_HALF-.30), -1.12, 1.12); this.velocity = -Math.sign(edge)*.8;
+    if (Math.abs(edge) > this.course.roadHalf-.20 && this.cooldown === 0) {
+      this.bonk(); this.x = clamp(roadCenter(this.elapsed, this.course.path) + Math.sign(edge)*(this.course.roadHalf-.30), -1.12, 1.12); this.velocity = -Math.sign(edge)*.8;
     }
     for (const [i, obstacle] of this.course.cones.entries()) {
       if (this.resolved.has('cone-'+i) || previous >= obstacle.at || this.elapsed < obstacle.at) continue;
@@ -93,7 +93,7 @@ export class TiltTurboGame {
     this.speed += ((this.cooldown ? 32 : 65 + Math.min(this.elapsed/1000, 12)*2)-this.speed)*(1-Math.exp(-dt/250));
     this.distance += this.speed*dt/1000;
     if (!this.cooldown) this.cleanMs += dt;
-    if (Math.abs(this.steering) > .48 && Math.abs(edge) < ROAD_HALF && !this.cooldown) {
+    if (Math.abs(this.steering) > .48 && Math.abs(edge) < this.course.roadHalf && !this.cooldown) {
       this.driftMs += dt;
       if (this.elapsed - (this.lastSkrrt ?? -Infinity) > 1400) { this.lastSkrrt = this.elapsed; this.emit('SKRRRT!'); }
     }
