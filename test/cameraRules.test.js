@@ -36,6 +36,20 @@ test('002 is short and 008/010 have no exposure countdown', () => {
   assert.equal(game.phase, 'playing', 'player may solve at their own pace');
   assert.equal(game.attempts.length, 0);
 });
+test('008 solves with a small shift that keeps the runner framed', () => {
+  const g = new CameraIsItGame(); g.loadStage(7); g.phase = 'playing';
+  assert.equal(g.platforms[1].active, false);
+  g.setCamera({ x: 585, y: 870 }, true); g.updateExistence(16);
+  assert.equal(g.platforms[1].active, true);
+  assert.ok(Math.abs(g.runner.x - g.camera.x) < VIEW.width * .6);
+  assert.ok((g.camera.x - g.stage.camera.x) / 80 < 4, 'framing change stays small');
+});
+test('010 bridge and red exclusion are simultaneously satisfiable', () => {
+  const g = new CameraIsItGame(); g.loadStage(9); g.phase = 'playing';
+  g.setCamera({ x: 1120, y: 1050 }, true); g.updateExistence(16);
+  assert.equal(g.platforms[3].active, true, 'linked bridge stays solid');
+  assert.equal(g.platforms[4].active, true, 'exclusion landing stays solid');
+});
 test('LINKED one, all, and lost member', () => { const [s, tick] = run('LINKED'); tick(true, 16, 1); assert.equal(s.solid, false); tick(false, 16, 2); assert.ok(s.solid); tick(true, 16, 1); assert.equal(s.solid, false); });
 test('anchor margin accepts small framing error', () => { assert.ok(anchorVisible({ x: 854, y: 870, width: 0 }, { x: 400, y: 870 }, VIEW)); assert.equal(anchorVisible({ x: 860, y: 870, width: 0 }, { x: 400, y: 870 }, VIEW), false); });
 test('focus can compose with afterimage in finale', () => { const s = createRuleState(), p = { rule: 'FOCUS_HOLD', memoryMs: 1500 }; updateRule(p, s, true, 500); updateRule(p, s, false, 1000); assert.ok(s.solid); updateRule(p, s, false, 500); assert.equal(s.solid, false); });
