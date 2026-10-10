@@ -93,3 +93,46 @@ at `http://127.0.0.1:5187/#tension-duel`. Camera needs localhost or HTTPS.
 - Physical phone camera recognition, two-person framing, and Android thermal
   behavior still need the hardware playtest above; browser simulation cannot
   certify those device-specific results.
+
+## Air-hockey court and audio follow-up — 2026-10-10
+
+- Solid top/bottom rails bounce the puck with an impact ring and quieter wall
+  SE. Reflection preserves overshoot and speed. Full left/right side edges are
+  open goals, labeled with the opponent's point and flashing after a score.
+- A visible center line divides the court. Both endpoints must stay in the
+  player's half to start or return the puck; touching the line is allowed.
+  During play, a crossed net dims, shows a return arrow, and cannot hit until
+  brought home. This does not freeze the opponent or award an instant penalty.
+  Missing/cropped hands retain the existing tracking pause.
+- Practice dragging moves in both axes while clamping the entire net to its
+  own half, including when its angle/spacing changes.
+- Imagegen generated the decorative air-hockey surface; runtime WebP is
+  54,166 bytes. Precise court markings remain canvas geometry, with lower
+  surface opacity behind camera video. Prompt/source are recorded in
+  [TENSION_DUEL_ARTWORK.md](TENSION_DUEL_ARTWORK.md).
+- OtoLogic Loop03 (CC BY 4.0) and shared Kenney SE (CC0) add looped BGM and
+  separate return/wall/point/start cues. How to Play includes linked credits.
+  Source files, terms and hashes: [TENSION_DUEL_ASSETS.md](TENSION_DUEL_ASSETS.md).
+- Music stops on tracking loss, pause, hidden page, result, or exit. Resume
+  continues its loop offset; a fresh round resets it. Mute stops music and SE.
+  Missing/undecodable audio never blocks the game.
+
+Verification:
+
+- 70 unit tests pass, including wall reflection, both players' forbidden-half
+  collisions, whole-segment boundaries and audio lifecycle regressions.
+- 37 DOM/stub-canvas UI checks pass, including five synthetic rounds, straddled
+  readiness, crossing warning/clock continuation, returning home and drag limits.
+- Production build passes; PWA precaches the court and all five MP3 files.
+- Actual in-app Chromium browser: 844 × 390 landscape and 390 × 844 portrait
+  layouts, readable court/goals, no horizontal overflow, JA/EN rules and credits,
+  a full practice round (2:1, four returns), pause/resume, result and retry.
+- Actual Web Audio using the production controller in an ignored local QA
+  harness: all five MP3s decode, BGM duration is exactly 16 seconds, looping
+  source starts, pause/resume preserves offset, mute/exit stop playback.
+  This exposed and fixed the browser's required receiver for `fetch`.
+- No console errors/warnings observed in the checked app flows.
+
+Physical camera play, two-person framing and the audible loop seam/volume on
+real iPhone/Android hardware still require the human playtest. Browser checks
+and synthetic hands do not certify those device-specific results.

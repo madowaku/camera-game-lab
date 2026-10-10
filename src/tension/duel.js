@@ -1,5 +1,6 @@
 import { DuelInput } from './handInput.js';
-import { CONFIG, clamp, geometry, updateNets, createMatch, stepMatch, resizeMatch, usableNet } from './rules.js';
+import { CONFIG, clamp, geometry, updateNets, createMatch, stepMatch, resizeMatch, usableNet, netInOwnHalf } from './rules.js';
+import { DuelAudio } from './audio.js';
 import { copy } from './messages.js';
 import './duel.css';
 
@@ -15,8 +16,10 @@ export class TensionDuel {
   constructor(root, locale = 'ja', { onExit } = {}) {
     Object.assign(this, { root, locale, onExit, active: false, phase: 'intro', mode: 'camera', nets: [null, null], match: createMatch(), impacts: [null, null], status: '', countdown: 0, generation: 0, sound: true, advancing: false, trail: [], pointAt: -Infinity });
     this.fake = [{ x: .18, y: .28, angle: 0, distance: .105 }, { x: .82, y: .28, angle: 0, distance: .105 }];
+    this.audio = new DuelAudio();
     root.innerHTML = `<div class="td-shell">
       <section class="td-stage">
+        <img class="td-court" src="/artwork/tension-duel-court.webp" alt="" width="1280" height="720" hidden>
         <img class="td-artwork" src="/artwork/tension-duel-intro.webp" alt="" width="1536" height="864" fetchpriority="high">
         <video class="td-video" autoplay muted playsinline aria-hidden="true"></video><canvas class="td-canvas" aria-hidden="true"></canvas>
         <div class="td-hud"><span class="td-player td-p1">P1 <small></small></span><div class="td-score"><strong>0 : 0</strong><span class="td-timer">15s</span><span class="td-rally"></span></div><span class="td-player td-p2">P2 <small></small></span></div>
@@ -30,7 +33,7 @@ export class TensionDuel {
       <div class="td-actions"><button class="button button--primary td-start" type="button"></button><button class="button td-demo" type="button"></button><button class="button td-full" type="button"></button><button class="button td-pause" type="button" hidden></button><button class="button td-exit" type="button"></button></div>
       <p class="td-status" role="status"></p><p class="td-rotate"></p>
       <section class="td-controls" hidden>${[0, 1].map(p => `<fieldset><legend>P${p + 1}</legend>${['position', 'angle', 'opening'].map((kind, i) => `<label><span data-copy="${kind}"></span><input type="range" data-player="${p}" data-kind="${kind}" min="${i === 0 ? 5 : i === 1 ? -70 : 3}" max="${i === 0 ? 95 : i === 1 ? 70 : 21}" value="${i === 0 ? 50 : i === 1 ? 0 : 10.5}" step="0.5"></label>`).join('')}</fieldset>`).join('')}</section>
-      <details class="howto td-how"><summary></summary><p class="td-guide"></p><p class="td-demo-guide" hidden></p><p class="td-keys" hidden></p><p class="td-privacy"></p><div class="td-options"><button class="button td-sound" type="button"></button></div></details>
+      <details class="howto td-how"><summary></summary><p class="td-guide"></p><p class="td-demo-guide" hidden></p><p class="td-keys" hidden></p><p class="td-privacy"></p><div class="td-options"><button class="button td-sound" type="button"></button></div><p class="td-credits"><span></span> BGM: “Loop03” · <a href="https://otologic.jp/free/bgm/short-loop01.html" target="_blank" rel="noopener">OtoLogic</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) · SE: <a href="https://kenney.nl/assets/impact-sounds" target="_blank" rel="noopener">Kenney Impact Sounds</a> / <a href="https://kenney.nl/assets/interface-sounds" target="_blank" rel="noopener">Interface Sounds</a> (CC0)</p></details>
     </div>`;
     this.$ = s => root.querySelector(s);
     this.stage = this.$('.td-stage'); this.video = this.$('video'); this.canvas = this.$('canvas'); this.ctx = this.canvas.getContext('2d');
@@ -51,7 +54,7 @@ export class TensionDuel {
     this.$('.td-exit').addEventListener('click', () => this.onExit?.());
     this.$('.td-pause').addEventListener('click', () => this.pause());
     this.$('.td-skip').addEventListener('click', () => { this.countdown = .01; });
-    this.$('.td-sound').addEventListener('click', () => { this.sound = !this.sound; this.render(); });
+    this.$('.td-sound').addEventListener('click', () => { this.sound = !this.sound; this.audio.setEnabled(this.sound); if (this.sound) this.prepareAudio(); this.render(); });
     this.$('.td-full').addEventListener('click', () => { void this.toggleFullscreen(); });
     root.querySelectorAll('input').forEach(el => el.addEventListener('input', () => {
       const f = this.fake[Number(el.dataset.player)], value = Number(el.value);
@@ -61,7 +64,9 @@ export class TensionDuel {
     }));
     const movePointer = e => {
       if (this.mode !== 'demo' || !this.pointers?.has(e.pointerId)) return;
-      const r = this.stage.getBoundingClientRect(), f = this.fake[this.pointers.get(e.pointerId)];
+      const r = this.stage.getBoundingClientRect(), player = this.pointers.get(e.pointerId), f = this.fake[player];
+      const span = Math.abs(Math.sin(f.angle) * f.distance / 2);
+      f.x = clamp((e.clientX - r.left) / r.width, player ? .5 + span : .025 + span, player ? .975 - span : .5 - span);
       f.y = clamp((e.clientY - r.top) / r.width, .03, this.height - .03);
       this.syncControls();
     };
@@ -84,7 +89,7 @@ export class TensionDuel {
     window.addEventListener('keydown', this.onKey);
     this.onVisibility = () => {
       this.last = null; this.advancing = false; this.pointers.clear();
-      if (document.hidden) void this.releaseWakeLock();
+      if (document.hidden) { this.audio.setMusic(false); this.audio.stopEffects(); void this.releaseWakeLock(); }
       else if (this.phase === 'playing') void this.keepAwake();
     };
     document.addEventListener('visibilitychange', this.onVisibility);
@@ -106,10 +111,7 @@ export class TensionDuel {
     this.advancing = false; this.trail = [];
     if (document.fullscreenElement === this.$('.td-shell')) document.exitFullscreen().catch(() => {});
   }
-  prepareAudio() {
-    if (!this.audio) { const Audio = window.AudioContext || window.webkitAudioContext; if (Audio) this.audio = new Audio(); }
-    this.audio?.resume().catch(() => {});
-  }
+  prepareAudio() { void this.audio.unlock(); }
   async toggleFullscreen() {
     const shell = this.$('.td-shell');
     try {
@@ -139,14 +141,7 @@ export class TensionDuel {
     this.wakeLock = null;
     if (sentinel && !sentinel.released) { try { await sentinel.release(); } catch { /* The browser may already have released it. */ } }
   }
-  tone(type, state = 1) {
-    if (!this.sound || !this.audio || this.audio.state !== 'running') return;
-    const osc = this.audio.createOscillator(), gain = this.audio.createGain(), now = this.audio.currentTime;
-    osc.type = 'sine'; osc.frequency.setValueAtTime(type === 'hit' ? [180, 300, 450, 510][state] : type === 'point' ? 700 : 540, now);
-    osc.frequency.exponentialRampToValueAtTime(type === 'hit' ? 90 : 260, now + .15);
-    gain.gain.setValueAtTime(.0001, now); gain.gain.exponentialRampToValueAtTime(.08, now + .008); gain.gain.exponentialRampToValueAtTime(.0001, now + .22);
-    osc.connect(gain).connect(this.audio.destination); osc.start(); osc.stop(now + .23);
-  }
+  tone(type, state = 1) { this.audio.effect(type, state); }
   async start() {
     this.prepareAudio();
     if (this.phase === 'paused') return this.resume();
@@ -171,12 +166,12 @@ export class TensionDuel {
   }
   startDemo() {
     this.prepareAudio(); this.generation++; clearTimeout(this.timeout); this.input.stop(); this.mode = 'demo';
-    this.fake.forEach(f => { f.y = this.height / 2; f.angle = 0; f.distance = .105; }); this.syncControls(); this.ready();
+    this.fake.forEach((f, p) => { f.x = p ? .82 : .18; f.y = this.height / 2; f.angle = 0; f.distance = .105; }); this.syncControls(); this.ready();
   }
-  ready() { this.phase = 'ready'; this.countdown = CONFIG.readyTime; this.status = ''; this.match = createMatch(this.height); this.impacts = [null, null]; this.last = null; this.advancing = false; this.trail = []; this.pointAt = -Infinity; this.render(); }
+  ready() { this.audio.reset(); this.phase = 'ready'; this.countdown = CONFIG.readyTime; this.status = ''; this.match = createMatch(this.height); this.impacts = [null, null]; this.wallImpact = null; this.last = null; this.advancing = false; this.trail = []; this.pointAt = -Infinity; this.render(); }
   pause() {
     if (this.phase !== 'playing') return;
-    this.phase = 'paused'; this.advancing = false; void this.releaseWakeLock(); this.pointers.clear(); this.render();
+    this.phase = 'paused'; this.advancing = false; this.audio.setMusic(false); this.audio.stopEffects(); void this.releaseWakeLock(); this.pointers.clear(); this.render();
     this.$('.td-start').focus({ preventScroll: true });
   }
   resume() { this.phase = 'playing'; this.last = null; this.advancing = false; void this.keepAwake(); this.render(); }
@@ -200,13 +195,15 @@ export class TensionDuel {
     const dt = this.last === null ? 0 : Math.max(0, (now - this.last) / 1000); this.last = now;
     this.fitArena();
     if (this.mode === 'demo') {
-      this.nets = this.fake.map(f => { const dx = Math.sin(f.angle) * f.distance / 2, dy = Math.cos(f.angle) * f.distance / 2;
+      this.nets = this.fake.map((f, p) => { const dx = Math.sin(f.angle) * f.distance / 2, dy = Math.cos(f.angle) * f.distance / 2;
+        f.x = clamp(f.x, p ? .5 + Math.abs(dx) : .025 + Math.abs(dx), p ? .975 - Math.abs(dx) : .5 - Math.abs(dx));
         f.y = clamp(f.y, Math.abs(dy) + .006, this.height - Math.abs(dy) - .006);
         return { ...geometry({ x:f.x-dx, y:f.y-dy }, { x:f.x+dx, y:f.y+dy }), active:true, opacity:1, seenAt:now }; });
     } else this.nets = this.nets.map(n => !n ? null : { ...n, active: now - n.seenAt <= CONFIG.holdMs, opacity: clamp(1 - (now - n.seenAt - CONFIG.holdMs) / CONFIG.fadeMs, 0, 1) });
     const usable = this.nets.every(n => usableNet(n, this.height));
+    const crossed = this.nets.map((n, p) => usableNet(n, this.height) && !netInOwnHalf(n, p));
     if (this.phase === 'ready') {
-      const placed = usable && this.nets[0].center.x < .5 && this.nets[1].center.x >= .5;
+      const placed = usable && !crossed.some(Boolean);
       if (placed && !document.hidden) this.countdown -= Math.min(dt, .1);
       else this.countdown = CONFIG.readyTime;
       if (this.countdown <= 0) { this.phase = 'playing'; void this.keepAwake(); this.tone('start'); this.render(); }
@@ -220,21 +217,26 @@ export class TensionDuel {
         for (const event of stepMatch(this.match, this.nets, this.advancing ? Math.min(dt, .1) : 0)) {
           this.tone(event.type, event.state);
           if (event.type === 'hit') this.impacts[event.player] = { at:now, point:event.point, state:event.state };
+          if (event.type === 'wall') this.wallImpact = { at:now, point:event.point };
           if (event.type === 'point') { this.pointAt = now; this.pointPlayer = event.player; this.trail = []; }
           if (event.type === 'end') { this.phase = 'result'; void this.releaseWakeLock(); this.render(); this.$('.td-start').focus({ preventScroll: true }); }
         }
         this.advancing = this.phase === 'playing';
-        if (this.phase === 'playing') this.setHint(this.match.serve > 0 ? `${this.t.serveTo}${this.match.serveDirection < 0 ? 1 : 2}` : '');
+        if (this.phase === 'playing') this.setHint(crossed.some(Boolean) ? crossed.flatMap((yes, p) => yes ? [this.t.returnSide[p]] : []).join(' · ') : this.match.serve > 0 ? `${this.t.serveTo}${this.match.serveDirection < 0 ? 1 : 2}` : '');
       } else this.setHint(document.hidden ? this.t.hidden : this.t.lost);
       if (!usable || document.hidden) this.advancing = false;
     }
+    this.audio.setMusic(this.phase === 'playing' && usable && !document.hidden);
     this.$('.td-score strong').textContent = this.match.score.join(' : ');
     this.$('.td-timer').textContent = `${Math.ceil(this.match.remaining)}s`;
     this.$('.td-rally').textContent = `${this.t.rallyLive} ${this.match.rally}`;
     this.$('.td-point').hidden = this.phase !== 'playing' || now - this.pointAt > 650;
     this.$('.td-point').textContent = `P${(this.pointPlayer ?? 0) + 1} +1`;
     this.$('.td-point').dataset.player = String(this.pointPlayer ?? 0);
-    for (let p = 0; p < 2; p++) this.$(`.td-p${p+1} small`).textContent = usableNet(this.nets[p], this.height) ? this.t.ready : this.t.missing[p];
+    for (let p = 0; p < 2; p++) {
+      this.$(`.td-p${p+1} small`).textContent = crossed[p] ? this.t.crossed[p] : usableNet(this.nets[p], this.height) ? this.t.ready : this.t.missing[p];
+      this.$(`.td-p${p+1}`).dataset.crossed = String(crossed[p]);
+    }
     this.draw(now); this.raf = requestAnimationFrame(this.tick);
   };
   setHint(text) { const el = this.$('.td-hint'); if (el.textContent !== text) el.textContent = text; el.hidden = !text; }
@@ -242,6 +244,7 @@ export class TensionDuel {
     const t = this.t, result = this.phase === 'result', paused = this.phase === 'paused', intro = this.phase === 'intro' || this.phase === 'loading';
     this.stage.setAttribute('aria-label', t.arena); this.stage.dataset.phase = this.phase; this.stage.dataset.mode = this.mode;
     this.$('.td-artwork').hidden = !intro && !result;
+    this.$('.td-court').hidden = !['ready', 'playing', 'paused'].includes(this.phase);
     this.video.hidden = this.mode !== 'camera' || !this.input.running;
     this.$('.td-card').hidden = !intro && !result && !paused;
     this.$('.td-card-label').textContent = result ? this.mode === 'demo' ? t.resultDemo : t.resultCamera : paused ? t.pause : t.playerCount;
@@ -258,11 +261,12 @@ export class TensionDuel {
     this.$('.td-mode').textContent = this.mode === 'demo' ? t.mode : t.cameraMode;
     this.$('.td-mode').dataset.mode = this.mode;
     this.$('.td-length').textContent = t.matchLength;
-    this.$('.td-tip').textContent = t.returnTip;
+    this.$('.td-tip').textContent = t.ruleTip;
     this.$('.td-ready-panel').hidden = this.phase !== 'ready';
     this.$('.td-controls').hidden = this.mode !== 'demo' || intro;
     this.$('.td-how summary').textContent = t.how; this.$('.td-guide').textContent = t.guide;
     this.$('.td-privacy').textContent = t.privacy;
+    this.$('.td-credits span').textContent = t.credits;
     this.$('.td-demo-guide').hidden = this.$('.td-keys').hidden = this.mode !== 'demo';
     this.$('.td-demo-guide').textContent = t.demoGuide; this.$('.td-keys').textContent = t.keys;
     this.$('.td-sound').textContent = `${t.sound} ${this.sound ? 'ON' : 'OFF'}`; this.$('.td-sound').setAttribute('aria-pressed', String(this.sound));
@@ -281,18 +285,39 @@ export class TensionDuel {
     const c = this.ctx; c.setTransform(width, 0, 0, width, 0, 0); c.clearRect(0, 0, 1, this.height);
     const colors = ['#7be4ec','#ffbe86'];
     if (!['ready', 'playing', 'paused'].includes(this.phase)) return;
-    // A quiet center line and colored goal edges make direction legible without
-    // covering the camera. All coordinates share the fingertip projection.
-    c.save(); c.strokeStyle = '#ffffff20'; c.lineWidth = .002; c.setLineDash([.008, .014]);
-    c.beginPath(); c.moveTo(.5, .025); c.lineTo(.5, this.height - .025); c.stroke(); c.setLineDash([]);
+    // Court lines use the same projection as the camera fingertips. Only the
+    // top/bottom are solid rails; the full side edges are open scoring goals.
+    const crossed = this.nets.map((n, p) => usableNet(n, this.height) && !netInOwnHalf(n, p));
+    c.save();
+    for (let p = 0; p < 2; p++) { c.fillStyle = colors[p]; c.globalAlpha = .035; c.fillRect(p * .5, 0, .5, this.height); }
+    c.globalAlpha = 1; c.strokeStyle = '#e3f1fa'; c.lineWidth = .008;
+    for (const y of [.004, this.height - .004]) { c.beginPath(); c.moveTo(0, y); c.lineTo(1, y); c.stroke(); }
+    c.strokeStyle = '#d2e5ee40'; c.lineWidth = .002;
+    for (const y of [.014, this.height - .014]) { c.beginPath(); c.moveTo(0, y); c.lineTo(1, y); c.stroke(); }
+    c.strokeStyle = crossed.some(Boolean) ? '#ff8f8f' : '#e5f0ee90'; c.lineWidth = .003; c.setLineDash([.009, .009]);
+    c.beginPath(); c.moveTo(.5, .015); c.lineTo(.5, this.height - .015); c.stroke(); c.setLineDash([]);
+    c.globalAlpha = .4; c.lineWidth = .002;
+    c.beginPath(); c.arc(.5, this.height / 2, .065, 0, Math.PI * 2); c.stroke();
     for (let p = 0; p < 2; p++) {
-      c.strokeStyle = colors[p]; c.globalAlpha = .35; c.lineWidth = .005;
-      c.beginPath(); c.moveTo(p ? .998 : .002, .035); c.lineTo(p ? .998 : .002, this.height - .035); c.stroke();
+      const scoredHere = this.pointPlayer === 1 - p && now - this.pointAt < 650;
+      c.fillStyle = colors[p]; c.globalAlpha = scoredHere ? .3 : .09;
+      c.fillRect(p ? .976 : 0, .015, .024, this.height - .03);
+      c.strokeStyle = colors[p]; c.globalAlpha = scoredHere ? 1 : .65; c.lineWidth = .003; c.setLineDash([.005, .009]);
+      c.beginPath(); c.moveTo(p ? .994 : .006, .018); c.lineTo(p ? .994 : .006, this.height - .018); c.stroke(); c.setLineDash([]);
+      c.save(); c.globalAlpha = .85; c.translate(p ? .976 : .024, this.height / 2); c.rotate(p ? Math.PI / 2 : -Math.PI / 2);
+      c.font = `700 ${Math.max(.013, 10 / r.width)}px system-ui`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(`${this.t.goal} · P${2 - p} +1`, 0, 0); c.restore();
+    }
+    if (this.wallImpact && now - this.wallImpact.at < 260) {
+      const age = (now - this.wallImpact.at) / 260;
+      c.globalAlpha = 1 - age; c.strokeStyle = '#fff9ed'; c.lineWidth = .003;
+      c.beginPath(); c.arc(this.wallImpact.point.x, this.wallImpact.point.y, .014 + age * .04, 0, Math.PI * 2); c.stroke();
     }
     c.restore();
     for (let p=0;p<2;p++) {
       const n = this.nets[p]; if (!n?.opacity) continue;
-      c.save(); c.globalAlpha = n.opacity; c.strokeStyle = colors[p]; c.fillStyle = colors[p]; c.shadowColor = colors[p]; c.shadowBlur = 12;
+      c.save(); c.globalAlpha = n.opacity * (crossed[p] ? .35 : 1); c.strokeStyle = crossed[p] ? '#ff8f8f' : colors[p]; c.fillStyle = c.strokeStyle; c.shadowColor = c.strokeStyle; c.shadowBlur = crossed[p] ? 0 : 12;
+      if (crossed[p]) c.setLineDash([.008, .008]);
       const impact = this.impacts[p], age = impact ? (now-impact.at)/1000 : 1;
       const snap = age < .32 ? Math.sin(age*34)*Math.exp(-age*10)*.045 : 0;
       const sag = n.state === 0 ? .025 : 0;
@@ -302,9 +327,9 @@ export class TensionDuel {
         c.beginPath(); c.moveTo(n.thumb.x,n.thumb.y); c.quadraticCurveTo(mid.x+strand*.004,mid.y+strand*.004,n.index.x,n.index.y); c.stroke();
       }
       for (const point of [n.thumb,n.index]) { c.beginPath(); c.arc(point.x,point.y,.007,0,Math.PI*2); c.fill(); }
-      c.shadowBlur=0; c.font=`600 ${Math.max(.018, 12 / r.width)}px system-ui`; c.textAlign='center';
-      c.fillText(`P${p + 1} · ${this.t.states[n.state]}`,clamp(n.center.x, .1, .9),clamp(n.center.y-n.distance/2-.024, .13, this.height - .02));
-      if (age < .25) { c.globalAlpha = 1-age/.25; c.lineWidth=.003; c.beginPath(); c.arc(impact.point.x,impact.point.y,.015+age*.15,0,Math.PI*2); c.stroke(); }
+      c.setLineDash([]); c.globalAlpha = n.opacity; c.shadowBlur=0; c.font=`600 ${Math.max(.018, 12 / r.width)}px system-ui`; c.textAlign='center';
+      c.fillText(crossed[p] ? this.t.returnSide[p] : `P${p + 1} · ${this.t.states[n.state]}`,clamp(n.center.x, .15, .85),clamp(n.center.y-n.distance/2-.024, .13, this.height - .02));
+      if (age < .25 && !crossed[p]) { c.globalAlpha = 1-age/.25; c.lineWidth=.003; c.beginPath(); c.arc(impact.point.x,impact.point.y,.015+age*.15,0,Math.PI*2); c.stroke(); }
       c.restore();
     }
     if (['ready','playing','paused'].includes(this.phase)) {
@@ -314,8 +339,10 @@ export class TensionDuel {
       }
       c.save(); c.fillStyle='#fff9ed';
       this.trail.forEach((point, i) => { c.globalAlpha = (i + 1) / this.trail.length * .2; c.beginPath(); c.arc(point.x, point.y, CONFIG.radius * .65, 0, Math.PI * 2); c.fill(); });
-      c.restore(); c.fillStyle='#fff9ed'; c.shadowColor='#fff9ed'; c.shadowBlur=14;
+      c.restore(); c.save(); c.fillStyle='#fff9ed'; c.shadowColor='#fff9ed'; c.shadowBlur=12;
       c.beginPath(); c.arc(b.x,b.y,CONFIG.radius,0,Math.PI*2); c.fill(); c.shadowBlur=0;
+      c.fillStyle='#172630'; c.beginPath(); c.arc(b.x,b.y,CONFIG.radius * .62,0,Math.PI*2); c.fill();
+      c.fillStyle='#fff9ed'; c.globalAlpha = .7; c.beginPath(); c.arc(b.x-.003,b.y-.003,.0025,0,Math.PI*2); c.fill(); c.restore();
     }
   }
 }

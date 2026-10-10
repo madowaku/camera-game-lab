@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project, resizeMatch, usableNet } from '../src/tension/rules.js';
+import { CONFIG, tension, geometry, closest, reflection, createMatch, stepMatch, assignHands, updateNets, project, resizeMatch, usableNet, netInOwnHalf } from '../src/tension/rules.js';
 const net = (x, y=.28, distance=.105, angle=0) => ({ ...geometry({ x:x-Math.sin(angle)*distance/2, y:y-Math.cos(angle)*distance/2 }, { x:x+Math.sin(angle)*distance/2, y:y+Math.cos(angle)*distance/2 }), active:true });
 test('tension boundaries include exact thresholds without pixel dependence', () => {
   assert.deepEqual([0,.069,.07,.129,.13,.179,.18,.3].map(tension),[0,0,1,1,2,2,3,3]);
@@ -32,6 +32,36 @@ test('high speed movement cannot tunnel through a net and only reflects once', (
 test('inactive nets do not collide', () => {
   const m=createMatch(); m.ball={x:.23,y:.28,vx:-.34,vy:0};
   assert.equal(stepMatch(m,[{...net(.2),active:false},null],.2).filter(e=>e.type==='hit').length,0);
+});
+for (const wall of ['top', 'bottom']) test(`${wall} wall reflects the puck, preserves speed and emits one impact without awarding points`, () => {
+  const m = createMatch();
+  m.ball = { x: .5, y: wall === 'top' ? CONFIG.radius + .001 : m.height - CONFIG.radius - .001, vx: .1, vy: wall === 'top' ? -.3 : .3 };
+  const speed = Math.hypot(m.ball.vx, m.ball.vy);
+  const events = stepMatch(m, [null, null], .02);
+  assert.equal(events.filter(e => e.type === 'wall').length, 1);
+  assert.equal(events[0].wall, wall);
+  assert.equal(Math.sign(m.ball.vy), wall === 'top' ? 1 : -1);
+  assert.ok(Math.abs(Math.hypot(m.ball.vx, m.ball.vy) - speed) < 1e-10);
+  assert.deepEqual(m.score, [0, 0]);
+});
+test('center line checks both net endpoints and permits touching the line', () => {
+  assert.equal(netInOwnHalf(net(.5), 0), true);
+  assert.equal(netInOwnHalf(net(.5), 1), true);
+  const straddling = net(.49, .28, .15, .5);
+  assert.ok(straddling.center.x < .5);
+  assert.equal(netInOwnHalf(straddling, 0), false);
+  assert.equal(netInOwnHalf(net(.2), 1), false);
+  assert.equal(netInOwnHalf(null, 0), false);
+});
+for (const player of [0, 1]) test(`P${player + 1} cannot hit in the opponent half; returning to their own half immediately restores collisions`, () => {
+  const m = createMatch(), x = player ? .2 : .8, vx = player ? .34 : -.34;
+  const nets = [null, null]; nets[player] = net(x);
+  m.ball = { x: x - Math.sign(vx) * .03, y: .28, vx, vy: 0 };
+  assert.equal(stepMatch(m, nets, .1).filter(e => e.type === 'hit').length, 0);
+  assert.equal(m.hits, 0); assert.ok(m.remaining < 15);
+  const home = player ? .8 : .2;
+  nets[player] = net(home); m.ball = { x: home - Math.sign(vx) * .03, y: .28, vx, vy: 0 };
+  assert.equal(stepMatch(m, nets, .1).filter(e => e.type === 'hit').length, 1);
 });
 for (const side of ['left','right']) test(`${side} exit awards opponent one point and serves toward conceding player`, () => {
   const m=createMatch(); m.ball={x:side==='left'?-.02:1.02,y:.28,vx:side==='left'?-.34:.34,vy:0};

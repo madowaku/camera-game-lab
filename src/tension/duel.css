@@ -4,7 +4,9 @@
 .td-shell { --td-p1: #7be4ec; --td-p2: #ffbe86; --td-ink: #fff9ed; --td-surface: #101c25; }
 .td-stage { position: relative; width: min(100%, calc(clamp(280px, 48svh, 500px) * 16 / 9)); margin: auto; aspect-ratio: 16 / 9; background: radial-gradient(ellipse at 15% 50%, #15333c, transparent 55%), radial-gradient(ellipse at 85% 50%, #382f29, transparent 55%), var(--td-surface); border: 1px solid #455760; border-radius: 24px; overflow: hidden; isolation: isolate; box-shadow: 0 16px 48px #0005; }
 .td-stage[data-mode="demo"] { touch-action: none; }
-.td-artwork, .td-video, .td-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.td-artwork, .td-court, .td-video, .td-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.td-court { object-fit: cover; opacity: .9; }
+.td-stage[data-mode="camera"] .td-court { opacity: .45; }
 .td-artwork { object-fit: cover; }
 .td-video { object-fit: cover; transform: scaleX(-1); opacity: .72; }
 .td-canvas { pointer-events: none; }
@@ -14,6 +16,7 @@
 .td-p1 { color: var(--td-p1); }
 .td-p2 { color: var(--td-p2); text-align: right; }
 .td-player small { color: var(--td-ink); font-size: 12px; font-weight: 500; }
+.td-player[data-crossed="true"] small { color: #ffaaaa; font-weight: 750; }
 .td-score { display: flex; flex-direction: column; align-items: center; background: #101c25e8; border: 1px solid #52616a; border-radius: 14px; padding: 6px 22px; color: var(--td-ink); font-variant-numeric: tabular-nums; }
 .td-score strong { font-size: 28px; line-height: 1.1; letter-spacing: .08em; }
 .td-timer { font-size: 13px; }
@@ -54,6 +57,8 @@
 .td-controls fieldset + fieldset input { accent-color: var(--td-p2); }
 .td-how { line-height: 1.8; font-size: 16px; max-width: 850px; margin-inline: auto; }
 .td-options { display: flex; flex-wrap: wrap; gap: 10px; }
+.td-credits { color: #b2c3cc; font-size: 12px; overflow-wrap: anywhere; }
+.td-credits a { color: var(--td-p1); text-decoration: underline; text-underline-offset: 3px; }
 .td-shell button:not(:disabled), .td-shell summary { cursor: pointer; }
 .td-shell button:not(:disabled):hover { filter: brightness(1.15); }
 .td-shell button:not(:disabled):active { transform: translateY(1px); }

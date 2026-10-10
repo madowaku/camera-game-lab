@@ -45,6 +45,12 @@ export function usableNet(net, height) {
     [net.thumb, net.index].every(p => Number.isFinite(p.x) && Number.isFinite(p.y) &&
       p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= height));
 }
+// The whole fingertip segment must stay in its player's half. Touching the
+// center line is allowed; a single endpoint across it disables that net.
+export function netInOwnHalf(net, player) {
+  return Boolean(net && [net.thumb, net.index].every(p => Number.isFinite(p?.x) &&
+    (player === 0 ? p.x <= .5 : p.x >= .5)));
+}
 export function stepMatch(match, nets, seconds) {
   if (match.phase !== 'playing') return [];
   const events = [];
@@ -60,15 +66,21 @@ export function stepMatch(match, nets, seconds) {
     }
     const ball = match.ball;
     ball.x += ball.vx * dt; ball.y += ball.vy * dt;
-    if (ball.y < CONFIG.radius) { ball.y = CONFIG.radius; ball.vy = Math.abs(ball.vy); }
-    if (ball.y > match.height - CONFIG.radius) { ball.y = match.height - CONFIG.radius; ball.vy = -Math.abs(ball.vy); }
+    if (ball.y < CONFIG.radius) {
+      ball.y = 2 * CONFIG.radius - ball.y; ball.vy = Math.abs(ball.vy);
+      events.push({ type: 'wall', wall: 'top', point: { x: ball.x, y: 0 } });
+    }
+    if (ball.y > match.height - CONFIG.radius) {
+      ball.y = 2 * (match.height - CONFIG.radius) - ball.y; ball.vy = -Math.abs(ball.vy);
+      events.push({ type: 'wall', wall: 'bottom', point: { x: ball.x, y: match.height } });
+    }
     if (match.locked !== null) {
       const net = nets[match.locked];
       if (!net || closest(ball, net.thumb, net.index).distance > CONFIG.radius + CONFIG.margins[net.state] + .025) match.locked = null;
     }
     for (let player = 0; player < 2; player++) {
       const net = nets[player];
-      if (!net?.active || match.locked === player || (player === 0 ? ball.vx >= 0 : ball.vx <= 0)) continue;
+      if (!net?.active || !netInOwnHalf(net, player) || match.locked === player || (player === 0 ? ball.vx >= 0 : ball.vx <= 0)) continue;
       const point = closest(ball, net.thumb, net.index);
       if (point.distance <= CONFIG.radius + CONFIG.margins[net.state]) {
         Object.assign(ball, reflection(net, player, point));

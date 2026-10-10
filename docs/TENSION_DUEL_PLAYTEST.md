@@ -15,6 +15,10 @@ Two people, one front camera, landscape phone, one hand per person. Open the HTT
 - Pause freezes ball, score and clock. Resume and switching JA/EN preserve the round.
 - Rotate between portrait and landscape during a round: the ball stays inside the new arena, camera nets reattach to fingertips and no points are awarded during recovery.
 - Two hands on the same side do not start the countdown. A fingertip outside the preview shows the readiness hint instead of starting play.
+- Keep both endpoints in the player's half to start. Touching the center line is allowed; straddling it is not.
+- During play, cross the center briefly: the affected net dims and shows a return arrow, cannot hit, and the clock continues. Bring it back: the warning clears and returns work again without swapping P1/P2. Missing hands still pause the match.
+- Top/bottom bounces look and sound like walls. Left/right edges are clearly open goals, with a point awarded to the opposite player and a brief goal flash.
+- BGM/SE start only after a button press. Confirm volume and loop seam on physical iPhone/Android; mute silences both, tracking loss/pause/backgrounding stops the BGM, and resume continues it. Exit stops all audio.
 - Android performance and thermal behavior remain usable across five rounds.
 - Screen stays awake during a round where the browser supports Screen Wake Lock, then releases on pause/result/exit.
 - Landscape view keeps the playfield and pause/exit controls reachable without sideways page scrolling.

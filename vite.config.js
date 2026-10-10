@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["icon.svg", "artwork/tension-duel-intro.webp"],
+      includeAssets: ["icon.svg", "artwork/tension-duel-*.webp", "audio/tension-duel/*.mp3"],
       manifest: {
         name: "Camera Game Lab",
         short_name: "Cam Game Lab",
