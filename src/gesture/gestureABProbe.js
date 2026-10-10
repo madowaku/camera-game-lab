@@ -26,7 +26,7 @@ export class GestureABProbe {
     this.lastAtMs = null;
     this.lastA = null;
     this.lastBEvents = [];
-    this.latest = null;
+    this.recentBEvents = [];
     return this.getSnapshot();
   }
   update(result, atMs, videoAspect = 1) {
@@ -40,6 +40,7 @@ export class GestureABProbe {
     const observations = observationsFromMediaPipe(result, atMs, { videoAspect });
     this.engine.update(observations, atMs, { videoAspect });
     this.lastBEvents = this.engine.drainEvents();
+    this.recordEvents();
     this.lastA = {
       GRIP: {
         present: !!aGrip.present,
@@ -63,7 +64,7 @@ export class GestureABProbe {
     const b = this.engine.getSnapshot().tracks.find(t => t.status === 'TRACKING' && t.fresh);
     for (const name of ['GRIP', 'PINCH']) {
       // This is disagreement between implementations, NOT a false-positive rate.
-      if (this.lastA[name].active !== !!b?.gestures[name]?.active)
+      if (this.lastA[name].present && b?.fresh && this.lastA[name].active !== !!b.gestures[name]?.active)
         this.disagreements[name]++;
     }
     return this.getSnapshot();
@@ -72,7 +73,12 @@ export class GestureABProbe {
     // The legacy detector has no clock-only call. Do not invent legacy events.
     this.engine.advance(atMs);
     this.lastBEvents = this.engine.drainEvents();
+    this.recordEvents();
     return this.getSnapshot();
+  }
+  recordEvents() {
+    this.recentBEvents.push(...this.lastBEvents.map(e => ({ ...e })));
+    if (this.recentBEvents.length > 8) this.recentBEvents.splice(0, this.recentBEvents.length - 8);
   }
   getSnapshot() {
     const now = this.engine.getSnapshot();
@@ -96,6 +102,7 @@ export class GestureABProbe {
           metric: track?.fresh ? (track?.gestures[name]?.metric ?? null) : null,
         }])),
         events: this.lastBEvents.map(e => ({ ...e })),
+        recentEvents: this.recentBEvents.map(e => ({ ...e })), 
       },
     };
   }
@@ -103,7 +110,7 @@ export class GestureABProbe {
     this.engine.dispose();
     this.lastA = null;
     this.lastBEvents = [];
-    this.latest = null;
+    this.recentBEvents = [];
   }
 }
 export function createGestureABProbe(options) { return new GestureABProbe(options); }
