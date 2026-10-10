@@ -1,0 +1,28 @@
+name: Gesture Layer P0
+on:
+  pull_request:
+    paths:
+      - 'src/gesture/**'
+      - 'test/gestureLayer.test.js'
+      - 'docs/gesture-layer-p0.md'
+      - '.github/workflows/gesture-layer-p0.yml'
+  push:
+    branches: [feat/camera-gesture-layer-p0]
+    paths:
+      - 'src/gesture/**'
+      - 'test/gestureLayer.test.js'
+      - '.github/workflows/gesture-layer-p0.yml'
+permissions:
+  contents: read
+jobs:
+  gesture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
