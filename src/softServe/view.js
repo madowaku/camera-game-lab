@@ -1,4 +1,5 @@
 import { SoftServeInput } from "../input/softServeInput.js";
+import { NozzleGuide } from "./nozzleGuide.js";
 import { projectMouth } from "../input/mouthPosition.js";
 import { SoftServeGame, clamp, heightLabel } from "../games/softServe.js";
 import { drawSoftServe } from "./renderer.js";
@@ -28,6 +29,9 @@ class SoftServeView {
     this.$ = s => root.querySelector(s);
     this.nodes = Object.fromEntries([...root.querySelectorAll("[class]")].filter(e => e.classList.length === 1).map(e => [e.className.replace("ss-", ""), e]));
     this.video = this.$("video"); this.canvas = this.$("canvas");
+    this.feelVariant = new URLSearchParams(window.location.search).get("debug") === "1" &&
+      new URLSearchParams(window.location.search).get("feel") === "B" ? "B" : "A";
+    this.nozzleGuide = new NozzleGuide();
     this.creatorCanvas = this.$(".creator-scene"); this.creatorConfig = { creator: false, faceMode: "ORIGINAL" };
     this.input = new SoftServeInput(this.video, { onFrame: frame => {
       if (this.active && this.source === "camera") { this.raw = frame; this.lastInput = performance.now(); }
@@ -103,6 +107,7 @@ class SoftServeView {
   setup(source) {
     this.releaseInputs(); this.active = true; this.source = source; this.phase = "loading"; this.status = "LOADING_MODEL";
     this.game = new SoftServeGame(); this.game.reset(source); this.raw = null; this.lastInput = -Infinity;
+    this.nozzleGuide.reset();
     this.cursor = { x: .5, y: .72 }; this.pendingBite = false; this.pointer = null; this.userPaused = false; this.backgroundPaused = document.hidden; this.lastEffect = null; this.lastPour = 0;
     this.animation = new SoftServeAnimation({ finishMs: this.creatorConfig.creator ? 3100 : 750 }); this.receiptSaved = false;
     this.creatorResult = null; this.oversizeHighlight = false; this.finalApproach = false; this.lastHighlight = null;
@@ -183,6 +188,7 @@ class SoftServeView {
   releaseInputs() {
     ++this.generation; cancelAnimationFrame(this.raf); clearTimeout(this.resultTimer); this.resultTimer = null; this.raf = null; this.abort?.abort(); this.keys.clear();
     this.input.stop(); this.audio.stop(); this.raw = null; this.currentSample = null; this.pendingBite = false;
+    this.nozzleGuide.reset();
     this.creator?.dispose(); this.creator = null; this.creatorCanvas.hidden = true;
     this.creatorResult = null;
   }
@@ -196,7 +202,11 @@ class SoftServeView {
     this.$(".ss-creator-face").hidden=!this.creator||!!r;
     this.$(".ss-creator-face select").value=this.creatorConfig.faceMode;
     this.$(".ss-creator-face select").title=this.locale==="ja"?"変更後の映像に反映されます":"Applies to newly captured frames";
-    text("source", t[this.source]); text("pause", t[this.userPaused ? "resume" : "pause"]); n.pause.setAttribute("aria-pressed", String(!!this.userPaused)); n.pause.disabled = ["idle", "loading", "error", "result"].includes(this.phase);
+    const guideMode = this.feelVariant === "B" && this.source === "camera";
+    const visualGuide = guideMode ? this.nozzleGuide.update(this.currentSample?.hand, {
+      phase: g.phase, paused: g.paused || this.userPaused || this.backgroundPaused,
+    }) : null;
+    text("source", t[this.source] + (guideMode ? (this.locale === "ja" ? " · 誘導B（表示のみ）" : " · GUIDE B (VISUAL)") : "")); text("pause", t[this.userPaused ? "resume" : "pause"]); n.pause.setAttribute("aria-pressed", String(!!this.userPaused)); n.pause.disabled = ["idle", "loading", "error", "result"].includes(this.phase);
     text("sound", t[this.audio.enabled ? "soundOn" : "soundOff"]); n.sound.setAttribute("aria-pressed", String(this.audio.enabled)); n.sound.disabled = !!r;
     const steps = t.steps.map((label, i) => `<li class="${(g.phase === "eat" ? i === 2 : g.amount >= 3 ? i === 1 : i === 0) ? "is-current" : ""}"><b>${i + 1}</b>${label}</li>`).join("");
     if (steps !== this.lastSteps) { n.steps.innerHTML = steps; this.lastSteps = steps; }
@@ -218,7 +228,7 @@ class SoftServeView {
     n.bite.hidden = this.source !== "demo" || this.phase !== "eat"; n.bite.disabled = g.paused; text("bite", t.bite);
     n.recovery.hidden = this.phase !== "error"; text("retry", t.retry); text("demo", t.tryDemo);
     for (const key of ["hud", "meters", "caption", "hint", "steps", "actions"]) n[key].hidden = !!r;
-    drawSoftServe(this.canvas, g, { demo: this.source === "demo", mouth: this.currentSample?.mouth, open: this.currentSample?.open, locale: this.locale, reducedMotion: this.reducedMotion, animation: this.animation, quietReaction:!!this.creator });
+    drawSoftServe(this.canvas, g, { demo: this.source === "demo", mouth: this.currentSample?.mouth, open: this.currentSample?.open, locale: this.locale, reducedMotion: this.reducedMotion, animation: this.animation, quietReaction:!!this.creator, visualGuide });
     if(this.creator)this.creator.hud={swirls:Math.floor(g.maxAmount)};
     this.creator?.compose(this.video,this.canvas,{time:this.animation.time,face:this.currentSample?.face,open:this.currentSample?.open,biteAge:this.animation.biteAge,source:this.source});
   }
