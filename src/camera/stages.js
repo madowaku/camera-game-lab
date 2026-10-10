@@ -18,13 +18,13 @@ const chapterStage = (title, hint, platforms, options = {}) => ({ title, hint,
 stages.push(
   chapterStage('FOCUS', 'focus', [floor(0, 1000, 430), ruled('PLATFORM_06_A', 430, 250, 'FOCUS_HOLD', { centerHold: true, holdRadius: 96 }), floor(680, 1000, 650)], { tutorialGate: true }),
   chapterStage('AFTERIMAGE', 'memory', [floor(0, 1000, 430), ruled('PLATFORM_07_A', 430, 260, 'AFTERIMAGE', { memoryMs: 2500 }), ruled('PLATFORM_07_EXIT', 980, 620, 'VISIBLE', { anchor: { x: 1510, y: 1000 } })], { tutorialGate: true }),
-  chapterStage('OUT OF FRAME', 'exclude', [floor(0, 1000, 430), ruled('BRIDGE_08', 430, 350, 'EXCLUDE', { blocker: { x: 260, y: 610, width: 0 } }), floor(780, 1000, 650)], { tutorialGate: true }),
+  chapterStage('OUT OF FRAME', 'exclude', [floor(0, 1000, 430), ruled('BRIDGE_08', 430, 350, 'EXCLUDE', { blocker: { x: 120, y: 610, width: 0 } }), floor(780, 1000, 650)], { tutorialGate: true }),
   chapterStage('TWO AT ONCE', 'linked', [floor(0, 1000, 430), ruled('BRIDGE_09', 430, 400, 'LINKED', { linkedGroup: 'A' }), floor(830, 1000, 550)], {
     anchors: [{ id: 'A1', linkedGroup: 'A', x: 300, y: 610, width: 0 }, { id: 'A2', linkedGroup: 'A', x: 1000, y: 610, width: 0 }],
   }),
   chapterStage('FRAME / UNFRAME', null, [floor(0, 1000, 430), ruled('A', 430, 220, 'FOCUS_HOLD', { memoryMs: 1500 }),
     ruled('MEMORY', 650, 220, 'AFTERIMAGE'), ruled('BRIDGE', 870, 300, 'LINKED', { linkedGroup: 'final' }),
-    ruled('D', 1170, 100, 'EXCLUDE', { y: 1300, blocker: { x: 710, y: 610, width: 0 } }), floor(1270, 1300, 550)], {
+    ruled('D', 1170, 100, 'EXCLUDE', { y: 1300, blocker: { x: 650, y: 610, width: 0 } }), floor(1270, 1300, 550)], {
     anchors: [{ id: 'B', linkedGroup: 'final', x: 710, y: 610, width: 0 }, { id: 'C', linkedGroup: 'final', x: 1410, y: 610, width: 0 }],
   }),
 );
