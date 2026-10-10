@@ -25,3 +25,5 @@
 .tt-framing-hud .tt-framing-state{margin-top:auto;margin-bottom:10px;background:#f16b39ef;color:#182f2e;text-shadow:none}
 .tt-framing-hud .tt-framing-tip{font-size:clamp(11px,2.5vw,13px);line-height:1.5}
 .tt-framing-hud[hidden]{display:none}
+
+.tt-garage .tt-choices button small{display:block;font:800 9px/1.25 Consolas,monospace;letter-spacing:.2px;opacity:.75;margin-top:3px}
