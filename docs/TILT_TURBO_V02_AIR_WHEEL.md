@@ -85,3 +85,37 @@ existing game clock model, not actual road meters.
 - Keep traffic as moving hazards until passing feels fun; only then add
   position ranking, rival personalities, a chasing camera or long championship.
 - Auto Director should prioritize clean passes, close calls and final sprint.
+
+## A401OP first hands-on follow-up (2026-10-10; post-PR preview)
+
+Player feedback from actual phone use: AIR WHEEL feels substantially more like
+steering, but hands needed to be raised near face height, and narrow roads made
+mistakes dominate the fun. Prioritize physical comfort and a playful road first.
+
+Changes in this PR after initial A401OP preview:
+
+- **Camera framing / chest-height steering**: no minimum hand Y coordinate was
+  ever enforced by `wheelRoll`. This is a **field-of-view** issue. During
+  hand-camera calibration, show a large mirrored live view (PLAY and visible
+  CREATOR modes only), count 0/1/2 detected hands, and coach the player to
+  tilt the phone downward / move it back so hands at the solar-plexus height
+  are in frame. Never falsely claim out-of-frame landmarks can be detected.
+  In CREATOR HIDE, never reveal raw camera images even during calibration.
+- **Road width vs collisions**: `roadHalf` is per-course and feeds **both**
+  road polygons and authoritative wall collisions. Original width .83.
+  Starter Toy Town **1.13 (+36%)**, Sunset Coast **1.05 (+27%)**,
+  Neon Express **.88 (+6%)** for an optional tighter challenge.
+- Same 20 second race, steering thresholds, score physics and head fallback;
+  no added inference or new MediaPipe models. Framing view switches off
+  at countdown; the camera itself is used for recognition throughout.
+
+**Important**: the original immutable Cloudflare Version URL starting with
+`8136f641` is a prior commit, so it DOES NOT automatically contain these
+changes. Upload a **new version preview**, verify its commit/version IDs, then
+run real A401OP checks before merging the draft PR or touching production.
+
+Second-playtest checklist: (1) place phone on stand, adjust tilt so both hands
+are visible at mid-chest height, (2) 3 starts without raising arms, (3) compare
+Toy Town wide road versus Neon narrow course for hits/comfort, (4) verify
+HIDE never shows camera pixels, (5) record comfort, false hand-loss, and
+whether moving traffic now feels exciting rather than punitive.
