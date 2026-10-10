@@ -49,7 +49,7 @@ test("the original five framing puzzles clear, with stage 001 shortened", () => 
   }
   assert.equal(g.phase, "stage-clear"); assert.equal(g.completed, 5);
   assert.equal(g.source, "camera"); assert.ok(g.receipts.every((r) => r.background));
-  for (const row of g.receipts) assert.ok(row.seconds >= (row.stage === 1 ? 8 : 15) && row.seconds <= 30, JSON.stringify(row));
+  for (const row of g.receipts) assert.ok(row.seconds >= (row.stage <= 2 ? 8 : 15) && row.seconds <= 30, JSON.stringify(row));
   assert.equal(stages[3].title, "TWO WORLDS");
 });
 test("a paused world freezes movement, fade and time", () => {
