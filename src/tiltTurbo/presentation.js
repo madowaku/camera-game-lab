@@ -11,7 +11,7 @@ export function launchMarkup(game,locale){const t=copy(locale);return `<section 
   <div class="tt-drive" role="group" aria-label="${locale==='ja'?'操作':'Steering'}">
     <button type="button" data-drive-option="hands" aria-pressed="true">👐 ${locale==='ja'?'両手ハンドル':'AIR WHEEL'}</button>
     <button type="button" data-drive-option="head" aria-pressed="false">🙂 ${locale==='ja'?'顔で運転':'HEAD TILT'}</button></div>
-  <details class="tt-garage"><summary>🚗 ${locale==='ja'?'ガレージ / コースと車を選ぶ':'GARAGE / Choose your track & car'}</summary>
+  <details class="tt-garage" role="group" aria-label="${locale==='ja'?'コースと車の選択':'Track and car selection'}"><summary>🚗 ${locale==='ja'?'ガレージ / コースと車を選ぶ':'GARAGE / Choose your track & car'}</summary>
     <p>${locale==='ja'?'コース':'COURSE'}</p><div class="tt-choices" role="group" aria-label="Course">
       ${COURSES.map(c=>`<button type="button" data-course-option="${c.id}" aria-pressed="${c.id==='toy-town'}">${esc(c[locale==='ja'?'ja':'en'])}</button>`).join('')}</div>
     <p>${locale==='ja'?'車':'CAR'}</p><div class="tt-choices" role="group" aria-label="Car">
