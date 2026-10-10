@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { openFrontCamera } from "../src/input/frontCamera.js";
+import { DuelInput } from "../src/tension/handInput.js";
 
 const constraints = { audio: false, video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } };
 const constraintError = (constraint) => Object.assign(new Error("Unsupported constraint"), { name: "OverconstrainedError", constraint });
@@ -9,6 +10,14 @@ function camera(facing, modes = []) {
   const track = { getSettings: () => ({ facingMode: facing }), getCapabilities: () => ({ facingMode: modes }), stop: () => stops++ };
   return { stream: { getVideoTracks: () => [track], getTracks: () => [track] }, stops: () => stops };
 }
+
+test("Tension Duel requests a front-facing 540p stream to keep phone inference lighter", () => {
+  const input = new DuelInput({}, { getBoundingClientRect: () => ({ width: 390, height: 292 }) });
+  assert.deepEqual(input.cameraConstraints, {
+    audio: false,
+    video: { facingMode: { exact: "user" }, width: { ideal: 960 }, height: { ideal: 540 } }
+  });
+});
 
 test("phone camera selection requires the front camera while preserving landscape resolution", async () => {
   const front = camera("user");

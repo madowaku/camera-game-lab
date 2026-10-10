@@ -76,3 +76,20 @@ npm run dev -- --host 127.0.0.1 --port 5186
 
 Open `http://127.0.0.1:5186/#tension-duel`. The current production preview runs
 at `http://127.0.0.1:5187/#tension-duel`. Camera needs localhost or HTTPS.
+
+## Smartphone readiness follow-up — 2026-10-10
+
+- Short landscape layouts use more of the phone display, and hide the experiment
+  header during active play so match controls stay nearby.
+- Fullscreen is now a primary action. Browsers that support it also attempt a
+  landscape orientation lock; unsupported devices keep the normal page flow.
+- Screen Wake Lock keeps the display awake during active rounds when available,
+  and releases on pause, result, app backgrounding, or exit.
+- Camera denial, missing front camera, and a camera busy in another app now get
+  actionable messages. Tension Duel requests 960×540 video to reduce phone
+  decoding and inference load.
+- Automated coverage: 60 unit tests and 30 UI checks, including mobile
+  fullscreen/orientation and wake-lock paths. Production build passes.
+- Physical phone camera recognition, two-person framing, and Android thermal
+  behavior still need the hardware playtest above; browser simulation cannot
+  certify those device-specific results.

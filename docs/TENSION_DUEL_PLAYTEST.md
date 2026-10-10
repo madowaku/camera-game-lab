@@ -1,7 +1,7 @@
 # TENSION DUEL Human Playtest v0.1
 
 ## Setup
-Two people, one front camera, landscape phone, one hand per person. Open `#tension-duel`. Give only the instruction shown on screen. Play five 15-second rounds. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
+Two people, one front camera, landscape phone, one hand per person. Open the HTTPS Tension Duel link in Safari on iPhone or Chrome on Android, allow camera access, and tap **カメラで遊ぶ / Play with camera**. If offered, use **大きく表示 / Play fullscreen**; supported browsers also lock landscape. Give only the instruction shown on screen. Play five 15-second rounds. A lone tester can use a hand on each side for recognition smoke testing; this is not a substitute for the two-person gate.
 
 ## Camera smoke test (not yet performed)
 - Start grants camera access and opens the front camera; two hands produce exactly two nets.
@@ -15,6 +15,8 @@ Two people, one front camera, landscape phone, one hand per person. Open `#tensi
 - Rotate between portrait and landscape during a round: the ball stays inside the new arena, camera nets reattach to fingertips and no points are awarded during recovery.
 - Two hands on the same side do not start the countdown. A fingertip outside the preview shows the readiness hint instead of starting play.
 - Android performance and thermal behavior remain usable across five rounds.
+- Screen stays awake during a round where the browser supports Screen Wake Lock, then releases on pause/result/exit.
+- Landscape view keeps the playfield and pause/exit controls reachable without sideways page scrolling.
 
 ## Observation sheet
 | Round | Understand within 30s | Make C naturally | First hit | Tilt discovered | Tension noticed | Best rally | Visible positive reaction | Voluntary retry | Tracking problems |

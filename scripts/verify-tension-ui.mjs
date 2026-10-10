@@ -21,6 +21,22 @@ const $=s=>root.querySelector(s);
 let checks=0;const check=(name,fn)=>{fn();checks++;console.log('PASS',name);};
 duel.activate();
 check('intro is Japanese, primary action and tryout are visible',()=>{assert.match($('.td-card h2').textContent,/Cを/);assert.equal($('.td-start').textContent,'カメラで遊ぶ');assert.ok(!$('.td-demo').hidden);});
+check('fullscreen is a visible primary action on browsers that support it',()=>assert.ok($('.td-actions').contains($('.td-full'))));
+let lockedOrientation='', unlockedOrientation=false;
+const shell=$('.td-shell');
+Object.defineProperty(document,'fullscreenElement',{value:null,writable:true,configurable:true});
+document.exitFullscreen=async()=>{document.fullscreenElement=null;document.dispatchEvent(new window.Event('fullscreenchange'));};
+shell.requestFullscreen=async()=>{document.fullscreenElement=shell;document.dispatchEvent(new window.Event('fullscreenchange'));};
+Object.defineProperty(window.screen,'orientation',{configurable:true,value:{lock:async value=>{lockedOrientation=value;},unlock:()=>{unlockedOrientation=true;}}});
+await duel.toggleFullscreen();
+check('fullscreen requests landscape orientation where supported',()=>{assert.equal(document.fullscreenElement,shell);assert.equal(lockedOrientation,'landscape');assert.equal($('.td-full').textContent,'通常表示に戻す');});
+await duel.toggleFullscreen();
+check('leaving fullscreen releases the orientation lock',()=>{assert.equal(document.fullscreenElement,null);assert.ok(unlockedOrientation);});
+let wakeRequests=0,wakeReleases=0;
+const wakeSentinel={released:false,addEventListener(){},async release(){wakeReleases++;this.released=true;}};
+Object.defineProperty(navigator,'wakeLock',{configurable:true,value:{request:async type=>{assert.equal(type,'screen');wakeRequests++;return wakeSentinel;}}});
+duel.phase='playing';await duel.keepAwake();await duel.releaseWakeLock();duel.phase='intro';
+check('screen wake lock is acquired for active play and released afterward',()=>{assert.equal(wakeRequests,1);assert.equal(wakeReleases,1);});
 $('.td-demo').click();
 check('camera-free action enters ready and reveals accessible range controls',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.mode,'demo');assert.equal(root.querySelectorAll('input[aria-label]').length,6);assert.ok(!$('.td-controls').hidden);});
 let now=0;duel.tick(now);
@@ -50,10 +66,10 @@ check('a missed ball updates the visible opponent score',()=>{assert.equal(duel.
 for(let frame=0;frame<1000;frame++) duel.tick(now+=1000/60);
 check('EN changes all experiment actions and range names',()=>{duel.setLocale('en');assert.equal($('.td-start').textContent,'Play again · 15s');assert.equal($('.td-demo').textContent,'Play with camera');assert.equal(root.querySelector('input').getAttribute('aria-label'),'P1 Height');});
 // Camera failure with the actual UI state handlers, no device/model claims.
-let starts=0;duel.input.start=async()=>{starts++;throw new Error('camera denied');};duel.input.stop=()=>{};
+let starts=0;duel.input.start=async()=>{starts++;throw Object.assign(new Error('camera denied'),{name:'NotAllowedError'});};duel.input.stop=()=>{};
 await duel.start(); // mode demo/result is a retry, switch to camera explicitly next.
 duel.mode='camera';duel.phase='intro';await duel.start();
-check('camera failure offers retry and camera-free alternative',()=>{assert.equal(duel.phase,'intro');assert.match($('.td-status').textContent,/Camera could not/);assert.equal($('.td-start').disabled,false);assert.equal($('.td-demo').textContent,'Try without camera');});
+check('camera permission failures explain how to retry and offer camera-free play',()=>{assert.equal(duel.phase,'intro');assert.match($('.td-status').textContent,/Camera access is blocked/);assert.equal($('.td-start').disabled,false);assert.equal($('.td-demo').textContent,'Try without camera');});
 $('.td-demo').click();
 check('camera failure recovers directly to camera-free ready',()=>{assert.equal(duel.phase,'ready');assert.equal(duel.mode,'demo');});
 // Two hand camera injection exercises smoothing + readiness, not MediaPipe recognition.

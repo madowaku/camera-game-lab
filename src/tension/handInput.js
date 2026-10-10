@@ -3,7 +3,9 @@ import { BodyInput } from '../input/bodyInput.js';
 import { geometry, project } from './rules.js';
 export class DuelInput extends BodyInput {
   constructor(video, stage, options) { super(video, options); this.stage = stage; }
-  get cameraConstraints() { return { audio: false, video: { facingMode: { exact: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 } } }; }
+  // 540p is enough for fingertip tracking at normal two-player distance and
+  // reduces camera decode and inference pressure on mid-range phones.
+  get cameraConstraints() { return { audio: false, video: { facingMode: { exact: 'user' }, width: { ideal: 960 }, height: { ideal: 540 } } }; }
   createRecognizer(vision, delegate) {
     return GestureRecognizer.createFromOptions(vision, { baseOptions: {
       modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task', delegate },

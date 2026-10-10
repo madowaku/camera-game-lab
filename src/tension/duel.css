@@ -58,8 +58,8 @@
 .td-shell button:not(:disabled):hover { filter: brightness(1.15); }
 .td-shell button:not(:disabled):active { transform: translateY(1px); }
 .td-shell :is(button, input, summary):focus-visible { outline: 3px solid var(--td-ink); outline-offset: 4px; }
-.td-shell:fullscreen { padding: 12px; overflow: auto; background: #0b0d10; }
-.td-shell:fullscreen .td-stage { width: min(100%, calc((100dvh - 130px) * 16 / 9)); margin: auto; }
+.td-shell:fullscreen { padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); overflow: auto; background: #0b0d10; }
+.td-shell:fullscreen .td-stage { width: min(100%, calc((100dvh - 96px) * 16 / 9)); margin: auto; }
 .td-shell:fullscreen :is(.td-how, .td-rotate, .td-status, .td-tip) { display: none; }
 @media (max-width: 600px) {
   .td-stage { width: 100%; aspect-ratio: 4 / 3; border-radius: 16px; }
@@ -87,7 +87,9 @@
   .lab--tension { padding: 8px 12px; }
   .lab--tension .lab__header { margin-bottom: 8px; }
   .lab--tension .lab__header :is(h1, .lead, .mode-switch) { display: none; }
-  .td-stage { width: min(100%, calc((100dvh - 160px) * 16 / 9)); aspect-ratio: 16 / 9; }
+  /* Keep the playfield large on short landscape phones without pushing the
+     match controls off-screen. */
+  .td-stage { width: min(100%, calc((100dvh - 112px) * 16 / 9)); aspect-ratio: 16 / 9; }
   .td-card { padding: 10px 16px; }
   .td-card h2 { font-size: 18px; margin-bottom: 4px; }
   .td-card p { font-size: 12px; }
@@ -98,6 +100,7 @@
   .td-session { margin: 6px 0; }
   .td-actions { margin-top: 6px; }
   .td-status { margin: 0; }
-  .td-shell:fullscreen .td-stage { width: min(100%, calc((100dvh - 116px) * 16 / 9)); }
+  .lab--tension.lab--in-round > .lab__header { display: none; }
+.td-shell:fullscreen .td-stage { width: min(100%, calc((100dvh - 96px) * 16 / 9)); }
 }
 @media (prefers-reduced-motion: reduce) { .td-shell * { transition: none !important; } }

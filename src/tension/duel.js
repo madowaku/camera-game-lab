@@ -3,6 +3,14 @@ import { CONFIG, clamp, geometry, updateNets, createMatch, stepMatch, resizeMatc
 import { copy } from './messages.js';
 import './duel.css';
 
+function cameraErrorMessageKey(error) {
+  if (window.isSecureContext === false) return 'secureRequired';
+  if (error?.name === 'NotAllowedError') return 'permissionDenied';
+  if (['NotFoundError', 'FrontCameraUnavailableError'].includes(error?.name)) return 'cameraUnavailable';
+  if (error?.name === 'NotReadableError') return 'cameraBusy';
+  return 'error';
+}
+
 export class TensionDuel {
   constructor(root, locale = 'ja', { onExit } = {}) {
     Object.assign(this, { root, locale, onExit, active: false, phase: 'intro', mode: 'camera', nets: [null, null], match: createMatch(), impacts: [null, null], status: '', countdown: 0, generation: 0, sound: true, advancing: false, trail: [], pointAt: -Infinity });
@@ -19,17 +27,17 @@ export class TensionDuel {
         <button class="td-skip" type="button" hidden></button>
       </section>
       <div class="td-session"><span class="td-mode"></span><span class="td-length"></span><span class="td-tip"></span></div>
-      <div class="td-actions"><button class="button button--primary td-start" type="button"></button><button class="button td-demo" type="button"></button><button class="button td-pause" type="button" hidden></button><button class="button td-exit" type="button"></button></div>
+      <div class="td-actions"><button class="button button--primary td-start" type="button"></button><button class="button td-demo" type="button"></button><button class="button td-full" type="button"></button><button class="button td-pause" type="button" hidden></button><button class="button td-exit" type="button"></button></div>
       <p class="td-status" role="status"></p><p class="td-rotate"></p>
       <section class="td-controls" hidden>${[0, 1].map(p => `<fieldset><legend>P${p + 1}</legend>${['position', 'angle', 'opening'].map((kind, i) => `<label><span data-copy="${kind}"></span><input type="range" data-player="${p}" data-kind="${kind}" min="${i === 0 ? 5 : i === 1 ? -70 : 3}" max="${i === 0 ? 95 : i === 1 ? 70 : 21}" value="${i === 0 ? 50 : i === 1 ? 0 : 10.5}" step="0.5"></label>`).join('')}</fieldset>`).join('')}</section>
-      <details class="howto td-how"><summary></summary><p class="td-guide"></p><p class="td-demo-guide" hidden></p><p class="td-keys" hidden></p><p class="td-privacy"></p><div class="td-options"><button class="button td-sound" type="button"></button><button class="button td-full" type="button"></button></div></details>
+      <details class="howto td-how"><summary></summary><p class="td-guide"></p><p class="td-demo-guide" hidden></p><p class="td-keys" hidden></p><p class="td-privacy"></p><div class="td-options"><button class="button td-sound" type="button"></button></div></details>
     </div>`;
     this.$ = s => root.querySelector(s);
     this.stage = this.$('.td-stage'); this.video = this.$('video'); this.canvas = this.$('canvas'); this.ctx = this.canvas.getContext('2d');
     this.input = new DuelInput(this.video, this.stage, {
-      onStatus: status => {
+      onStatus: (status, error) => {
         if (!this.active || this.mode !== 'camera') return;
-        if (status === 'ERROR') { this.generation++; clearTimeout(this.timeout); this.phase = 'intro'; this.status = 'cameraFailed'; this.nets = [null, null]; this.advancing = false; }
+        if (status === 'ERROR') { this.generation++; clearTimeout(this.timeout); this.phase = 'intro'; this.status = cameraErrorMessageKey(error); this.nets = [null, null]; this.advancing = false; }
         else this.status = status === 'LOADING_MODEL' ? 'loading' : status === 'REQUESTING_CAMERA' ? 'permission' : '';
         this.render();
       },
@@ -44,7 +52,7 @@ export class TensionDuel {
     this.$('.td-pause').addEventListener('click', () => this.pause());
     this.$('.td-skip').addEventListener('click', () => { this.countdown = .01; });
     this.$('.td-sound').addEventListener('click', () => { this.sound = !this.sound; this.render(); });
-    this.$('.td-full').addEventListener('click', async () => { try { if (document.fullscreenElement) await document.exitFullscreen(); else await this.$('.td-shell').requestFullscreen?.(); } catch { /* Browser may not offer fullscreen. */ } });
+    this.$('.td-full').addEventListener('click', () => { void this.toggleFullscreen(); });
     root.querySelectorAll('input').forEach(el => el.addEventListener('input', () => {
       const f = this.fake[Number(el.dataset.player)], value = Number(el.value);
       if (el.dataset.kind === 'position') f.y = this.height * value / 100;
@@ -74,8 +82,17 @@ export class TensionDuel {
       f[kind] = clamp(f[kind] + b[2], kind === 'y' ? .03 : kind === 'angle' ? -1.22 : .03, kind === 'y' ? this.height - .03 : kind === 'angle' ? 1.22 : .21); this.syncControls();
     };
     window.addEventListener('keydown', this.onKey);
-    this.onVisibility = () => { this.last = null; this.advancing = false; this.pointers.clear(); };
+    this.onVisibility = () => {
+      this.last = null; this.advancing = false; this.pointers.clear();
+      if (document.hidden) void this.releaseWakeLock();
+      else if (this.phase === 'playing') void this.keepAwake();
+    };
     document.addEventListener('visibilitychange', this.onVisibility);
+    this.onFullscreenChange = () => {
+      if (document.fullscreenElement !== this.$('.td-shell')) window.screen?.orientation?.unlock?.();
+      this.render();
+    };
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
     this.render();
   }
   get t() { return copy[this.locale]; }
@@ -84,6 +101,7 @@ export class TensionDuel {
   activate() { this.active = true; this.root.hidden = false; this.phase = 'intro'; this.mode = 'camera'; this.render(); this.last = null; this.raf = requestAnimationFrame(this.tick); }
   deactivate() {
     this.active = false; this.generation++; clearTimeout(this.timeout); cancelAnimationFrame(this.raf); this.input.stop(); this.nets = [null, null]; this.phase = 'intro'; this.status = ''; this.root.hidden = true; this.audio?.suspend();
+    void this.releaseWakeLock();
     this.pointers.clear();
     this.advancing = false; this.trail = [];
     if (document.fullscreenElement === this.$('.td-shell')) document.exitFullscreen().catch(() => {});
@@ -91,6 +109,35 @@ export class TensionDuel {
   prepareAudio() {
     if (!this.audio) { const Audio = window.AudioContext || window.webkitAudioContext; if (Audio) this.audio = new Audio(); }
     this.audio?.resume().catch(() => {});
+  }
+  async toggleFullscreen() {
+    const shell = this.$('.td-shell');
+    try {
+      if (document.fullscreenElement === shell) {
+        await document.exitFullscreen();
+        window.screen?.orientation?.unlock?.();
+      } else if (shell.requestFullscreen) {
+        await shell.requestFullscreen({ navigationUI: 'hide' });
+        try { await window.screen?.orientation?.lock?.('landscape'); } catch { /* Rotation lock is optional and browser-specific. */ }
+      }
+    } catch { /* Fullscreen can be unavailable or declined; the page remains playable. */ }
+    this.render();
+  }
+  async keepAwake() {
+    if (!navigator.wakeLock?.request || this.wakeLock || this.wakeLockPending || document.hidden || !this.active || this.phase !== 'playing') return;
+    this.wakeLockPending = true;
+    try {
+      const sentinel = await navigator.wakeLock.request('screen');
+      if (!this.active || this.phase !== 'playing' || document.hidden) { await sentinel.release(); return; }
+      this.wakeLock = sentinel;
+      sentinel.addEventListener('release', () => { if (this.wakeLock === sentinel) this.wakeLock = null; }, { once: true });
+    } catch { /* Wake Lock is an enhancement; unsupported browsers still play normally. */ }
+    finally { this.wakeLockPending = false; }
+  }
+  async releaseWakeLock() {
+    const sentinel = this.wakeLock;
+    this.wakeLock = null;
+    if (sentinel && !sentinel.released) { try { await sentinel.release(); } catch { /* The browser may already have released it. */ } }
   }
   tone(type, state = 1) {
     if (!this.sound || !this.audio || this.audio.state !== 'running') return;
@@ -117,9 +164,9 @@ export class TensionDuel {
       await this.input.start();
       if (generation !== this.generation || !this.active) return;
       clearTimeout(this.timeout); this.ready();
-    } catch {
+    } catch (error) {
       if (generation !== this.generation || !this.active) return;
-      clearTimeout(this.timeout); this.input.stop(); this.phase = 'intro'; this.status = 'error'; this.render();
+      clearTimeout(this.timeout); this.input.stop(); this.phase = 'intro'; this.status = cameraErrorMessageKey(error); this.render();
     }
   }
   startDemo() {
@@ -129,10 +176,10 @@ export class TensionDuel {
   ready() { this.phase = 'ready'; this.countdown = CONFIG.readyTime; this.status = ''; this.match = createMatch(this.height); this.impacts = [null, null]; this.last = null; this.advancing = false; this.trail = []; this.pointAt = -Infinity; this.render(); }
   pause() {
     if (this.phase !== 'playing') return;
-    this.phase = 'paused'; this.advancing = false; this.pointers.clear(); this.render();
+    this.phase = 'paused'; this.advancing = false; void this.releaseWakeLock(); this.pointers.clear(); this.render();
     this.$('.td-start').focus({ preventScroll: true });
   }
-  resume() { this.phase = 'playing'; this.last = null; this.advancing = false; this.render(); }
+  resume() { this.phase = 'playing'; this.last = null; this.advancing = false; void this.keepAwake(); this.render(); }
   fitArena() {
     const before = this.match.height;
     if (!resizeMatch(this.match, this.height)) return;
@@ -162,7 +209,7 @@ export class TensionDuel {
       const placed = usable && this.nets[0].center.x < .5 && this.nets[1].center.x >= .5;
       if (placed && !document.hidden) this.countdown -= Math.min(dt, .1);
       else this.countdown = CONFIG.readyTime;
-      if (this.countdown <= 0) { this.phase = 'playing'; this.tone('start'); this.render(); }
+      if (this.countdown <= 0) { this.phase = 'playing'; void this.keepAwake(); this.tone('start'); this.render(); }
       this.$('.td-countdown').textContent = placed ? String(Math.ceil(Math.max(0, this.countdown))) : 'C';
       this.$('.td-ready-copy').textContent = placed ? this.t.steps[Math.min(2, Math.floor(CONFIG.readyTime - this.countdown))] : this.t.waiting;
       this.setHint(placed ? this.t.countdown : this.t.readyDetail);
@@ -174,7 +221,7 @@ export class TensionDuel {
           this.tone(event.type, event.state);
           if (event.type === 'hit') this.impacts[event.player] = { at:now, point:event.point, state:event.state };
           if (event.type === 'point') { this.pointAt = now; this.pointPlayer = event.player; this.trail = []; }
-          if (event.type === 'end') { this.phase = 'result'; this.render(); this.$('.td-start').focus({ preventScroll: true }); }
+          if (event.type === 'end') { this.phase = 'result'; void this.releaseWakeLock(); this.render(); this.$('.td-start').focus({ preventScroll: true }); }
         }
         this.advancing = this.phase === 'playing';
         if (this.phase === 'playing') this.setHint(this.match.serve > 0 ? `${this.t.serveTo}${this.match.serveDirection < 0 ? 1 : 2}` : '');
@@ -193,6 +240,7 @@ export class TensionDuel {
   setHint(text) { const el = this.$('.td-hint'); if (el.textContent !== text) el.textContent = text; el.hidden = !text; }
   render() {
     const t = this.t, result = this.phase === 'result', paused = this.phase === 'paused', intro = this.phase === 'intro' || this.phase === 'loading';
+    this.root.closest('.lab')?.classList.toggle('lab--in-round', ['ready', 'playing', 'paused'].includes(this.phase));
     this.stage.setAttribute('aria-label', t.arena); this.stage.dataset.phase = this.phase; this.stage.dataset.mode = this.mode;
     this.$('.td-artwork').hidden = !intro && !result;
     this.video.hidden = this.mode !== 'camera' || !this.input.running;
@@ -219,7 +267,8 @@ export class TensionDuel {
     this.$('.td-demo-guide').hidden = this.$('.td-keys').hidden = this.mode !== 'demo';
     this.$('.td-demo-guide').textContent = t.demoGuide; this.$('.td-keys').textContent = t.keys;
     this.$('.td-sound').textContent = `${t.sound} ${this.sound ? 'ON' : 'OFF'}`; this.$('.td-sound').setAttribute('aria-pressed', String(this.sound));
-    this.$('.td-full').textContent = t.fullscreen; this.$('.td-full').hidden = !this.$('.td-shell').requestFullscreen;
+    this.$('.td-full').textContent = document.fullscreenElement === this.$('.td-shell') ? t.exitFullscreen : t.fullscreen;
+    this.$('.td-full').hidden = !this.$('.td-shell').requestFullscreen;
     this.root.querySelectorAll('[data-copy]').forEach(el => el.textContent = t[el.dataset.copy]);
     this.root.querySelectorAll('input').forEach(el => el.setAttribute('aria-label', `P${Number(el.dataset.player)+1} ${t[el.dataset.kind]}`));
     this.$('.td-skip').textContent = t.skip; this.$('.td-skip').hidden = this.phase !== 'ready';
