@@ -33,7 +33,8 @@ test('wheel calibration retains neutral after recognition loss',()=>{
   for(let at=0;at<=750;at+=50)w.sample(10,at);
   assert.equal(w.neutral,10);
   assert.equal(w.sample(null,800).tracked,false);
-  const steering=w.sample(28,850);
+  w.sample(28,850); // first returning frame is intentionally filtered into the dead zone
+  const steering=w.sample(28,900);
   assert.equal(steering.mode,'hands');
   assert.equal(steering.hands,2);
   assert.ok(steering.steering>0);
