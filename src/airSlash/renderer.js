@@ -2,6 +2,7 @@ import atlasUrl from './assets/fruit-atlas-v1.webp';
 import { W, H } from './core.js';
 import { drawCamera } from '../creator/CameraLayout.js';
 import { OneEuroFilter2D } from '../input/oneEuroFilter.js';
+import { cameraInputDebug } from '../input/debugStore.js';
 
 const colors = ['#ff4d5a', '#ffb324', '#fb5c76', '#ffe943', '#ff476c'];
 export class AirSlashRenderer {
@@ -13,7 +14,9 @@ export class AirSlashRenderer {
       state = { filter: new OneEuroFilter2D({ minCutoff: 1.2, beta: .035, dCutoff: 1 }), history: [], lastAt: stroke.at };
       this.bladeVisuals.set(stroke.id, state);
     }
+    cameraInputDebug.point("AirSlash", "raw-blade", { ...stroke.b, present: true, id: stroke.id }, { at: stroke.at, width: W, height: H, slot: stroke.id });
     const point = state.filter.filter(stroke.b.x, stroke.b.y, stroke.at);
+    cameraInputDebug.point("AirSlash", "filtered-blade", { ...point, present: true, id: stroke.id }, { at: stroke.at, width: W, height: H, slot: stroke.id });
     state.lastAt = stroke.at;
     state.history.push({ ...point, at: stroke.at });
     state.history = state.history.filter(p => stroke.at - p.at <= 130);
@@ -26,12 +29,14 @@ export class AirSlashRenderer {
       if (this.trails.length > 28) this.trails.shift();
     }
     if (e.type === 'slice') {
+      cameraInputDebug.event("AirSlash", "SLICE", { power: !!e.power, combo: e.combo });
       const f = e.fruit, nx = -Math.sin(e.angle), ny = Math.cos(e.angle);
       for (const side of [-1, 1]) this.pieces.push({ ...f, angle: e.angle, side, life: 1.05, age: 0, vx: f.vx * .25 + nx * side * (e.power ? 250 : 160), vy: -190 + ny * side * 160, twirl: side * .65 });
       this.burst(f.x, f.y, colors[f.kind], e.angle, reduced ? 6 : e.power || e.combo >= 5 ? 28 : 16);
       this.labels.push({ x: f.x, y: f.y - f.r, text: `+${e.points}`, color: '#fffbe5', life: .75 });
     }
     if (e.type === 'bomb') {
+      cameraInputDebug.event("AirSlash", "BOMB");
       this.shake = reduced ? 0 : .42; this.flash = reduced ? 0 : .09; this.soot = 2.5;
       this.burst(e.fruit.x, e.fruit.y, '#ffb62b', e.angle, reduced ? 8 : 32);
       for (let i = 0; i < (reduced ? 7 : 16); i++) this.drops.push({ x: e.fruit.x, y: e.fruit.y, vx: (Math.random() - .5) * 220, vy: -Math.random() * 210, life: 1.2, max: 1.2, r: 15 + Math.random() * 30, color: '#252a2d', smoke: true });

@@ -1,6 +1,7 @@
 import { BodyInput } from "./bodyInput.js";
 import { FaceInput } from "./faceInput.js";
 import { OneEuroFilter2D } from "./oneEuroFilter.js";
+import { cameraInputDebug } from "./debugStore.js";
 
 const clamp = (value) => Math.max(0, Math.min(1, value));
 const distance = (a, b) =>
@@ -75,6 +76,7 @@ export class FingerGunInput extends BodyInput {
     this.currentAim = { x: 0.5, y: 0.5, visible: false, onTarget: false };
     this.lastFrameAt = null;
     this.lastInferenceAt = -Infinity;
+    this.debugPointing = false;
   }
 
   async createRecognizer(vision, delegate) {
@@ -111,15 +113,22 @@ export class FingerGunInput extends BodyInput {
 
     const pose = getPose(result.hand, this.video);
     if (!pose) {
+      if (this.debugPointing) cameraInputDebug.event("FingerGun", "TRACK_LOST", {}, timestamp);
+      this.debugPointing = false;
       this.resetTracking();
     } else {
       const aim = projectAim(pose.landmarks, this.video);
+      if (!this.debugPointing) cameraInputDebug.event("FingerGun", "TRACK_FOUND", {}, timestamp);
+      this.debugPointing = true;
+      cameraInputDebug.point("FingerGun", "raw-aim", { ...aim, present: true }, { at: timestamp });
       const filtered = this.aimFilter.filter(aim.x, aim.y, timestamp);
+      cameraInputDebug.point("FingerGun", "filtered-aim", { ...filtered, present: true }, { at: timestamp });
       this.currentAim.x = filtered.x;
       this.currentAim.y = filtered.y;
       this.currentAim.visible = true;
       const target = this.getTarget();
       this.currentAim.onTarget = Boolean(target && Math.hypot(this.currentAim.x - target.x, this.currentAim.y - target.y) <= target.radius);
+      cameraInputDebug.metric("FingerGun", "onTarget", this.currentAim.onTarget, timestamp);
     }
     // Update pointing first so the mouth edge uses this frame's aim. Off-target
     // shots still count as misses; only missing inputs suppress a shot.
@@ -129,10 +138,13 @@ export class FingerGunInput extends BodyInput {
 
   processMouth(mouth) {
     const available = mouth.ready && this.currentAim.visible && this.getTarget();
+    cameraInputDebug.metric("FingerGun", "mouthOpen", !!mouth.open);
+    cameraInputDebug.metric("FingerGun", "mouthReady", !!mouth.ready);
     if (!available) this.mouthArmed = false;
     else if (!mouth.open) this.mouthArmed = true;
     else if (this.mouthArmed) {
       this.mouthArmed = false;
+      cameraInputDebug.event("FingerGun", "SHOT", { onTarget: this.currentAim.onTarget });
       this.onShot({ x: this.currentAim.x, y: this.currentAim.y });
     }
     this.onMouth({ ...mouth });
@@ -150,6 +162,7 @@ export class FingerGunInput extends BodyInput {
     this.resetTracking();
     this.lastFrameAt = null;
     this.lastInferenceAt = -Infinity;
+    this.debugPointing = false;
     this.mouthInput.stop();
     this.onAim({ ...this.currentAim });
   }

@@ -1,3 +1,4 @@
+import { cameraInputDebug } from "./debugStore.js";
 const validPoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1;
 export const GRIP_CONFIG = Object.freeze({ confidence: .6, holdMs: 80, staleMs: 300 });
 
@@ -28,16 +29,19 @@ export class GripState {
     }
     if (!this.present) events.push("HAND_PRESENT");
     this.present = true; this.lostAt = null;
-    if (reading.gesture !== this.candidate) { this.candidate = reading.gesture; this.since = timestamp; }
-    const qualified = reading.gesture && timestamp - this.since >= this.config.holdMs;
+    if (reading.gesture !== this.candidate) { this.candidate = reading.gesture; this.since = timestamp; cameraInputDebug.event("GRIP", "CANDIDATE", { gesture: reading.gesture ?? "none" }, timestamp); }
+    const confirmMs = this.since == null ? 0 : timestamp - this.since;
+    const qualified = reading.gesture && confirmMs >= this.config.holdMs;
+    cameraInputDebug.metric("GRIP", "confirmMs", confirmMs, timestamp);
+    cameraInputDebug.metric("GRIP", "gesture", reading.gesture ?? "none", timestamp);
     this.open = qualified && reading.gesture === "Open_Palm";
     if (qualified) {
       if (this.open) {
         this.armed = true;
-        if (this.grabbing) { this.grabbing = false; events.push("GRIP_END"); }
+        if (this.grabbing) { this.grabbing = false; events.push("GRIP_END"); cameraInputDebug.event("GRIP", "GRIP_END", { confirmedMs: confirmMs }, timestamp); }
       } else if (!this.grabbing) {
         this.grabbing = true;
-        if (this.armed) events.push("GRIP_START");
+        if (this.armed) { events.push("GRIP_START"); cameraInputDebug.event("GRIP", "GRIP_START", { confirmedMs: confirmMs }, timestamp); }
         this.armed = false;
       }
     }
