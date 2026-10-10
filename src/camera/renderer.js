@@ -59,6 +59,20 @@ export function drawWorld(canvas, game, now, reducedMotion = false) {
     ctx.restore();
   }
   ctx.globalAlpha = 1;
+  // Exclusion is a framing puzzle, not a reaction timer. Make the red subject unmissable.
+  for (const p of game.platforms) {
+    if (p.rule !== 'EXCLUDE' || !p.blocker) continue;
+    const { x, y } = p.blocker;
+    ctx.save();
+    ctx.lineWidth = 4; ctx.strokeStyle = '#ff9e9b';
+    ctx.fillStyle = 'rgba(255,90,90,.16)';
+    ctx.beginPath(); ctx.arc(x, y, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - 12, y - 12); ctx.lineTo(x + 12, y + 12);
+    ctx.moveTo(x + 12, y - 12); ctx.lineTo(x - 12, y + 12); ctx.stroke();
+    ctx.fillStyle = '#ffe1db'; ctx.font = 'bold 17px sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('OUT!', x, y - 42);
+    ctx.restore();
+  }
   for (const a of game.anchors ?? []) {
     ctx.strokeStyle = a.visible ? '#d7ff9e' : '#8c9f8b'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(a.x, a.y, 14, 0, Math.PI * 2); ctx.stroke();

@@ -15,6 +15,42 @@ test('OVEREXPOSE accumulates, breaks, requires full recovery', () => {
   tick(true, 600); assert.equal(s.solid, false); tick(false, 699); assert.equal(s.solid, false); tick(false, 1); assert.ok(s.solid);
   tick(true, 1199); assert.ok(s.solid); tick(true, 1); assert.equal(s.solid, false);
 });
+test('EXCLUDE only solid when its red marker is outside frame, independent of time', () => {
+  const state = createRuleState(), rule = { rule: 'EXCLUDE' };
+  updateRule(rule, state, true, 3000, 0, false);
+  assert.equal(state.solid, false);
+  updateRule(rule, state, true, 16, 0, true);
+  assert.equal(state.solid, true);
+  updateRule(rule, state, true, 100000, 0, true);
+  assert.equal(state.solid, true, 'holding the good framing never destroys the bridge');
+  updateRule(rule, state, true, 16, 0, false);
+  assert.equal(state.solid, false);
+});
+test('002 is short and 008/010 have no exposure countdown', () => {
+  assert.equal(stages[1].platforms.length, 3);
+  assert.ok(stages[1].platforms.at(-1).x < 1200);
+  assert.equal(stages[7].hint, 'exclude');
+  assert.ok(stages[7].platforms.some(p => p.rule === 'EXCLUDE'));
+  assert.ok([7, 9].every(i => stages[i].platforms.every(p => p.rule !== 'OVEREXPOSE')));
+  const game = new CameraIsItGame(); game.loadStage(7); game.step(60000);
+  assert.equal(game.phase, 'playing', 'player may solve at their own pace');
+  assert.equal(game.attempts.length, 0);
+});
+test('008 solves with a small shift that keeps the runner framed', () => {
+  const g = new CameraIsItGame(); g.loadStage(7); g.phase = 'playing';
+  assert.equal(g.platforms[1].active, false);
+  g.setCamera({ x: 400, y: 1000 }, true); g.updateExistence(16);
+  assert.equal(g.platforms[1].active, true);
+  assert.ok(Math.abs(g.runner.x - g.camera.x) < VIEW.width / 2);
+  assert.ok(Math.abs(g.runner.y - g.camera.y) < VIEW.height / 2);
+  assert.ok((g.camera.y - g.stage.camera.y) / 32 < 5, 'a small seated pitch reveals the bridge');
+});
+test('010 bridge and red exclusion are simultaneously satisfiable', () => {
+  const g = new CameraIsItGame(); g.loadStage(9); g.phase = 'playing';
+  g.setCamera({ x: 1120, y: 1050 }, true); g.updateExistence(16);
+  assert.equal(g.platforms[3].active, true, 'linked bridge stays solid');
+  assert.equal(g.platforms[4].active, true, 'exclusion landing stays solid');
+});
 test('LINKED one, all, and lost member', () => { const [s, tick] = run('LINKED'); tick(true, 16, 1); assert.equal(s.solid, false); tick(false, 16, 2); assert.ok(s.solid); tick(true, 16, 1); assert.equal(s.solid, false); });
 test('anchor margin accepts small framing error', () => { assert.ok(anchorVisible({ x: 854, y: 870, width: 0 }, { x: 400, y: 870 }, VIEW)); assert.equal(anchorVisible({ x: 860, y: 870, width: 0 }, { x: 400, y: 870 }, VIEW), false); });
 test('focus can compose with afterimage in finale', () => { const s = createRuleState(), p = { rule: 'FOCUS_HOLD', memoryMs: 1500 }; updateRule(p, s, true, 500); updateRule(p, s, false, 1000); assert.ok(s.solid); updateRule(p, s, false, 500); assert.equal(s.solid, false); });
@@ -26,7 +62,7 @@ test('all five new stages have a camera-only solution', () => {
       const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
       let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
       if (index === 5 && r.support <= 1) x = 555;
-      if (index === 7) x = r.x - 370;
+      if (index === 7) y = 1000;
       if (index === 6 && r.support === 1 && r.x > 615) x = 1300;
       if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {
         const group = next.rule === 'LINKED' ? next.linkedGroup : g.platforms[r.support].linkedGroup;
@@ -34,6 +70,7 @@ test('all five new stages have a camera-only solution', () => {
       }
       const hot = g.platforms.find(p => p.rule === 'OVEREXPOSE' && p.ruleState.overexposeMs > 600);
       if (hot && index !== 7) x = hot.x + hot.width / 2 + 490;
+      if (index === 9 && (next.rule === 'EXCLUDE' || g.platforms[r.support].rule === 'EXCLUDE')) { x = 1120; y = 1050; }
       g.setCamera({ x, y }, true); g.step(16);
     }
     assert.ok(g.phase === 'stage-clear' || g.result?.clear, `stage ${index + 1}: ${g.phase} ${JSON.stringify(g.attempts)}`);
@@ -73,7 +110,7 @@ test('001–010 play continuously and produce ten receipts', () => {
     const r = g.runner, next = g.platforms[Math.min(r.support + 1, g.platforms.length - 1)];
     let x = r.x + 200, y = (r.y + next.y) / 2 - 50;
     if (g.index === 5 && r.support <= 1) x = 555;
-    if (g.index === 7) x = r.x - 370;
+    if (g.index === 7) y = 1000;
     if (g.index === 6 && r.support === 1 && r.x > 615) x = 1300;
     if (next.rule === 'LINKED' || g.platforms[r.support].rule === 'LINKED') {
       const group = next.rule === 'LINKED' ? next.linkedGroup : g.platforms[r.support].linkedGroup;
@@ -81,6 +118,7 @@ test('001–010 play continuously and produce ten receipts', () => {
     }
     const hot = g.platforms.find(p => p.rule === 'OVEREXPOSE' && p.ruleState.overexposeMs > 600);
     if (hot && g.index !== 7) x = hot.x + hot.width / 2 + 490;
+    if (g.index === 9 && (next.rule === 'EXCLUDE' || g.platforms[r.support].rule === 'EXCLUDE')) { x = 1120; y = 1050; }
     g.setCamera({ x, y }); g.step(16);
     if (g.phase === 'stage-clear') g.nextStage();
   }

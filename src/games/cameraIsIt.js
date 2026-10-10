@@ -47,7 +47,8 @@ export class CameraIsItGame {
     for (const p of this.platforms) {
       if (p.rule) {
         const was = p.ruleState.solid;
-        updateRule(p, p.ruleState, anchorVisible(p, this.camera, VIEW), dt, counts[p.linkedGroup] ?? 0);
+        updateRule(p, p.ruleState, anchorVisible(p, this.camera, VIEW), dt, counts[p.linkedGroup] ?? 0,
+          p.rule === 'EXCLUDE' && p.blocker ? !anchorVisible(p.blocker, this.camera, VIEW) : false);
         p.active = p.ruleState.solid;
         // The focus target must remain visible as an outline before it is centered.
         const inFrame = p.centerHold && anchorVisible({ ...p, centerHold: false }, this.camera, VIEW);
@@ -95,7 +96,7 @@ export class CameraIsItGame {
       // Intro lessons stop before an unready route instead of forcing a blind fall.
       if (this.stage.tutorialGate && next && !next.active && r.x >= support.x + support.width - 52) {
         r.x = support.x + support.width - 52;
-        this.warning = next.rule === 'FOCUS_HOLD' ? 'focusWait' : 'memoryWait';
+        this.warning = next.rule === 'FOCUS_HOLD' ? 'focusWait' : next.rule === 'EXCLUDE' ? 'excludeWait' : 'memoryWait';
         return;
       }
       if (next && r.x >= support.x + support.width - 36) {
@@ -118,7 +119,7 @@ export class CameraIsItGame {
       }
     }
     if (r.y > WORLD.height + 80) return this.failStage(this.platforms[r.support]);
-    if (this.stageElapsed > 30000) return this.failStage(null, 'time');
+    if (this.stage.timeLimitMs && this.stageElapsed > this.stage.timeLimitMs) return this.failStage(null, 'time');
     if (!r.airborne && r.support === this.platforms.length - 1 && r.x >= this.goal.x) {
       this.completed++; this.receipts.push({ stage: this.index + 1, seconds: this.stageElapsed / 1000, source: this.source, background: this.background });
       if (this.index === stages.length - 1) this.finish(true); else this.phase = "stage-clear";
