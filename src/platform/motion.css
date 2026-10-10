@@ -54,6 +54,131 @@
 @keyframes motion-ray { 0% { opacity:0; transform:rotate(var(--angle)) translateY(-28px) scale(.4); } 15% { opacity:1; } 100% { opacity:0; transform:rotate(var(--angle)) translateY(-95px) scale(.2); } }
 @keyframes motion-caption { 0% { opacity:0; translate:0 16px; scale:.78; rotate:-6deg; } 18% { opacity:1; scale:1.06; rotate:1deg; } 30%,70% { opacity:1; translate:0 0; scale:1; rotate:0deg; } 100% { opacity:0; translate:0 -12px; scale:.96; } }
 @keyframes motion-score { from { opacity:0; scale:.85; } 55% { opacity:1; scale:1.045; } to { opacity:1; scale:1; } }
+
+/* Camera Motion Lab B. Scoped to eligible opt-in routes, native controls unchanged.
+   Pure CSS timing: no extra animation loop, WebGL context or media request. */
+[data-motion-lab="B"] .motion-burst--lab { animation-duration:860ms; }
+[data-motion-lab-preset="sigil"] .motion-burst--lab { animation-duration:920ms; }
+[data-motion-lab="B"] .motion-burst--lab::before,
+[data-motion-lab="B"] .motion-burst--lab::after {
+  content:"";position:absolute;left:var(--burst-x);top:var(--burst-y);
+  width:132px;height:132px;margin:-66px;border:1px solid currentColor;
+  border-radius:50%;opacity:0;pointer-events:none;
+  animation:motion-lab-halo 710ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab="B"] .motion-burst--lab::after {
+  width:74px;height:74px;margin:-37px;border:2px dashed #fff5d4;
+  animation-delay:35ms;animation-duration:640ms;animation-direction:normal;
+}
+[data-motion-lab="B"] .motion-burst--lab .motion-ring {
+  border-width:3px;animation-duration:720ms;
+}
+[data-motion-lab="B"] .motion-lab-glyph {
+  position:absolute;left:var(--burst-x);top:var(--burst-y);
+  display:block;width:52px;height:52px;margin:-26px;
+  font:normal 36px/52px Georgia,serif;text-align:center;
+  color:#fff6cf;text-shadow:0 0 10px currentColor;
+  opacity:0;animation:motion-lab-glyph 640ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="sigil"] .motion-burst--lab::before {
+  width:210px;height:210px;margin:-105px;border:3px double #ffe2a1;
+  animation-duration:840ms;
+}
+[data-motion-lab-preset="sigil"] .motion-burst--lab::after {
+  width:164px;height:164px;margin:-82px;border:2px dashed #cbf3df;
+  animation-duration:780ms;
+}
+[data-motion-lab-preset="sigil"] .motion-lab-glyph {
+  width:94px;height:94px;margin:-47px;font-size:62px;line-height:94px;
+  color:#ffe9b7;
+}
+[data-motion-lab-preset="rune"] .motion-burst--lab::before {
+  border-radius:20%;transform:rotate(45deg);border-color:#d7c8ff;
+}
+[data-motion-lab-preset="rune"] .motion-burst--lab::after {border-color:#f0dcff;}
+[data-motion-lab-preset="rune"] .motion-lab-glyph {color:#f8dcff;}
+[data-motion-lab-preset="beat"] .motion-burst--lab::before {
+  width:110px;height:110px;margin:-55px;border-width:5px;border-color:#ffdf85;
+  animation-duration:460ms;
+}
+[data-motion-lab-preset="beat"] .motion-burst--lab::after {
+  width:160px;height:160px;margin:-80px;border-width:2px;border-color:#edffb0;
+  animation-duration:540ms;
+}
+[data-motion-lab-preset="beat"] .motion-lab-glyph {
+  font-size:32px;color:#faffc5;animation-duration:450ms;
+}
+
+/* AIR SLASH: two clean cuts, with a wider crossing at combo / X-SLASH. */
+[data-motion-lab-preset="cut"] .motion-burst--lab { --cut-width:180px; }
+[data-motion-lab-preset="cut"] :is(.motion-burst--combo,.motion-burst--special) { --cut-width:260px; }
+[data-motion-lab-preset="cut"] .motion-burst--lab :is(.motion-ring,.motion-ray) { display:none; }
+[data-motion-lab-preset="cut"] .motion-burst--lab::before,
+[data-motion-lab-preset="cut"] .motion-burst--lab::after {
+  width:var(--cut-width);height:5px;margin:-2px calc(var(--cut-width) / -2);
+  border:0;border-radius:50%;background:linear-gradient(90deg,transparent,currentColor 30%,#fff8dc 50%,currentColor 70%,transparent);
+  --cut-angle:-32deg;animation:motion-lab-cut 490ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="cut"] .motion-burst--lab::after { --cut-angle:32deg;animation-delay:55ms; }
+
+/* TILT TURBO: brief outward speed lines leave the road and car readable. */
+[data-motion-lab-preset="speed"] .motion-burst--lab :is(.motion-ring,.motion-ray) { display:none; }
+[data-motion-lab-preset="speed"] .motion-burst--lab::before,
+[data-motion-lab-preset="speed"] .motion-burst--lab::after {
+  width:68px;height:3px;margin:-1px -34px;border:0;border-radius:2px;
+  background:currentColor;box-shadow:0 -16px 0 -1px #fff5d4,0 16px 0 -1px currentColor;
+  --speed-side:-1;animation:motion-lab-speed 570ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="speed"] .motion-burst--lab::after { --speed-side:1;animation-delay:0ms; }
+
+/* NOTE BLASTER: short musical pulse; firing or missing alone never triggers it. */
+[data-motion-lab-preset="pulse"] .motion-burst--lab::before {
+  width:118px;height:118px;margin:-59px;border:3px solid currentColor;animation-duration:500ms;
+}
+[data-motion-lab-preset="pulse"] .motion-burst--lab::after {
+  width:152px;height:152px;margin:-76px;border:1px solid #fff5d4;animation-duration:610ms;
+}
+[data-motion-lab-preset="pulse"] .motion-burst--lab .motion-ring { display:none; }
+[data-motion-lab-preset="pulse"] .motion-burst--lab .motion-ray { width:4px;height:12px; }
+[data-motion-lab-preset="pulse"] .motion-lab-glyph { color:#fff8dc;animation-duration:490ms; }
+
+/* PALM PONG: hollow ripples keep the ball visible; Phaser owns rally captions. */
+[data-motion-lab-preset="rebound"] .motion-burst--lab :is(.motion-ray,.motion-ring) { display:none; }
+[data-motion-lab-preset="rebound"] .motion-burst--lab::before,
+[data-motion-lab-preset="rebound"] .motion-burst--lab::after {
+  width:76px;height:76px;margin:-38px;border:3px solid currentColor;
+  animation:motion-lab-rebound 440ms cubic-bezier(.16,1,.3,1) both;
+}
+[data-motion-lab-preset="rebound"] .motion-burst--lab::after { border:1px solid #fff5d4;animation-delay:65ms; }
+
+@keyframes motion-lab-cut {
+  0% {opacity:0;transform:rotate(var(--cut-angle)) scaleX(.15)}
+  18% {opacity:.95;transform:rotate(var(--cut-angle)) scaleX(1)}
+  100% {opacity:0;transform:rotate(var(--cut-angle)) scaleX(1.25) scaleY(.2)}
+}
+@keyframes motion-lab-speed {
+  0% {opacity:0;transform:translateX(calc(var(--speed-side) * 45px)) skewX(-24deg) scaleX(.25)}
+  15% {opacity:.85}
+  100% {opacity:0;transform:translateX(calc(var(--speed-side) * 140px)) skewX(-24deg) scaleX(1.4)}
+}
+@keyframes motion-lab-rebound {
+  0% {opacity:0;scale:.35 .65}
+  16% {opacity:.9;scale:.8 1.05}
+  100% {opacity:0;scale:1.65}
+}
+@keyframes motion-lab-halo {
+  0% {opacity:0;scale:.25;rotate:-24deg}
+  15% {opacity:.95}
+  65% {opacity:.6}
+  100% {opacity:0;scale:1.35;rotate:45deg}
+}
+@keyframes motion-lab-glyph {
+  0% {opacity:0;scale:.2;rotate:-45deg}
+  25% {opacity:1;scale:1.16;rotate:12deg}
+  55% {opacity:1;scale:1;rotate:0deg}
+  100% {opacity:0;scale:1.3;rotate:20deg}
+}
+
 @media (max-width:480px) { .motion-caption { font-size:25px; padding:6px 11px; } }
 @media (prefers-reduced-motion:reduce) {
   [data-motion-scene],[data-motion-scene] * { animation:none !important; }
