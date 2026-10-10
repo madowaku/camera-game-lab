@@ -13,7 +13,7 @@ export function launchMarkup(game,locale){const t=copy(locale);return `<section 
     <button type="button" data-drive-option="head" aria-pressed="false">🙂 ${locale==='ja'?'顔で運転':'HEAD TILT'}</button></div>
   <details class="tt-garage" role="group" aria-label="${locale==='ja'?'コースと車の選択':'Track and car selection'}"><summary>🚗 ${locale==='ja'?'ガレージ / コースと車を選ぶ':'GARAGE / Choose your track & car'}</summary>
     <p>${locale==='ja'?'コース':'COURSE'}</p><div class="tt-choices" role="group" aria-label="Course">
-      ${COURSES.map(c=>`<button type="button" data-course-option="${c.id}" aria-pressed="${c.id==='toy-town'}">${esc(c[locale==='ja'?'ja':'en'])}</button>`).join('')}</div>
+      ${COURSES.map(c=>`<button type="button" data-course-option="${c.id}" aria-pressed="${c.id==='toy-town'}">${esc(c[locale==='ja'?'ja':'en'])}<small>${locale==='ja'?({'toy-town':'ひろびろ',seaside:'ゆったり',neon:'せまめ'})[c.id]:({'toy-town':'WIDE',seaside:'RELAXED',neon:'NARROW'})[c.id]}</small></button>`).join('')}</div>
     <p>${locale==='ja'?'車':'CAR'}</p><div class="tt-choices" role="group" aria-label="Car">
       ${CARS.map(c=>`<button type="button" data-car-option="${c.id}" aria-pressed="${c.id==='roadster'}"><span class="tt-car-chip" style="background:${c.color}">●</span> ${esc(c[locale==='ja'?'ja':'en'])}</button>`).join('')}</div>
   </details>
