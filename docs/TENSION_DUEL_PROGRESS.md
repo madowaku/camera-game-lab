@@ -79,8 +79,8 @@ at `http://127.0.0.1:5187/#tension-duel`. Camera needs localhost or HTTPS.
 
 ## Smartphone readiness follow-up — 2026-10-10
 
-- Short landscape layouts use more of the phone display, and hide the experiment
-  header during active play so match controls stay nearby.
+- Short landscape layouts use more of the phone display and keep the start and
+  match controls within reach by hiding the experiment header.
 - Fullscreen is now a primary action. Browsers that support it also attempt a
   landscape orientation lock; unsupported devices keep the normal page flow.
 - Screen Wake Lock keeps the display awake during active rounds when available,

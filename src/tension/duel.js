@@ -240,7 +240,6 @@ export class TensionDuel {
   setHint(text) { const el = this.$('.td-hint'); if (el.textContent !== text) el.textContent = text; el.hidden = !text; }
   render() {
     const t = this.t, result = this.phase === 'result', paused = this.phase === 'paused', intro = this.phase === 'intro' || this.phase === 'loading';
-    this.root.closest('.lab')?.classList.toggle('lab--in-round', ['ready', 'playing', 'paused'].includes(this.phase));
     this.stage.setAttribute('aria-label', t.arena); this.stage.dataset.phase = this.phase; this.stage.dataset.mode = this.mode;
     this.$('.td-artwork').hidden = !intro && !result;
     this.video.hidden = this.mode !== 'camera' || !this.input.running;

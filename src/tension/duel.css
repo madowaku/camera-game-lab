@@ -85,8 +85,7 @@
 }
 @media (orientation: landscape) and (max-height: 550px) {
   .lab--tension { padding: 8px 12px; }
-  .lab--tension .lab__header { margin-bottom: 8px; }
-  .lab--tension .lab__header :is(h1, .lead, .mode-switch) { display: none; }
+  .lab--tension .lab__header { display: none; }
   /* Keep the playfield large on short landscape phones without pushing the
      match controls off-screen. */
   .td-stage { width: min(100%, calc((100dvh - 112px) * 16 / 9)); aspect-ratio: 16 / 9; }
@@ -100,7 +99,6 @@
   .td-session { margin: 6px 0; }
   .td-actions { margin-top: 6px; }
   .td-status { margin: 0; }
-  .lab--tension.lab--in-round > .lab__header { display: none; }
 .td-shell:fullscreen .td-stage { width: min(100%, calc((100dvh - 96px) * 16 / 9)); }
 }
 @media (prefers-reduced-motion: reduce) { .td-shell * { transition: none !important; } }
